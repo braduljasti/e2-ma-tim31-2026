@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Igra Skočko: 6 pokušaja da se pogodi kombinacija 4 od 6 znakova -->
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:fillViewport="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/margin_medium">
+
+        <!-- Header: runda i timer -->
+        <LinearLayout
+            android:id="@+id/llHeaderSkocko"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/tvRundaSkocko"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Runda 1 / 2"
+                android:textColor="@color/primary"
+                android:textSize="16sp"
+                android:textStyle="bold"/>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardBackgroundColor="@color/primary">
+
+                <TextView
+                    android:id="@+id/tvTimerSkocko"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="12dp"
+                    android:text="30"
+                    android:textColor="@color/white"
+                    android:textSize="36sp"
+                    android:textStyle="bold"
+                    android:fontFamily="monospace"/>
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+        <!-- Legenda -->
+        <LinearLayout
+            android:id="@+id/llLegenda"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            android:gravity="center"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/llHeaderSkocko">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/lbl_tacno_mjesto"
+                android:textColor="@color/success"
+                android:textSize="12sp"
+                android:textStyle="bold"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="@string/lbl_netacno_mjesto"
+                android:textColor="@color/warning"
+                android:textSize="12sp"
+                android:textStyle="bold"/>
+
+        </LinearLayout>
+
+        <!-- Tabla pokušaja: 6 redova x 4 polja + 2 indikatora -->
+        <LinearLayout
+            android:id="@+id/llTablaPokusaja"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/llLegenda">
+
+            <!-- Red 1 -->
+            <include layout="@layout/item_skocko_red" android:id="@+id/redSkocko1"/>
+            <!-- Red 2 -->
+            <include layout="@layout/item_skocko_red" android:id="@+id/redSkocko2"/>
+            <!-- Red 3 -->
+            <include layout="@layout/item_skocko_red" android:id="@+id/redSkocko3"/>
+            <!-- Red 4 -->
+            <include layout="@layout/item_skocko_red" android:id="@+id/redSkocko4"/>
+            <!-- Red 5 -->
+            <include layout="@layout/item_skocko_red" android:id="@+id/redSkocko5"/>
+            <!-- Red 6 -->
+            <include layout="@layout/item_skocko_red" android:id="@+id/redSkocko6"/>
+
+        </LinearLayout>
+
+        <!-- Sekcija odabira znakova -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardZnakovi"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="4dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/llTablaPokusaja">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/lbl_odaberi_znakove"
+                    android:textColor="@color/text_primary"
+                    android:textSize="14sp"
+                    android:textStyle="bold"/>
+
+                <!-- Trenutni odabir (4 mjesta) -->
+                <LinearLayout
+                    android:id="@+id/llTrenutniOdabir"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+
+                    <TextView
+                        android:id="@+id/tvOdabir1"
+                        android:layout_width="@dimen/skocko_celija_vel"
+                        android:layout_height="@dimen/skocko_celija_vel"
+                        android:layout_margin="4dp"
+                        android:background="@drawable/bg_skocko_celija_prazna"
+                        android:gravity="center"
+                        android:textSize="28sp"/>
+
+                    <TextView
+                        android:id="@+id/tvOdabir2"
+                        android:layout_width="@dimen/skocko_celija_vel"
+                        android:layout_height="@dimen/skocko_celija_vel"
+                        android:layout_margin="4dp"
+                        android:background="@drawable/bg_skocko_celija_prazna"
+                        android:gravity="center"
+                        android:textSize="28sp"/>
+
+                    <TextView
+                        android:id="@+id/tvOdabir3"
+                        android:layout_width="@dimen/skocko_celija_vel"
+                        android:layout_height="@dimen/skocko_celija_vel"
+                        android:layout_margin="4dp"
+                        android:background="@drawable/bg_skocko_celija_prazna"
+                        android:gravity="center"
+                        android:textSize="28sp"/>
+
+                    <TextView
+                        android:id="@+id/tvOdabir4"
+                        android:layout_width="@dimen/skocko_celija_vel"
+                        android:layout_height="@dimen/skocko_celija_vel"
+                        android:layout_margin="4dp"
+                        android:background="@drawable/bg_skocko_celija_prazna"
+                        android:gravity="center"
+                        android:textSize="28sp"/>
+
+                </LinearLayout>
+
+                <!-- 6 znakova za odabir -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="horizontal"
+                    android:gravity="center">
+
+                    <!-- ■ Kvadrat -->
+                    <TextView
+                        android:id="@+id/tvZnakKvadrat"
+                        android:layout_width="@dimen/skocko_znak_vel"
+                        android:layout_height="@dimen/skocko_znak_vel"
+                        android:layout_margin="4dp"
+                        android:background="@drawable/bg_znak_selekcija"
+                        android:gravity="center"
+                        android:text="■"
+                        android:textColor="@color/skocko_kvadrat"
+                        android:textSize="28sp"
+                        android:clickable="true"
+                        android:focusable="true"/>
+
+                    <!-- ● Krug -->
+                    <TextView
+                        android:id="@+id/tvZnakKrug"
+                        android:layout_width="@dimen/skocko_znak_vel"
+                        android:layout_height="@dimen/skocko_znak_vel"
+                        android:layout_margin="4dp"
+                        android:background="@drawable/bg_znak_selekcija"
+                        android:gravity="center"
+                        android:text="●"
+                        android:textColor="@color/skocko_krug"
+                        android:textSize="28sp"
+                        android:clickable="true"
+                        android:focusable="true"/>
+
+                    <!-- ♥ Srce -->
+                    <TextView
+                        android:id="@+id/tvZnakSrce"
+                        android:layout_width="@dimen/skocko_znak_vel"
+                        android:layout_height="@dimen/skocko_znak_vel"
+                        android:layout_margin="4dp"
+                        android:background="@drawable/bg_znak_selekcija"
+                        android:gravity="center"
+                        android:text="♥"
+                        android:textColor="@color/skocko_srce"
+                        android:textSize="28sp"
+                        android:clickable="true"
+                        android:focusable="true"/>
+
+                    <!-- ▲ Trougao -->
+                    <TextView
+                        android:id="@+id/tvZnakTrougao"
+                        android:layout_width="@dimen/skocko_znak_vel"
+                        android:layout_height="@dimen/skocko_znak_vel"
+                        android:layout_margin="4dp"
+                        android:background="@drawable/bg_znak_selekcija"
+                        android:gravity="center"
+                        android:text="▲"
+                        android:textColor="@color/skocko_trougao"
+                        android:textSize="28sp"
+                        android:clickable="true"
+                        android:focusable="true"/>
+
+                    <!-- ★ Zvjezdica -->
+                    <TextView
+                        android:id="@+id/tvZnakZvjezdica"
+                        android:layout_width="@dimen/skocko_znak_vel"
+                        android:layout_height="@dimen/skocko_znak_vel"
+                        android:layout_margin="4dp"
+                        android:background="@drawable/bg_znak_selekcija"
+                        android:gravity="center"
+                        android:text="★"
+                        android:textColor="@color/skocko_zvezda"
+                        android:textSize="28sp"
+                        android:clickable="true"
+                        android:focusable="true"/>
+
+                    <!-- ◆ Dijamant - 6. znak -->
+                    <TextView
+                        android:id="@+id/tvZnakDijamant"
+                        android:layout_width="@dimen/skocko_znak_vel"
+                        android:layout_height="@dimen/skocko_znak_vel"
+                        android:layout_margin="4dp"
+                        android:background="@drawable/bg_znak_selekcija"
+                        android:gravity="center"
+                        android:text="◆"
+                        android:textColor="@color/accent_dark"
+                        android:textSize="28sp"
+                        android:clickable="true"
+                        android:focusable="true"/>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Dugmad: Provjeri i Briši -->
+        <LinearLayout
+            android:id="@+id/llDugmadSkocko"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="16dp"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/cardZnakovi">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnProyeriSkocko"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:text="@string/btn_provjeri"
+                android:textAllCaps="false"
+                app:cornerRadius="12dp"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnBrisiOdabir"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="⌫ Briši"
+                android:textAllCaps="false"
+                app:cornerRadius="12dp"/>
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</ScrollView>

@@ -1,0 +1,451 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Igra Moj broj: pronadi traženi broj koristeći 6 datih brojeva -->
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:fillViewport="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/margin_medium">
+
+        <!-- Timer i runda -->
+        <LinearLayout
+            android:id="@+id/llHeaderMojBroj"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <TextView
+                android:id="@+id/tvRundaMojBroj"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Runda 1 / 2"
+                android:textColor="@color/primary"
+                android:textSize="16sp"
+                android:textStyle="bold"/>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="12dp"
+                app:cardBackgroundColor="@color/primary">
+
+                <TextView
+                    android:id="@+id/tvTimerMojBroj"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:padding="12dp"
+                    android:text="60"
+                    android:textColor="@color/white"
+                    android:textSize="36sp"
+                    android:textStyle="bold"
+                    android:fontFamily="monospace"/>
+
+            </com.google.android.material.card.MaterialCardView>
+
+        </LinearLayout>
+
+        <!-- Traženi broj - prikazuje se klikom na STOP 1 -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardTrazeniBreoj"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="16dp"
+            app:cardBackgroundColor="@color/primary"
+            app:cardElevation="6dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/llHeaderMojBroj">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp"
+                android:gravity="center">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="TRAŽENI BROJ"
+                    android:textColor="@color/accent"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.1"/>
+
+                <!-- Traženi broj ili dugme STOP -->
+                <FrameLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp">
+
+                    <TextView
+                        android:id="@+id/tvTrazeniBreoj"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="---"
+                        android:textColor="@color/white"
+                        android:textSize="@dimen/broj_vel"
+                        android:textStyle="bold"
+                        android:visibility="gone"/>
+
+                    <!-- STOP dugme 1 - stop rotirajući broj -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnStopBroj"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/btn_stop"
+                        android:textSize="18sp"
+                        android:paddingStart="32dp"
+                        android:paddingEnd="32dp"
+                        app:backgroundTint="@color/accent"
+                        app:cornerRadius="12dp"/>
+
+                </FrameLayout>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Dostupni brojevi - 6 dugmadi, prikazuju se klikom na STOP 2 -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardDostupniBrojevi"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="2dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/cardTrazeniBreoj">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="@string/lbl_dostupni_brojevi"
+                        android:textColor="@color/text_primary"
+                        android:textSize="14sp"
+                        android:textStyle="bold"/>
+
+                    <!-- STOP dugme 2 - generiši dostupne brojeve -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnStopDostupni"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/btn_stop"
+                        android:textSize="14sp"
+                        app:backgroundTint="@color/accent"
+                        app:cornerRadius="8dp"/>
+
+                </LinearLayout>
+
+                <!-- Grid dostupnih brojeva (2 x 3) -->
+                <GridLayout
+                    android:id="@+id/gridDostupniBrojevi"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:columnCount="3"
+                    android:rowCount="2">
+
+                    <!-- Dugmad za brojeve će se dodati dinamički u kodu -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnBroj1"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="4dp"
+                        android:text=""
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="8dp"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnBroj2"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="4dp"
+                        android:text=""
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="8dp"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnBroj3"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="4dp"
+                        android:text=""
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="8dp"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnBroj4"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="4dp"
+                        android:text=""
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="8dp"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnBroj5"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="4dp"
+                        android:text=""
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="8dp"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnBroj6"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_columnWeight="1"
+                        android:layout_margin="4dp"
+                        android:text=""
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="8dp"/>
+
+                </GridLayout>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Operatori -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardOperatori"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="2dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/cardDostupniBrojevi">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="16dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Operatori:"
+                    android:textColor="@color/text_primary"
+                    android:textSize="14sp"
+                    android:textStyle="bold"/>
+
+                <!-- Red sa operatorima: +, -, *, /, (, ) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:orientation="horizontal">
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnOp_plus"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_margin="3dp"
+                        android:text="+"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="8dp"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnOp_minus"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_margin="3dp"
+                        android:text="-"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="8dp"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnOp_puta"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_margin="3dp"
+                        android:text="×"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="8dp"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnOp_dijeli"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_margin="3dp"
+                        android:text="÷"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="8dp"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnOp_otvZagrada"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_margin="3dp"
+                        android:text="("
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="8dp"/>
+
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnOp_zatZagrada"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:layout_margin="3dp"
+                        android:text=")"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        app:cornerRadius="8dp"/>
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Prikaz izraza koji se gradi -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardIzraz"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            app:cardCornerRadius="16dp"
+            app:cardElevation="2dp"
+            app:strokeColor="@color/primary"
+            app:strokeWidth="2dp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/cardOperatori">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="12dp"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/tvIzraz"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Ovdje se gradi izraz..."
+                    android:textColor="@color/primary"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:fontFamily="monospace"
+                    android:minHeight="48dp"
+                    android:gravity="center_vertical"
+                    android:hint="@string/hint_izraz"/>
+
+                <!-- Brisanje zadnjeg znaka -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnObrisi"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/btn_obrisi"
+                    android:textSize="20sp"
+                    android:textColor="@color/error"/>
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Dugmad Provjeri / Reset -->
+        <LinearLayout
+            android:id="@+id/llDugmadMojBroj"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="16dp"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/cardIzraz">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnProyeriMojBroj"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:text="Provjeri"
+                android:textAllCaps="false"
+                app:cornerRadius="12dp"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnResetIzraz"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="8dp"
+                android:text="@string/btn_reset_izraz"
+                android:textAllCaps="false"
+                app:cornerRadius="12dp"/>
+
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</ScrollView>

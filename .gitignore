@@ -1,0 +1,16 @@
+
+*.apk
+*.aar
+*.ap_
+
+
+build/
+app/build/
+.gradle/
+
+local.properties
+*.iml
+.idea/
+
+.DS_Store
+Thumbs.db

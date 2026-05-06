@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Slagalica</string>
+
+    <!-- Auth ekrani -->
+    <string name="lbl_email">Email adresa</string>
+    <string name="lbl_lozinka">Lozinka</string>
+    <string name="lbl_korisnicko_ime">Korisničko ime</string>
+    <string name="lbl_potvrdi_lozinku">Potvrdi lozinku</string>
+    <string name="lbl_region">Region</string>
+    <string name="btn_prijava">Prijava</string>
+    <string name="btn_registracija">Registracija</string>
+    <string name="btn_vec_imas_nalog">Već imaš nalog? Prijavi se</string>
+    <string name="btn_nemas_nalog">Nemaš nalog? Registruj se</string>
+    <string name="lbl_dobrodosli">Dobrodošli u Slagalicu!</string>
+    <string name="lbl_registracija_naslov">Kreiranje naloga</string>
+    <string name="hint_email">primjer@email.com</string>
+    <string name="hint_lozinka">Unesi lozinku</string>
+    <string name="hint_korisnicko_ime">Unesi korisničko ime</string>
+    <string name="hint_potvrdi_lozinku">Ponovi lozinku</string>
+    <string name="err_prazno_polje">Ovo polje je obavezno</string>
+    <string name="err_neispravni_podaci">Neispravni podaci za prijavu</string>
+    <string name="err_lozinke_ne_poklapaju">Lozinke se ne poklapaju</string>
+    <string name="err_neispravan_email">Unesite ispravnu email adresu</string>
+    <string name="msg_verifikacioni_mejl">Verifikacioni mejl je poslan na vašu adresu</string>
+
+    <!-- Navigation Drawer -->
+    <string name="nav_header_naslov">Slagalica</string>
+    <string name="nav_header_podnaslov">Korisnik</string>
+    <string name="nav_igraj">Igraj</string>
+    <string name="nav_notifikacije">Notifikacije</string>
+    <string name="nav_odjava">Odjava</string>
+    <string name="navigation_drawer_open">Otvori navigacioni meni</string>
+    <string name="navigation_drawer_close">Zatvori navigacioni meni</string>
+
+    <!-- Igre - opšte -->
+    <string name="lbl_bodovi">Bodovi</string>
+    <string name="lbl_vrijeme">Preostalo: %1$s s</string>
+    <string name="lbl_runda">Runda %1$d / %2$d</string>
+    <string name="btn_dalje">Dalje</string>
+    <string name="btn_zavrsi">Završi</string>
+    <string name="btn_pokusaj">Pokušaj</string>
+    <string name="btn_potvrdite">Potvrdi</string>
+    <string name="lbl_vas_rezultat">Vaš rezultat: %1$d bodova</string>
+    <string name="lbl_cekanje">Čeka se protivnik...</string>
+
+    <!-- Korak po korak -->
+    <string name="igra_korak_naslov">Korak po korak</string>
+    <string name="igra_korak_opis">Pronađi zadati pojam u maksimalno 7 koraka</string>
+    <string name="lbl_korak">Korak %1$d / 7</string>
+    <string name="hint_upisite_odgovor">Upišite odgovor...</string>
+    <string name="btn_sledeci_korak">Sljedeći korak</string>
+    <string name="lbl_trazeni_pojam">Traženi pojam</string>
+    <string name="lbl_bodovi_korak">Na ovom koraku možete osvojiti: %1$d bodova</string>
+
+    <!-- Moj broj -->
+    <string name="igra_moj_broj_naslov">Moj broj</string>
+    <string name="igra_moj_broj_opis">Pomoću datih brojeva dođi do traženog rezultata</string>
+    <string name="lbl_trazeni_broj">Traženi broj:</string>
+    <string name="lbl_dostupni_brojevi">Dostupni brojevi:</string>
+    <string name="lbl_tvoj_izraz">Tvoj izraz:</string>
+    <string name="btn_stop">STOP</string>
+    <string name="btn_obrisi">⌫</string>
+    <string name="btn_reset_izraz">Resetuj</string>
+    <string name="hint_izraz">Npr: (25 + 75) * 3 / 5</string>
+    <string name="msg_tocno">Tačno! Pronašli ste traženi broj.</string>
+    <string name="msg_netocno">Netačno. Vaš rezultat je bliži za %1$d.</string>
+
+    <!-- Skočko -->
+    <string name="igra_skocko_naslov">Skočko</string>
+    <string name="igra_skocko_opis">Pogodi kombinaciju 4 znaka u 6 pokušaja</string>
+    <string name="lbl_pokusaj">Pokušaj %1$d / 6</string>
+    <string name="lbl_tacno_mjesto">● Tačno mjesto</string>
+    <string name="lbl_netacno_mjesto">○ Pogrešno mjesto</string>
+    <string name="btn_provjeri">Provjeri</string>
+    <string name="lbl_odaberi_znakove">Odaberi 4 znaka:</string>
+    <string name="lbl_rezultat_provjere">Tačnih: %1$d | Pogrešno: %2$d</string>
+
+    <!-- Notifikacije -->
+    <string name="naslov_notifikacije">Notifikacije</string>
+    <string name="btn_sve">Sve</string>
+    <string name="btn_procitane">Pročitane</string>
+    <string name="btn_neprocitane">Nepročitane</string>
+    <string name="btn_oznaci_procitano">Označi kao pročitano</string>
+    <string name="lbl_prazna_lista">Nema notifikacija</string>
+    <string name="kanal_chat">Poruke</string>
+    <string name="kanal_rang">Rangiranje</string>
+    <string name="kanal_nagrade">Nagrade</string>
+    <string name="kanal_ostalo">Ostalo</string>
+
+    <!-- Regioni -->
+    <string-array name="regioni">
+        <item>Vojvodina</item>
+        <item>Beograd</item>
+        <item>Šumadija i Zapadna Srbija</item>
+        <item>Južna i Istočna Srbija</item>
+    </string-array>
+</resources>

@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Navigation graph - kao na vjezbi GUI II -->
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_navigation"
+    app:startDestination="@id/nav_igraj">
+
+    <!-- Početni ekran - čekanje protivnika / igraj -->
+    <fragment
+        android:id="@+id/nav_igraj"
+        android:name="com.example.slagalica.ui.main.IgrajFragment"
+        android:label="Igraj"
+        tools:layout="@layout/fragment_igraj"/>
+
+    <!-- Notifikacije -->
+    <fragment
+        android:id="@+id/nav_notifikacije"
+        android:name="com.example.slagalica.ui.notifikacije.NotifikacijeFragment"
+        android:label="@string/naslov_notifikacije"
+        tools:layout="@layout/fragment_notifikacije"/>
+
+    <!-- Igra: Korak po korak -->
+    <fragment
+        android:id="@+id/nav_korak_po_korak"
+        android:name="com.example.slagalica.ui.games.KorakPoKorakFragment"
+        android:label="@string/igra_korak_naslov"
+        tools:layout="@layout/fragment_korak_po_korak"/>
+
+    <!-- Igra: Moj broj -->
+    <fragment
+        android:id="@+id/nav_moj_broj"
+        android:name="com.example.slagalica.ui.games.MojBrojFragment"
+        android:label="@string/igra_moj_broj_naslov"
+        tools:layout="@layout/fragment_moj_broj"/>
+
+    <!-- Igra: Skočko -->
+    <fragment
+        android:id="@+id/nav_skocko"
+        android:name="com.example.slagalica.ui.games.SkockoFragment"
+        android:label="@string/igra_skocko_naslov"
+        tools:layout="@layout/fragment_skocko"/>
+
+</navigation>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Navigation Drawer meni - kao na vjezbi GUI II -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+
+        <item
+            android:id="@+id/nav_igraj"
+            android:icon="@android:drawable/ic_media_play"
+            android:title="@string/nav_igraj"/>
+
+        <item
+            android:id="@+id/nav_notifikacije"
+            android:icon="@android:drawable/ic_dialog_info"
+            android:title="@string/nav_notifikacije"/>
+
+    </group>
+
+    <item android:title="Igre">
+        <menu>
+            <item
+                android:id="@+id/nav_korak_po_korak"
+                android:icon="@android:drawable/ic_menu_directions"
+                android:title="@string/igra_korak_naslov"/>
+
+            <item
+                android:id="@+id/nav_moj_broj"
+                android:icon="@android:drawable/ic_menu_sort_by_size"
+                android:title="@string/igra_moj_broj_naslov"/>
+
+            <item
+                android:id="@+id/nav_skocko"
+                android:icon="@android:drawable/ic_menu_compass"
+                android:title="@string/igra_skocko_naslov"/>
+        </menu>
+    </item>
+
+    <item
+        android:id="@+id/nav_odjava"
+        android:icon="@android:drawable/ic_menu_close_clear_cancel"
+        android:title="@string/nav_odjava"/>
+
+</menu>

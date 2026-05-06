@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primarne boje aplikacije -->
+    <color name="primary">#1A237E</color>
+    <color name="primary_dark">#0D1757</color>
+    <color name="primary_light">#3949AB</color>
+    <color name="accent">#FFC107</color>
+    <color name="accent_dark">#FF8F00</color>
+
+    <!-- Pozadina -->
+    <color name="background">#F5F5F5</color>
+    <color name="surface">#FFFFFF</color>
+
+    <!-- Tekst -->
+    <color name="text_primary">#212121</color>
+    <color name="text_secondary">#757575</color>
+    <color name="text_on_primary">#FFFFFF</color>
+    <color name="text_hint">#9E9E9E</color>
+
+    <!-- Igre - boje znakova u Skočko -->
+    <color name="skocko_kvadrat">#E53935</color>
+    <color name="skocko_krug">#43A047</color>
+    <color name="skocko_srce">#E91E63</color>
+    <color name="skocko_trougao">#1E88E5</color>
+    <color name="skocko_zvezda">#FB8C00</color>
+    <color name="skocko_prazno">#BDBDBD</color>
+
+    <!-- Status boje -->
+    <color name="success">#4CAF50</color>
+    <color name="error">#F44336</color>
+    <color name="warning">#FF9800</color>
+    <color name="info">#2196F3</color>
+
+    <!-- Notifikacije -->
+    <color name="notif_chat">#7B1FA2</color>
+    <color name="notif_rang">#1565C0</color>
+    <color name="notif_nagrade">#E65100</color>
+    <color name="notif_ostalo">#37474F</color>
+    <color name="notif_neprocitana_bg">#E8EAF6</color>
+
+    <!-- Bodovi igara -->
+    <color name="boja_bodova_pozitivno">#2E7D32</color>
+    <color name="boja_bodova_negativno">#C62828</color>
+
+    <!-- Navigation Drawer -->
+    <color name="nav_header_bg_start">#1A237E</color>
+    <color name="nav_header_bg_end">#3949AB</color>
+
+    <!-- Timer -->
+    <color name="timer_normalno">#1A237E</color>
+    <color name="timer_upozorenje">#FF6F00</color>
+    <color name="timer_hitno">#B71C1C</color>
+
+    <!-- Black and white -->
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>

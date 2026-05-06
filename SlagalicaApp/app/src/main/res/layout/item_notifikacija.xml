@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Jedan item notifikacije - kao ProductCard na vjezbi GUI II -->
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/cardNotifikacija"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="16dp"
+    android:layout_marginEnd="16dp"
+    android:layout_marginTop="8dp"
+    app:cardCornerRadius="@dimen/notif_card_radius"
+    app:cardElevation="2dp"
+    app:strokeWidth="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:gravity="center_vertical">
+
+        <!-- Ikona kategorije notifikacije -->
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/cardIkona"
+            android:layout_width="@dimen/notif_ikona_vel"
+            android:layout_height="@dimen/notif_ikona_vel"
+            app:cardCornerRadius="20dp"
+            app:cardBackgroundColor="@color/primary_light">
+
+            <TextView
+                android:id="@+id/tvIkonaEmoji"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="🔔"
+                android:textSize="20sp"/>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- Tekst notifikacije -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:orientation="vertical">
+
+            <!-- Naslov i kategorija -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/tvKategorijaNotif"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Poruke"
+                    android:textColor="@color/notif_chat"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:background="@android:color/transparent"/>
+
+                <!-- Indikator neprocitane - tačka -->
+                <View
+                    android:id="@+id/viewNeprocitanaIndikator"
+                    android:layout_width="8dp"
+                    android:layout_height="8dp"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/bg_tacka_neprocitano"
+                    android:visibility="gone"/>
+
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/tvNaslovNotif"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Nova poruka"
+                android:textColor="@color/text_primary"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:ellipsize="end"/>
+
+            <TextView
+                android:id="@+id/tvSadrzajNotif"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="Igrač vam je poslao poruku"
+                android:textColor="@color/text_secondary"
+                android:textSize="13sp"
+                android:maxLines="2"
+                android:ellipsize="end"/>
+
+            <TextView
+                android:id="@+id/tvVrijemeNotif"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Prije 5 min"
+                android:textColor="@color/text_hint"
+                android:textSize="11sp"/>
+
+        </LinearLayout>
+
+        <!-- Dugme označi kao pročitano -->
+        <ImageButton
+            android:id="@+id/btnOznaciProcitano"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/checkbox_off_background"
+            android:contentDescription="@string/btn_oznaci_procitano"/>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>
