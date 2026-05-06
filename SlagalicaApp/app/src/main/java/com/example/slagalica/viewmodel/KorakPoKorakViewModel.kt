@@ -41,8 +41,8 @@ class KorakPoKorakViewModel : ViewModel() {
     private var timer: CountDownTimer? = null
 
     private val sampleGames = listOf(
-        StepData(1L, "TESLA", listOf("Born in 1856", "Serbian origin", "Worked at Edison's company", "Invented alternating current", "Scientist and inventor", "His name is Nikola", "Tesla Motors bears his name")),
-        StepData(2L, "BEOGRAD", listOf("At the confluence of two rivers", "Contains a famous fortress", "Historical fort Kalemegdan", "Sava and Danube meet here", "Over 1.5 million inhabitants", "Located in central Serbia", "Capital city of Serbia"))
+        StepData(1L, "TESLA", listOf("Rođen 1856. godine", "Srpskog porijekla", "Radio u kompaniji Edison", "Izmislio je izmjenični struju", "Naučnik i izumitelj", "Ime mu je Nikola", "Tesla Motors nosi njegovo ime")),
+        StepData(2L, "BEOGRAD", listOf("Na ušću dvije rijeke", "Sadrži čuvenu tvrđavu", "Historijska utvrda Kalemegdan", "Sava i Dunav se sreću ovdje", "Više od 1,5 miliona stanovnika", "Nalazi se u centralnoj Srbiji", "Glavni grad Srbije"))
     )
 
     fun startRound(round: Int) {

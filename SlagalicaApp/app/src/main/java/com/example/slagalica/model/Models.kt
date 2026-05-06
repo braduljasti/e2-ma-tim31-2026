@@ -17,10 +17,10 @@ data class AppNotification(
         val diffMin = diffMs / 60_000
         val diffHour = diffMin / 60
         return when {
-            diffMin < 1 -> "Just now"
-            diffMin < 60 -> "$diffMin min ago"
-            diffHour < 24 -> "$diffHour h ago"
-            else -> "${diffHour / 24} d ago"
+            diffMin < 1 -> "Upravo sada"
+            diffMin < 60 -> "Prije $diffMin min"
+            diffHour < 24 -> "Prije $diffHour h"
+            else -> "Prije ${diffHour / 24} d"
         }
     }
 

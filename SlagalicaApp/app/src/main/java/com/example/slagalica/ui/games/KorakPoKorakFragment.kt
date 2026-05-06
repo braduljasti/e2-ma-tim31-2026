@@ -39,7 +39,6 @@ class KorakPoKorakFragment : Fragment() {
             binding.tvBrojKoraka.text = getString(R.string.lbl_korak, step)
             binding.progressKoraci.progress = (step * 100) / 7
         }
-
         viewModel.remainingTime.observe(viewLifecycleOwner) { seconds ->
             binding.tvTimerKorak.text = seconds.toString()
             val color = when {
@@ -49,23 +48,18 @@ class KorakPoKorakFragment : Fragment() {
             }
             binding.tvTimerKorak.setTextColor(color)
         }
-
         viewModel.possiblePoints.observe(viewLifecycleOwner) { pts ->
             binding.tvBodoviKorak.text = getString(R.string.lbl_bodovi_korak, pts)
         }
-
         viewModel.currentHint.observe(viewLifecycleOwner) { hint ->
             binding.tvAktuelniKorakTekst.text = hint
         }
-
         viewModel.previousHints.observe(viewLifecycleOwner) { list ->
             refreshPreviousHints(list)
         }
-
         viewModel.round.observe(viewLifecycleOwner) { round ->
             binding.tvBrojKoraka.text = getString(R.string.lbl_runda, round, 2)
         }
-
         viewModel.gameFinished.observe(viewLifecycleOwner) { finished ->
             if (finished) showResult()
         }
@@ -74,15 +68,17 @@ class KorakPoKorakFragment : Fragment() {
     private fun setupListeners() {
         binding.btnPogudiKorak.setOnClickListener {
             val input = binding.etOdgovorKorak.text.toString().trim()
-            if (input.isEmpty()) { binding.tilOdgovorKorak.error = "Enter your answer"; return@setOnClickListener }
+            if (input.isEmpty()) {
+                binding.tilOdgovorKorak.error = "Unesite odgovor"
+                return@setOnClickListener
+            }
             binding.tilOdgovorKorak.error = null
             val correct = viewModel.tryGuess(input)
             if (!correct) {
-                Snackbar.make(binding.root, "Incorrect! Try again or move to next hint.", Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(binding.root, "Netačno! Pokušajte ponovo ili pređite na sljedeći korak.", Snackbar.LENGTH_SHORT).show()
                 binding.etOdgovorKorak.setText("")
             }
         }
-
         binding.btnSledecKorak.setOnClickListener {
             binding.etOdgovorKorak.setText("")
             binding.tilOdgovorKorak.error = null
@@ -108,12 +104,12 @@ class KorakPoKorakFragment : Fragment() {
         val guessed = viewModel.guessed.value == true
         val points = viewModel.points.value ?: 0
         val round = viewModel.round.value ?: 1
-        val message = if (guessed) "✅ Correct! You earned $points points this round." else "❌ You did not guess the word this round. 0 points."
+        val message = if (guessed) "✅ Tačno! Osvojili ste $points bodova u ovoj rundi." else "❌ Niste pogodili traženi pojam. 0 bodova."
 
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("End of round $round")
+            .setTitle("Kraj runde $round")
             .setMessage(message)
-            .setPositiveButton("Next") { dialog, _ ->
+            .setPositiveButton("Dalje") { dialog, _ ->
                 dialog.dismiss()
                 if (round == 1) viewModel.startRound(2) else showFinalResult()
             }
@@ -123,9 +119,9 @@ class KorakPoKorakFragment : Fragment() {
 
     private fun showFinalResult() {
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Game over!")
+            .setTitle("Igra završena!")
             .setMessage(getString(R.string.lbl_vas_rezultat, viewModel.points.value ?: 0))
-            .setPositiveButton("Close") { _, _ -> requireActivity().onBackPressedDispatcher.onBackPressed() }
+            .setPositiveButton("Zatvori") { _, _ -> requireActivity().onBackPressedDispatcher.onBackPressed() }
             .setCancelable(false)
             .show()
     }

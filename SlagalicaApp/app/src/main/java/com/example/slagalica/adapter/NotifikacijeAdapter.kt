@@ -22,7 +22,6 @@ class NotifikacijeAdapter(
         fun bind(notification: AppNotification) {
             binding.tvIkonaEmoji.text = notification.emoji()
             setCategoryColor(notification.category)
-
             binding.tvKategorijaNotif.text = notification.category.label()
             binding.tvNaslovNotif.text = notification.title
             binding.tvSadrzajNotif.text = notification.content
@@ -71,8 +70,8 @@ class NotifikacijeAdapter(
 }
 
 fun NotificationCategory.label(): String = when (this) {
-    NotificationCategory.CHAT -> "Message"
-    NotificationCategory.RANK -> "Ranking"
-    NotificationCategory.REWARDS -> "Reward"
-    NotificationCategory.OTHER -> "Notification"
+    NotificationCategory.CHAT -> "Poruka"
+    NotificationCategory.RANK -> "Rangiranje"
+    NotificationCategory.REWARDS -> "Nagrada"
+    NotificationCategory.OTHER -> "Obavještenje"
 }

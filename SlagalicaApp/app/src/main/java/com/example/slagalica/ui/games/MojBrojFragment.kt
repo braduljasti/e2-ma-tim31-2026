@@ -37,7 +37,6 @@ class MojBrojFragment : Fragment() {
         viewModel.rotatingNumber.observe(viewLifecycleOwner) { num ->
             if (viewModel.numberShown.value != true) binding.tvTrazeniBreoj.text = num.toString()
         }
-
         viewModel.targetNumber.observe(viewLifecycleOwner) { number ->
             if (number != null) {
                 binding.tvTrazeniBreoj.text = number.toString()
@@ -45,25 +44,23 @@ class MojBrojFragment : Fragment() {
                 binding.btnStopBroj.visibility = View.GONE
             }
         }
-
         viewModel.availableNumbers.observe(viewLifecycleOwner) { list ->
             if (list.isNotEmpty()) {
                 val buttons = listOf(binding.btnBroj1, binding.btnBroj2, binding.btnBroj3,
                     binding.btnBroj4, binding.btnBroj5, binding.btnBroj6)
                 list.forEachIndexed { i, num ->
                     buttons.getOrNull(i)?.apply {
-                        text = num.toString(); isEnabled = true
+                        text = num.toString()
+                        isEnabled = true
                         setOnClickListener { viewModel.addNumber(num) }
                     }
                 }
                 binding.btnStopDostupni.visibility = View.GONE
             }
         }
-
         viewModel.expression.observe(viewLifecycleOwner) { expr ->
             binding.tvIzraz.text = expr
         }
-
         viewModel.remainingTime.observe(viewLifecycleOwner) { sec ->
             binding.tvTimerMojBroj.text = sec.toString()
             binding.tvTimerMojBroj.setTextColor(ContextCompat.getColor(requireContext(), when {
@@ -72,15 +69,12 @@ class MojBrojFragment : Fragment() {
                 else -> R.color.white
             }))
         }
-
         viewModel.round.observe(viewLifecycleOwner) { round ->
             binding.tvRundaMojBroj.text = getString(R.string.lbl_runda, round, 2)
         }
-
         viewModel.checkResult.observe(viewLifecycleOwner) { msg ->
             if (msg != null) Snackbar.make(binding.root, msg, Snackbar.LENGTH_LONG).show()
         }
-
         viewModel.gameFinished.observe(viewLifecycleOwner) { finished ->
             if (finished) showRoundResult(viewModel.round.value ?: 1)
         }
@@ -96,37 +90,44 @@ class MojBrojFragment : Fragment() {
         binding.btnOpOtvZagrada.setOnClickListener { viewModel.addOperator("(") }
         binding.btnOpZatZagrada.setOnClickListener { viewModel.addOperator(")") }
         binding.btnObrisi.setOnClickListener { viewModel.deleteLastChar() }
-        binding.btnResetIzraz.setOnClickListener { viewModel.resetExpression(); Snackbar.make(binding.root, "Expression cleared", Snackbar.LENGTH_SHORT).show() }
-
+        binding.btnResetIzraz.setOnClickListener {
+            viewModel.resetExpression()
+            Snackbar.make(binding.root, "Izraz obrisan", Snackbar.LENGTH_SHORT).show()
+        }
         binding.btnProyeriMojBroj.setOnClickListener {
             val expr = viewModel.expression.value ?: ""
-            if (expr.isBlank()) { Snackbar.make(binding.root, "Enter an expression", Snackbar.LENGTH_SHORT).show(); return@setOnClickListener }
+            if (expr.isBlank()) {
+                Snackbar.make(binding.root, "Unesite izraz", Snackbar.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
             MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Check expression")
-                .setMessage("Your expression: $expr\n\nConfirm?")
-                .setPositiveButton("Check") { _, _ -> viewModel.checkExpression() }
-                .setNegativeButton("Cancel", null)
+                .setTitle("Provjera izraza")
+                .setMessage("Vaš izraz: $expr\n\nPotvrđujete provjeru?")
+                .setPositiveButton("Provjeri") { _, _ -> viewModel.checkExpression() }
+                .setNegativeButton("Otkaži", null)
                 .show()
         }
     }
 
     private fun showRoundResult(round: Int) {
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("End of round $round")
-            .setMessage("You scored ${viewModel.points.value ?: 0} points in round $round.")
-            .setPositiveButton("Next") { dialog, _ ->
+            .setTitle("Kraj runde $round")
+            .setMessage("Ostvarili ste ${viewModel.points.value ?: 0} bodova u rundi $round.")
+            .setPositiveButton("Dalje") { dialog, _ ->
                 dialog.dismiss()
                 if (round == 1) viewModel.startRound(2) else showFinalResult()
             }
-            .setCancelable(false).show()
+            .setCancelable(false)
+            .show()
     }
 
     private fun showFinalResult() {
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Game over!")
+            .setTitle("Igra završena!")
             .setMessage(getString(R.string.lbl_vas_rezultat, viewModel.points.value ?: 0))
-            .setPositiveButton("Close") { _, _ -> requireActivity().onBackPressedDispatcher.onBackPressed() }
-            .setCancelable(false).show()
+            .setPositiveButton("Zatvori") { _, _ -> requireActivity().onBackPressedDispatcher.onBackPressed() }
+            .setCancelable(false)
+            .show()
     }
 
     override fun onDestroyView() { super.onDestroyView(); _binding = null }

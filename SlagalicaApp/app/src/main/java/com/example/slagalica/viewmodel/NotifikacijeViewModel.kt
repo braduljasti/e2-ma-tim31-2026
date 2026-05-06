@@ -50,12 +50,12 @@ class NotifikacijeViewModel : ViewModel() {
     private fun sampleNotifications(): List<AppNotification> {
         val now = System.currentTimeMillis()
         return listOf(
-            AppNotification(1L, "New chat message", "Player 'MarkoM' sent you a message in the regional chat.", NotificationCategory.CHAT, now - 2 * 60_000L, false),
-            AppNotification(2L, "Ranking update!", "You are 3rd on the weekly leaderboard. Only 50 stars to 2nd place!", NotificationCategory.RANK, now - 45 * 60_000L, false),
-            AppNotification(3L, "🎁 2nd place reward!", "Congratulations! You finished the weekly cycle in 2nd place. You received 3 tokens!", NotificationCategory.REWARDS, now - 3 * 3600_000L, true),
-            AppNotification(4L, "Match invitation", "Player 'JelenaK' invited you to a friendly match. Do you accept?", NotificationCategory.OTHER, now - 24 * 3600_000L, true),
-            AppNotification(5L, "League promotion!", "You have been promoted to League 1! You now receive 6 tokens per day.", NotificationCategory.REWARDS, now - 2 * 24 * 3600_000L, true),
-            AppNotification(6L, "Daily tokens", "You have received 5 new tokens. Get ready to play!", NotificationCategory.OTHER, now - 8 * 3600_000L, false)
+            AppNotification(1L, "Nova poruka u četu", "Igrač 'MarkoM' vam je poslao poruku u regionalnom četu.", NotificationCategory.CHAT, now - 2 * 60_000L, false),
+            AppNotification(2L, "Napredak na rang listi!", "Nalazite se na 3. mjestu nedeljne rang liste. Samo 50 zvjezdica do 2. mjesta!", NotificationCategory.RANK, now - 45 * 60_000L, false),
+            AppNotification(3L, "🎁 Nagrada za 2. mjesto!", "Čestitamo! Završili ste nedeljni ciklus na 2. mjestu. Dobili ste 3 tokena!", NotificationCategory.REWARDS, now - 3 * 3600_000L, true),
+            AppNotification(4L, "Poziv za partiju", "Igrač 'JelenaK' vas je pozvala na prijateljsku partiju. Prihvatate li?", NotificationCategory.OTHER, now - 24 * 3600_000L, true),
+            AppNotification(5L, "Napredak u ligi!", "Unaprijeđeni ste u Ligu 1! Sada dobijate 6 tokena dnevno.", NotificationCategory.REWARDS, now - 2 * 24 * 3600_000L, true),
+            AppNotification(6L, "Dnevni tokeni", "Stiglo je 5 novih tokena. Spremi se za igru!", NotificationCategory.OTHER, now - 8 * 3600_000L, false)
         )
     }
 }

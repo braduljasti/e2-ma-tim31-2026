@@ -113,12 +113,12 @@ class MojBrojViewModel : ViewModel() {
             val result = evaluate(cleaned)
             val diff = Math.abs(result - target)
             when {
-                result == target -> { _points.value = (_points.value ?: 0) + 10; _checkResult.value = "✅ Correct! +10 points"; 10 }
-                diff <= 10 -> { _points.value = (_points.value ?: 0) + 5; _checkResult.value = "Close! Difference: $diff. +5 points"; 5 }
-                else -> { _checkResult.value = "Incorrect. Your result: $result, target: $target"; 0 }
+                result == target -> { _points.value = (_points.value ?: 0) + 10; _checkResult.value = "✅ Tačno! +10 bodova"; 10 }
+                diff <= 10 -> { _points.value = (_points.value ?: 0) + 5; _checkResult.value = "Blizu! Razlika: $diff. +5 bodova"; 5 }
+                else -> { _checkResult.value = "Netačno. Vaš rezultat: $result, traženo: $target"; 0 }
             }
         } catch (e: Exception) {
-            _checkResult.value = "Invalid expression. Check your input."
+            _checkResult.value = "Neispravan izraz. Provjerite unos."
             0
         }
     }

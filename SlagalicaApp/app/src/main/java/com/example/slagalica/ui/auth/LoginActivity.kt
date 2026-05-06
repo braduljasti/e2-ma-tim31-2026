@@ -34,7 +34,6 @@ class LoginActivity : AppCompatActivity() {
                 viewModel.login(email, password)
             }
         }
-
         binding.btnIdiNaRegistraciju.setOnClickListener {
             startActivity(Intent(this, RegisterActivity::class.java))
         }
@@ -50,7 +49,6 @@ class LoginActivity : AppCompatActivity() {
                 finish()
             }
         }
-
         viewModel.loginError.observe(this) { message ->
             showLoading(false)
             if (message != null) showError(message)
@@ -59,24 +57,18 @@ class LoginActivity : AppCompatActivity() {
 
     private fun validateInput(email: String, password: String): Boolean {
         var valid = true
-
         if (email.isEmpty()) {
-            binding.tilEmail.error = getString(R.string.err_prazno_polje)
-            valid = false
+            binding.tilEmail.error = getString(R.string.err_prazno_polje); valid = false
         } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            binding.tilEmail.error = getString(R.string.err_neispravan_email)
-            valid = false
+            binding.tilEmail.error = getString(R.string.err_neispravan_email); valid = false
         } else {
             binding.tilEmail.error = null
         }
-
         if (password.isEmpty()) {
-            binding.tilLozinka.error = getString(R.string.err_prazno_polje)
-            valid = false
+            binding.tilLozinka.error = getString(R.string.err_prazno_polje); valid = false
         } else {
             binding.tilLozinka.error = null
         }
-
         return valid
     }
 

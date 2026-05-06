@@ -40,12 +40,10 @@ class RegisterActivity : AppCompatActivity() {
             val region = binding.actvRegion.text.toString()
             val password = binding.etLozinkaReg.text.toString()
             val confirm = binding.etPotvrdiLozinku.text.toString()
-
             if (validateInput(email, username, password, confirm)) {
                 viewModel.register(email, username, region, password)
             }
         }
-
         binding.btnNazadNaLogin.setOnClickListener { finish() }
     }
 
@@ -59,7 +57,6 @@ class RegisterActivity : AppCompatActivity() {
                 finish()
             }
         }
-
         viewModel.registrationError.observe(this) { message ->
             if (message != null) {
                 binding.tvGreskaReg.text = message
@@ -70,7 +67,6 @@ class RegisterActivity : AppCompatActivity() {
 
     private fun validateInput(email: String, username: String, password: String, confirm: String): Boolean {
         var valid = true
-
         if (email.isEmpty()) {
             binding.tilEmailReg.error = getString(R.string.err_prazno_polje); valid = false
         } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
@@ -80,13 +76,13 @@ class RegisterActivity : AppCompatActivity() {
         if (username.isEmpty()) {
             binding.tilKorisnickoIme.error = getString(R.string.err_prazno_polje); valid = false
         } else if (username.length < 3) {
-            binding.tilKorisnickoIme.error = "Minimum 3 characters"; valid = false
+            binding.tilKorisnickoIme.error = "Minimum 3 karaktera"; valid = false
         } else binding.tilKorisnickoIme.error = null
 
         if (password.isEmpty()) {
             binding.tilLozinkaReg.error = getString(R.string.err_prazno_polje); valid = false
         } else if (password.length < 6) {
-            binding.tilLozinkaReg.error = "Minimum 6 characters"; valid = false
+            binding.tilLozinkaReg.error = "Minimum 6 karaktera"; valid = false
         } else binding.tilLozinkaReg.error = null
 
         if (confirm.isEmpty()) {

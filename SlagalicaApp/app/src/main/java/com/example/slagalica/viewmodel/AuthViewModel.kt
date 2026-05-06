@@ -28,7 +28,7 @@ class AuthViewModel : ViewModel() {
                 _loginSuccess.value = true
                 _loginError.value = null
             } else {
-                _loginError.value = "Invalid login credentials"
+                _loginError.value = "Neispravni podaci za prijavu"
                 _loginSuccess.value = false
             }
         }
@@ -41,7 +41,7 @@ class AuthViewModel : ViewModel() {
                 _registrationSuccess.value = true
                 _registrationError.value = null
             } else {
-                _registrationError.value = "Registration failed. Please try again."
+                _registrationError.value = "Registracija nije uspješna. Pokušajte ponovo."
                 _registrationSuccess.value = false
             }
         }

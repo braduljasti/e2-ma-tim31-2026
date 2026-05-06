@@ -58,17 +58,14 @@ class SkockoFragment : Fragment() {
                 tv.setTextColor(if (symbol != null) symbolColor(symbol) else ContextCompat.getColor(requireContext(), R.color.skocko_prazno))
             }
         }
-
         viewModel.attempts.observe(viewLifecycleOwner) { list ->
             list.forEachIndexed { index, attempt ->
                 rowBindings.getOrNull(index)?.let { fillRow(it, attempt) }
             }
         }
-
         viewModel.attemptCount.observe(viewLifecycleOwner) { count ->
             binding.tvRundaSkocko.text = getString(R.string.lbl_pokusaj, count)
         }
-
         viewModel.remainingTime.observe(viewLifecycleOwner) { sec ->
             binding.tvTimerSkocko.text = sec.toString()
             binding.tvTimerSkocko.setTextColor(ContextCompat.getColor(requireContext(), when {
@@ -77,11 +74,9 @@ class SkockoFragment : Fragment() {
                 else -> R.color.white
             }))
         }
-
         viewModel.round.observe(viewLifecycleOwner) { round ->
             binding.tvRundaSkocko.text = getString(R.string.lbl_runda, round, 2)
         }
-
         viewModel.gameFinished.observe(viewLifecycleOwner) { finished ->
             if (finished) showResult()
         }
@@ -92,7 +87,6 @@ class SkockoFragment : Fragment() {
         attempt.combination.forEachIndexed { i, symbol ->
             fields.getOrNull(i)?.apply { text = symbol.emoji; setTextColor(symbolColor(symbol)) }
         }
-
         val indicators = listOf(rowBinding.indikator1, rowBinding.indikator2, rowBinding.indikator3, rowBinding.indikator4)
         indicators.forEachIndexed { i, indicator ->
             indicator.setBackgroundResource(when {
@@ -113,15 +107,14 @@ class SkockoFragment : Fragment() {
 
         binding.btnProyeriSkocko.setOnClickListener {
             if ((viewModel.currentSelection.value?.size ?: 0) != 4) {
-                Snackbar.make(binding.root, "Select 4 symbols before checking!", Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(binding.root, "Odaberite 4 znaka prije provjere!", Snackbar.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             val attempt = viewModel.checkSelection()
             if (attempt != null) {
-                Snackbar.make(binding.root, "● ${attempt.correctPosition} correct | ○ ${attempt.wrongPosition} wrong position", Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(binding.root, "● ${attempt.correctPosition} tačno | ○ ${attempt.wrongPosition} pogrešno", Snackbar.LENGTH_SHORT).show()
             }
         }
-
         binding.btnBrisiOdabir.setOnClickListener { viewModel.deleteLastSymbol() }
     }
 
@@ -141,24 +134,26 @@ class SkockoFragment : Fragment() {
         val guessed = viewModel.guessed.value == true
         val points = viewModel.points.value ?: 0
         val round = viewModel.round.value ?: 1
-        val message = if (guessed) "🎉 You guessed the combination! +$points points" else "😔 You did not guess the combination this round. 0 points."
+        val message = if (guessed) "🎉 Pogodili ste kombinaciju! +$points bodova" else "😔 Niste pogodili kombinaciju u ovoj rundi. 0 bodova."
 
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("End of round $round")
+            .setTitle("Kraj runde $round")
             .setMessage(message)
-            .setPositiveButton("Next") { dialog, _ ->
+            .setPositiveButton("Dalje") { dialog, _ ->
                 dialog.dismiss()
                 if (round == 1) { initRows(); viewModel.startRound(2) } else showFinalResult()
             }
-            .setCancelable(false).show()
+            .setCancelable(false)
+            .show()
     }
 
     private fun showFinalResult() {
         MaterialAlertDialogBuilder(requireContext())
-            .setTitle("Skočko finished!")
+            .setTitle("Skočko završen!")
             .setMessage(getString(R.string.lbl_vas_rezultat, viewModel.points.value ?: 0))
-            .setPositiveButton("Close") { _, _ -> requireActivity().onBackPressedDispatcher.onBackPressed() }
-            .setCancelable(false).show()
+            .setPositiveButton("Zatvori") { _, _ -> requireActivity().onBackPressedDispatcher.onBackPressed() }
+            .setCancelable(false)
+            .show()
     }
 
     override fun onDestroyView() { super.onDestroyView(); _binding = null }
