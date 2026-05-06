@@ -20,6 +20,9 @@ class KorakPoKorakViewModel : ViewModel() {
     private val _points = MutableLiveData<Int>(0)
     val points: LiveData<Int> = _points
 
+    private val _opponentPoints = MutableLiveData<Int>(0)
+    val opponentPoints: LiveData<Int> = _opponentPoints
+
     private val _currentHint = MutableLiveData<String>()
     val currentHint: LiveData<String> = _currentHint
 
@@ -53,6 +56,7 @@ class KorakPoKorakViewModel : ViewModel() {
         _possiblePoints.value = 20
         _gameFinished.value = false
         _guessed.value = null
+        if (round == 1) _opponentPoints.value = 0
         previousHintsList.clear()
         _previousHints.value = emptyList()
         showNextHint()
@@ -105,6 +109,10 @@ class KorakPoKorakViewModel : ViewModel() {
     private fun finishGame(guessed: Boolean) {
         timer?.cancel()
         _guessed.value = guessed
+        if (!guessed) {
+            val opponentGain = listOf(4, 6, 8, 10, 12, 14, 16, 18, 20).random()
+            _opponentPoints.value = (_opponentPoints.value ?: 0) + opponentGain
+        }
         _gameFinished.value = true
     }
 

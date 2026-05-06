@@ -13,6 +13,17 @@
         android:layout_height="wrap_content"
         android:padding="@dimen/margin_medium">
 
+
+        <!-- Scoreboard: moji bodovi vs protivnik -->
+        <include
+            android:id="@+id/scoreboardSkocko"
+            layout="@layout/item_scoreboard"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
         <!-- Header: runda i timer -->
         <LinearLayout
             android:id="@+id/llHeaderSkocko"
@@ -20,9 +31,10 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
+            android:layout_marginTop="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toBottomOf="@id/scoreboardSkocko">
 
             <TextView
                 android:id="@+id/tvRundaSkocko"

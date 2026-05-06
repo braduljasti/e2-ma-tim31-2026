@@ -35,6 +35,12 @@ class KorakPoKorakFragment : Fragment() {
     }
 
     private fun observeChanges() {
+        viewModel.points.observe(viewLifecycleOwner) { pts ->
+            binding.scoreboardKorak.tvMojiBodovi.text = pts.toString()
+        }
+        viewModel.opponentPoints.observe(viewLifecycleOwner) { pts ->
+            binding.scoreboardKorak.tvProtivnikBodovi.text = pts.toString()
+        }
         viewModel.currentStep.observe(viewLifecycleOwner) { step ->
             binding.tvBrojKoraka.text = getString(R.string.lbl_korak, step)
             binding.progressKoraci.progress = (step * 100) / 7

@@ -50,6 +50,12 @@ class SkockoFragment : Fragment() {
     }
 
     private fun observeChanges() {
+        viewModel.points.observe(viewLifecycleOwner) { pts ->
+            binding.scoreboardSkocko.tvMojiBodovi.text = pts.toString()
+        }
+        viewModel.opponentPoints.observe(viewLifecycleOwner) { pts ->
+            binding.scoreboardSkocko.tvProtivnikBodovi.text = pts.toString()
+        }
         viewModel.currentSelection.observe(viewLifecycleOwner) { list ->
             val slots = listOf(binding.tvOdabir1, binding.tvOdabir2, binding.tvOdabir3, binding.tvOdabir4)
             slots.forEachIndexed { i, tv ->

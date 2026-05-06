@@ -13,16 +13,28 @@
         android:layout_height="wrap_content"
         android:padding="@dimen/margin_medium">
 
-        <!-- Timer i runda -->
+
+        <!-- Scoreboard: moji bodovi vs protivnik -->
+        <include
+            android:id="@+id/scoreboardMojBroj"
+            layout="@layout/item_scoreboard"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"/>
+
+        <!-- Header: timer i runda -->
         <LinearLayout
             android:id="@+id/llHeaderMojBroj"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
+            android:layout_marginTop="8dp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintTop_toBottomOf="@id/scoreboardMojBroj">
 
             <TextView
                 android:id="@+id/tvRundaMojBroj"

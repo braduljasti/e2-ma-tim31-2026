@@ -34,6 +34,12 @@ class MojBrojFragment : Fragment() {
     }
 
     private fun observeChanges() {
+        viewModel.points.observe(viewLifecycleOwner) { pts ->
+            binding.scoreboardMojBroj.tvMojiBodovi.text = pts.toString()
+        }
+        viewModel.opponentPoints.observe(viewLifecycleOwner) { pts ->
+            binding.scoreboardMojBroj.tvProtivnikBodovi.text = pts.toString()
+        }
         viewModel.rotatingNumber.observe(viewLifecycleOwner) { num ->
             if (viewModel.numberShown.value != true) binding.tvTrazeniBreoj.text = num.toString()
         }

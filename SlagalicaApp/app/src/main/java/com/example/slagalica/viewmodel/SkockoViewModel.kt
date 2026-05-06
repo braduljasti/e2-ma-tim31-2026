@@ -23,6 +23,9 @@ class SkockoViewModel : ViewModel() {
     private val _points = MutableLiveData<Int>(0)
     val points: LiveData<Int> = _points
 
+    private val _opponentPoints = MutableLiveData<Int>(0)
+    val opponentPoints: LiveData<Int> = _opponentPoints
+
     private val _remainingTime = MutableLiveData<Int>(30)
     val remainingTime: LiveData<Int> = _remainingTime
 
