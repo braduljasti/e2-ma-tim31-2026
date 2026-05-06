@@ -24,6 +24,33 @@
     <string name="err_neispravan_email">Unesite ispravnu email adresu</string>
     <string name="msg_verifikacioni_mejl">Verifikacioni mejl je poslan na vašu adresu</string>
 
+    <!-- Profil ekran -->
+    <string name="title_profil">Profil</string>
+    <string name="lbl_tokeni">Tokeni</string>
+    <string name="lbl_zvezde">Zvezdice</string>
+    <string name="lbl_liga">Liga</string>
+    <string name="lbl_qr_kod">QR kod za poziv prijatelja</string>
+    <string name="lbl_statistika">Statistika igrača</string>
+    <string name="lbl_ukupno_partija">Ukupan broj partija</string>
+    <string name="lbl_pobede">Pobede</string>
+    <string name="lbl_porazi">Porazi</string>
+    <string name="lbl_prosek_bodova">Prosečno bodova po partiji</string>
+    <string name="lbl_odigrano_partija">Odigrano partija</string>
+
+    <!-- Akcije -->
+    <string name="btn_promeni_avatar">Promeni avatar</string>
+    <string name="btn_logout">Odjavi se</string>
+    <string name="dlg_logout_title">Odjava</string>
+    <string name="dlg_logout_msg">Da li ste sigurni da želite da se odjavite?</string>
+    <string name="dlg_logout_confirm">Odjavi se</string>
+    <string name="dlg_logout_cancel">Otkaži</string>
+    <string name="dlg_avatar_title">Izaberi avatar</string>
+
+    <!-- Format stringovi za procente -->
+    <string name="fmt_procenat">%1$.0f%%</string>
+    <string name="fmt_pobede">Pobede: %1$.0f%%</string>
+    <string name="fmt_porazi">Porazi: %1$.0f%%</string>
+
     <!-- Navigation Drawer -->
     <string name="nav_header_naslov">Slagalica</string>
     <string name="nav_header_podnaslov">Korisnik</string>
@@ -32,6 +59,19 @@
     <string name="nav_odjava">Odjava</string>
     <string name="navigation_drawer_open">Otvori navigacioni meni</string>
     <string name="navigation_drawer_close">Zatvori navigacioni meni</string>
+
+    <!-- Igre - imena -->
+    <string name="game_ko_zna_zna">Ko zna zna</string>
+    <string name="game_asocijacije">Asocijacije</string>
+    <string name="game_spojnice">Spojnice</string>
+
+    <!-- Metrike po igri (specifikacija 1.c) -->
+    <string name="metric_ko_zna_zna">Pogođenih pitanja</string>
+    <string name="metric_moj_broj">Pronađen tačan broj</string>
+    <string name="metric_korak_po_korak">Pogođen pojam</string>
+    <string name="metric_asocijacije">Rešeno asocijacija</string>
+    <string name="metric_skocko">Pogođena kombinacija</string>
+    <string name="metric_spojnice">Povezanih pojmova</string>
 
     <!-- Igre - opšte -->
     <string name="lbl_bodovi">Bodovi</string>

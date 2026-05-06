@@ -13,6 +13,7 @@
         android:label="Igraj"
         tools:layout="@layout/fragment_igraj"/>
 
+
     <!-- Notifikacije -->
     <fragment
         android:id="@+id/nav_notifikacije"
@@ -41,4 +42,9 @@
         android:label="@string/igra_skocko_naslov"
         tools:layout="@layout/fragment_skocko"/>
 
+    <fragment
+        android:id="@+id/profilFragment"
+        android:name="com.example.slagalica.ui.profil.ProfilFragment"
+        android:label="@string/title_profil"
+        tools:layout="@layout/fragment_profil" />
 </navigation>

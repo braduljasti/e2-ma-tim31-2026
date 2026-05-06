@@ -58,7 +58,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         return when (item.itemId) {
             R.id.action_notifikacije -> { navController.navigate(R.id.nav_notifikacije); true }
             R.id.action_profil -> {
-                Snackbar.make(binding.root, "Profile - Student 2", Snackbar.LENGTH_SHORT).show()
+                navController.navigate(R.id.profilFragment)
                 true
             }
             else -> super.onOptionsItemSelected(item)

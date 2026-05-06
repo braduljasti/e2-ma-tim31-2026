@@ -74,3 +74,76 @@ data class MyNumberData(
         }
     }
 }
+
+
+// ===== PROFIL =====
+
+/**
+ * Liga u kojoj se korisnik trenutno nalazi.
+ * Po specifikaciji 1.f, treba prikazati naziv i ikonu lige.
+ * Emoji koristimo u tekstu, a `iconResId` u ImageView-u.
+ */
+enum class Liga(val displayName: String, val emoji: String) {
+    BRONZANA("Bronzana liga", "🥉"),
+    SREBRNA("Srebrna liga", "🥈"),
+    ZLATNA("Zlatna liga", "🥇"),
+    PLATINASTA("Platinasta liga", "💎"),
+    DIJAMANTSKA("Dijamantska liga", "💠")
+}
+
+/**
+ * Osnovni podaci o korisniku koji se prikazuju u zaglavlju profila.
+ * `qrPayload` je tekst koji se kodira u QR — najčešće je to neki ID
+ * koji bi backend prepoznao kao "poziv prijatelja", ali pošto nema
+ * backenda, hardkodujemo nešto poput "slagalica://invite/USERNAME".
+ */
+data class UserProfile(
+    val username: String,
+    val email: String,
+    val avatarResId: Int,   // R.drawable.avatar_default itd.
+    val tokens: Int,
+    val totalStars: Int,
+    val league: Liga,
+    val region: String,
+    val qrPayload: String
+)
+
+/**
+ * Statistika za pojedinačnu igru.
+ * - `averagePointsLabel`: tekstualni opseg, npr. "40 - 60 bodova"
+ *   (po specifikaciji 1.c.i je "opseg prosečno osvojenih bodova")
+ * - `mainMetricLabel` / `mainMetricPercent`: glavna metrika specifična
+ *   za igru, npr. za "Ko zna zna" -> "Pogođenih pitanja", procenat 70%.
+ * - `gamesPlayed`: broj odigranih partija ove igre.
+ */
+data class GameStatistic(
+    val gameName: String,
+    val averagePointsLabel: String,
+    val mainMetricLabel: String,
+    val mainMetricPercent: Float,   // 0f..100f
+    val gamesPlayed: Int
+)
+
+/**
+ * Sva statistika igrača na jednom mestu.
+ * Drži po jedan GameStatistic za svaku igru + ukupne brojke.
+ */
+data class PlayerStats(
+    val koZnaZna: GameStatistic,
+    val mojBroj: GameStatistic,
+    val korakPoKorak: GameStatistic,
+    val asocijacije: GameStatistic,
+    val skocko: GameStatistic,
+    val spojnice: GameStatistic,
+    val totalGamesPlayed: Int,
+    val totalWins: Int,
+    val totalLosses: Int
+) {
+    /** Specifikacija 1.c.ix - procenat pobeđenih partija */
+    val winPercent: Float
+        get() = if (totalGamesPlayed > 0) totalWins * 100f / totalGamesPlayed else 0f
+
+    /** Specifikacija 1.c.ix - procenat izgubljenih partija */
+    val lossPercent: Float
+        get() = if (totalGamesPlayed > 0) totalLosses * 100f / totalGamesPlayed else 0f
+}

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <!-- Pozadinski krug -->
+    <path
+        android:fillColor="#3F51B5"
+        android:pathData="M24,0 A24,24 0 1,0 24,48 A24,24 0 1,0 24,0 Z" />
+
+    <!-- Silueta - glava i ramena -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M24,24 C27.31,24 30,21.31 30,18 C30,14.69 27.31,12 24,12 C20.69,12 18,14.69 18,18 C18,21.31 20.69,24 24,24 Z M24,27 C20,27 12,29 12,33 L12,36 L36,36 L36,33 C36,29 28,27 24,27 Z" />
+</vector>
