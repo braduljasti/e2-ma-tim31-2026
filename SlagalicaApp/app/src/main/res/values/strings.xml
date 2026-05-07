@@ -140,6 +140,16 @@
     <string name="btn_pocni_ponovo">Počni ponovo</string>
     <string name="btn_napusti_igru">Napusti igru</string>
 
+    <!-- Spojnice igra -->
+    <string name="igra_spojnice_naslov">Spojnice</string>
+    <string name="spojnice_runda_format">Runda %1$d / %2$d</string>
+    <string name="spojnice_max_bodova">Možete osvojiti: 10 bodova po rundi</string>
+    <string name="spojnice_kraj_igre">Spojnice završene!</string>
+    <string name="spojnice_finalni_rezultat">Tvoji bodovi: %1$d\nProtivnikovi bodovi: %2$d</string>
+    <string name="spojnice_finalni_detalji">Tvoje veze: %1$d • Protivnikove: %2$d</string>
+    <string name="spojnice_protivnik_runda">Protivnik je povezao %1$d od preostalih</string>
+    <string name="spojnice_kriterijum_label">🎯 KRITERIJUM</string>
+
     <!-- Regioni -->
     <string-array name="regioni">
         <item>Vojvodina</item>

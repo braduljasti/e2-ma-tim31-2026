@@ -29,6 +29,11 @@
                 android:title="@string/igra_moj_broj_naslov"/>
 
             <item
+                android:id="@+id/nav_spojnice"
+                android:icon="@android:drawable/ic_menu_share"
+                android:title="@string/igra_spojnice_naslov"/>
+
+            <item
                 android:id="@+id/nav_ko_zna_zna"
                 android:icon="@android:drawable/ic_menu_help"
                 android:title="@string/igra_ko_zna_zna_naslov"/>

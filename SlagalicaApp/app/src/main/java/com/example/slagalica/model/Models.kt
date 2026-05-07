@@ -199,3 +199,55 @@ object KzzKonstante {
     const val MAX_BODOVA = BROJ_PITANJA * BODOVA_ZA_TACAN          // 50
     const val MIN_BODOVA = BROJ_PITANJA * BODOVA_ZA_NETACAN        // -25
 }
+
+// ===== SPOJNICE =====
+
+/**
+ * Jedna runda u igri Spojnice.
+ * Po specifikaciji: 5 pojmova levo, 5 desno, jedan kriterijum.
+ *
+ * `tacneVeze` mapira indeks levog pojma na indeks desnog koji mu odgovara.
+ * Npr. tacneVeze[0] == 3 znaci da levi[0] ide sa desni[3].
+ */
+data class SpojniceRundaPodaci(
+    val kriterijum: String,
+    val leviPojmovi: List<String>,
+    val desniPojmovi: List<String>,
+    val tacneVeze: Map<Int, Int>
+) {
+    init {
+        require(leviPojmovi.size == 5) { "Spojnice runda treba 5 levih pojmova" }
+        require(desniPojmovi.size == 5) { "Spojnice runda treba 5 desnih pojmova" }
+        require(tacneVeze.size == 5) { "Spojnice runda treba 5 veza" }
+    }
+}
+
+/**
+ * Stanje pojedinacne celije (jedna kartica pojma).
+ * Boja kartice u Fragmentu se odredjuje na osnovu ovog stanja.
+ */
+enum class SpojniceStanjeCelije {
+    POCETNO,
+    SELEKTOVANA,                // levi pojam koji je trenutno u fokusu
+    POVEZANA_MOJA_TACNO,        // korisnik je pogodio - zeleno, trajno
+    POVEZANA_MOJA_NETACNO,      // korisnik je pogresno spojio - crveno, trajno
+    POVEZANA_PROTIVNIKOVA       // protivnik je spojio (sim) - plavo, trajno
+}
+
+/**
+ * Snapshot finalnog rezultata - prikazuje se u finalnom dijalogu.
+ */
+data class SpojniceRezultat(
+    val mojiBodovi: Int,
+    val protivnikBodovi: Int,
+    val mojeVeze: Int,
+    val protivnikoVeza: Int
+)
+
+object SpojniceKonstante {
+    const val BROJ_RUNDI = 2
+    const val VREME_PO_RUNDI_S = 30
+    const val POJMOVA_PO_KOLONI = 5
+    const val BODOVA_PO_VEZI = 2
+    const val MAX_BODOVA = BROJ_RUNDI * POJMOVA_PO_KOLONI * BODOVA_PO_VEZI  // 20
+}

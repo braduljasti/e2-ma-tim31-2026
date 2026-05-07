@@ -35,6 +35,13 @@
         android:label="@string/igra_ko_zna_zna_naslov"
         tools:layout="@layout/fragment_ko_zna_zna" />
 
+    <!-- Igra: Spojnice -->
+    <fragment
+        android:id="@+id/spojniceFragment"
+        android:name="com.example.slagalica.ui.games.SpojniceFragment"
+        android:label="@string/igra_spojnice_naslov"
+        tools:layout="@layout/fragment_spojnice" />
+
     <!-- Igra: Moj broj -->
     <fragment
         android:id="@+id/nav_moj_broj"
