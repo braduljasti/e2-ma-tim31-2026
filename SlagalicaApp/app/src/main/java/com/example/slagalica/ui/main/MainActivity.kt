@@ -70,6 +70,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             R.id.nav_igraj -> navController.navigate(R.id.nav_igraj)
             R.id.nav_notifikacije -> navController.navigate(R.id.nav_notifikacije)
             R.id.nav_korak_po_korak -> navController.navigate(R.id.nav_korak_po_korak)
+            R.id.nav_ko_zna_zna -> navController.navigate(R.id.kzzFragment)
             R.id.nav_moj_broj -> navController.navigate(R.id.nav_moj_broj)
             R.id.nav_skocko -> navController.navigate(R.id.nav_skocko)
             R.id.nav_odjava -> {

@@ -128,6 +128,18 @@
     <string name="kanal_nagrade">Nagrade</string>
     <string name="kanal_ostalo">Ostalo</string>
 
+    <!-- Ko zna zna igra -->
+    <string name="igra_ko_zna_zna_naslov">Ko zna zna</string>
+    <string name="kzz_pitanje_format">Pitanje %1$d / %2$d</string>
+    <string name="kzz_max_bodova">Možete osvojiti: 50 bodova</string>
+    <string name="kzz_kraj_igre">Igra završena!</string>
+    <string name="kzz_finalni_rezultat">Tvoji bodovi: %1$d\nProtivnikovi bodovi: %2$d</string>
+    <string name="kzz_finalni_detalji">Tačno: %1$d • Netačno: %2$d • Promašeno: %3$d</string>
+    <string name="kzz_isteklo_vreme">Vreme je isteklo!</string>
+    <string name="kzz_protivnik_brzi">Protivnik je bio brži!</string>
+    <string name="btn_pocni_ponovo">Počni ponovo</string>
+    <string name="btn_napusti_igru">Napusti igru</string>
+
     <!-- Regioni -->
     <string-array name="regioni">
         <item>Vojvodina</item>

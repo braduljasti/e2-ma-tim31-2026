@@ -28,6 +28,13 @@
         android:label="@string/igra_korak_naslov"
         tools:layout="@layout/fragment_korak_po_korak"/>
 
+    <!-- Igra: Ko zna zna -->
+    <fragment
+        android:id="@+id/kzzFragment"
+        android:name="com.example.slagalica.ui.games.KzzFragment"
+        android:label="@string/igra_ko_zna_zna_naslov"
+        tools:layout="@layout/fragment_ko_zna_zna" />
+
     <!-- Igra: Moj broj -->
     <fragment
         android:id="@+id/nav_moj_broj"

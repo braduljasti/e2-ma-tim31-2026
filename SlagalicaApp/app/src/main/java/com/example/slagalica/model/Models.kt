@@ -147,3 +147,55 @@ data class PlayerStats(
     val lossPercent: Float
         get() = if (totalGamesPlayed > 0) totalLosses * 100f / totalGamesPlayed else 0f
 }
+
+
+// ===== KO ZNA ZNA =====
+
+/**
+ * Jedno pitanje u igri "Ko zna zna".
+ * Po specifikaciji: tacno 4 ponudjena odgovora, jedan je tacan.
+ */
+data class KzzPitanje(
+    val tekst: String,
+    val odgovori: List<String>,
+    val tacanIndex: Int
+) {
+    init {
+        require(odgovori.size == 4) { "Pitanje mora imati tacno 4 odgovora" }
+        require(tacanIndex in 0..3) { "tacanIndex mora biti u opsegu 0..3" }
+    }
+}
+
+/**
+ * Stanje aktuelnog pitanja - kontroliše vizuelnu povratnu informaciju
+ * (boju dugmadi i da li su klikabilna).
+ */
+enum class KzzStanjePitanja {
+    AKTIVNO,        // tajmer ide, korisnik bira
+    ODGOVORENO,     // korisnik je kliknuo - prikazi zelenu/crvenu boju
+    ISTEKLO         // istekao timer bez odgovora - prikazi tacan u zelenoj
+}
+
+/**
+ * Snapshot rezultata jedne odigrane runde - koristi se za finalni dijalog.
+ */
+data class KzzRezultat(
+    val mojiBodovi: Int,
+    val protivnikBodovi: Int,
+    val mojiTacni: Int,
+    val mojiNetacni: Int,
+    val mojiPromaseni: Int   // istekao timer
+)
+
+/**
+ * Konstante za igru - stavljam ih u object da budu lako dostupne
+ * iz ViewModel-a, a ne razbacane po kodu.
+ */
+object KzzKonstante {
+    const val BROJ_PITANJA = 5
+    const val VREME_PO_PITANJU_S = 5
+    const val BODOVA_ZA_TACAN = 10
+    const val BODOVA_ZA_NETACAN = -5
+    const val MAX_BODOVA = BROJ_PITANJA * BODOVA_ZA_TACAN          // 50
+    const val MIN_BODOVA = BROJ_PITANJA * BODOVA_ZA_NETACAN        // -25
+}
