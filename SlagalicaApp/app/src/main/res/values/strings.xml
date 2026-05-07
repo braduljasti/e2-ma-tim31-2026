@@ -150,6 +150,30 @@
     <string name="spojnice_protivnik_runda">Protivnik je povezao %1$d od preostalih</string>
     <string name="spojnice_kriterijum_label">🎯 KRITERIJUM</string>
 
+    <!-- Asocijacije igra -->
+    <string name="igra_asocijacije_naslov">Asocijacije</string>
+    <string name="asoc_runda_format">Runda %1$d / %2$d</string>
+    <string name="asoc_max_bodova">Možete osvojiti: 30 bodova po rundi</string>
+    <string name="asoc_kraj_igre">Asocijacije završene!</string>
+    <string name="asoc_finalni_rezultat">Tvoji bodovi: %1$d\nProtivnikovi bodovi: %2$d</string>
+    <string name="asoc_finalni_detalji">Tvoja rešenja: %1$d • Protivnikova: %2$d</string>
+
+    <!-- Pogadjanje (dialog) -->
+    <string name="asoc_pogadjanje_kolone">Pogodi rešenje kolone %1$s</string>
+    <string name="asoc_pogadjanje_finalno">Pogodi konačno rešenje</string>
+    <string name="asoc_unos_hint">Unesi rešenje…</string>
+    <string name="asoc_potvrdi">Potvrdi</string>
+    <string name="asoc_otkazi">Otkaži</string>
+
+    <!-- Toast feedback -->
+    <string name="asoc_otvori_polje">Otvori bar jedno polje pre nego što pogađaš</string>
+    <string name="asoc_netacno">Netačno!</string>
+    <string name="asoc_tacno_kolona">Tačno! +%1$d bodova za rešenje kolone</string>
+    <string name="asoc_tacno_finalno">Tačno! +%1$d bodova za finalno rešenje</string>
+
+    <!-- Labele u igralistu -->
+    <string name="asoc_finalno_zakljucano">FINALNO</string>
+
     <!-- Regioni -->
     <string-array name="regioni">
         <item>Vojvodina</item>

@@ -251,3 +251,57 @@ object SpojniceKonstante {
     const val BODOVA_PO_VEZI = 2
     const val MAX_BODOVA = BROJ_RUNDI * POJMOVA_PO_KOLONI * BODOVA_PO_VEZI  // 20
 }
+
+// ===== ASOCIJACIJE =====
+
+/**
+ * Stanje pojedinacne celije - vazi i za polja i za resenja kolona i za finalno resenje.
+ *
+ * Polja prelaze samo: ZAKLJUCANO -> OTKRIVENO (kad se kliknu).
+ * Resenja prelaze: ZAKLJUCANO -> POGODENO_MOJE/POGODENO_PROTIVNIK ili
+ *                  ZAKLJUCANO -> OTKRIVENO (na kraju runde, ako niko nije pogodio).
+ */
+enum class AsocijacijaCelijaStanje {
+    ZAKLJUCANO,
+    OTKRIVENO,
+    POGODENO_MOJE,
+    POGODENO_PROTIVNIK
+}
+
+/**
+ * Jedna runda u igri Asocijacije.
+ *  - polja: 4x4 matrica - polja[kolona][red]
+ *  - resenjaKolona: 4 stringa - resenja kolona A, B, C, D (po redosledu)
+ *  - finalnoResenje: jedan string - krajnje resenje runde
+ */
+data class AsocijacijeRundaPodaci(
+    val polja: List<List<String>>,
+    val resenjaKolona: List<String>,
+    val finalnoResenje: String
+) {
+    init {
+        require(polja.size == 4) { "Asocijacije moraju imati 4 kolone" }
+        require(polja.all { it.size == 4 }) { "Svaka kolona mora imati 4 polja" }
+        require(resenjaKolona.size == 4) { "Mora biti 4 resenja kolona" }
+    }
+}
+
+data class AsocijacijeRezultat(
+    val mojiBodovi: Int,
+    val protivnikBodovi: Int,
+    val mojeResenja: Int,         // koliko sam pogodio (kolone + finalno)
+    val protivnikoveResenja: Int
+)
+
+object AsocijacijeKonstante {
+    const val BROJ_RUNDI = 2
+    const val VREME_PO_RUNDI_S = 120        // 2 minute
+    const val POLJA_PO_KOLONI = 4
+    const val BROJ_KOLONA = 4
+
+    // Bodovanje po spec-u
+    const val FINALNO_BAZA = 7              // 7 bodova bazno za finalno
+    const val KOLONA_BAZA = 2               // 2 boda bazno za resenje kolone
+    const val BODOVI_PO_NEOTVORENOM = 1     // +1 po neotvorenom polju
+    const val BODOVA_NEOTVORENA_KOLONA = 6  // = 2 + 4 (kad finalno gadjas, neotvorena kolona daje 6)
+}
