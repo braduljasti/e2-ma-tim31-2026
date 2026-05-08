@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- RegisterScreen - vjezba 2: email, korisničko ime, region, lozinka, potvrda -->
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -87,7 +86,6 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Region - Spinner kao na vjezbi GUI II -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilRegion"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
@@ -185,7 +183,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvGreskaReg"/>
 
-        <!-- Nazad na login - vjezba 2 -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnNazadNaLogin"
             style="@style/Widget.MaterialComponents.Button.TextButton"

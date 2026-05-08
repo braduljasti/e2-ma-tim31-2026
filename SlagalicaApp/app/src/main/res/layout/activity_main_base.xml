@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Kao na vjezbi GUI II: AppBarLayout + Toolbar + NavHostFragment -->
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -11,7 +10,6 @@
         android:layout_height="wrap_content"
         android:theme="@style/Theme.Slagalica.AppBarOverlay">
 
-        <!-- Toolbar - kao na vjezbi GUI II -->
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
@@ -22,7 +20,6 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- NavHostFragment - kao na vjezbi GUI II -->
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/navHostFragment"
         android:name="androidx.navigation.fragment.NavHostFragment"

@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Navigation Drawer meni - kao na vjezbi GUI II -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <group android:checkableBehavior="single">
@@ -18,10 +17,6 @@
 
     <item android:title="Igre">
         <menu>
-            <item
-                android:id="@+id/nav_korak_po_korak"
-                android:icon="@android:drawable/ic_menu_directions"
-                android:title="@string/igra_korak_naslov"/>
 
             <item
                 android:id="@+id/nav_moj_broj"
@@ -29,23 +24,25 @@
                 android:title="@string/igra_moj_broj_naslov"/>
 
             <item
-                android:id="@+id/nav_asocijacije"
-                android:icon="@android:drawable/ic_menu_view"
-                android:title="@string/igra_asocijacije_naslov"/>
-
+                android:id="@+id/nav_skocko"
+                android:icon="@android:drawable/ic_menu_compass"
+                android:title="@string/igra_skocko_naslov" />
             <item
-                android:id="@+id/nav_spojnice"
-                android:icon="@android:drawable/ic_menu_share"
-                android:title="@string/igra_spojnice_naslov"/>
-
+                android:id="@+id/nav_korak_po_korak"
+                android:icon="@android:drawable/ic_menu_directions"
+                android:title="@string/igra_korak_naslov" />
             <item
                 android:id="@+id/nav_ko_zna_zna"
                 android:icon="@android:drawable/ic_menu_help"
                 android:title="@string/igra_ko_zna_zna_naslov"/>
             <item
-                android:id="@+id/nav_skocko"
-                android:icon="@android:drawable/ic_menu_compass"
-                android:title="@string/igra_skocko_naslov"/>
+                android:id="@+id/nav_spojnice"
+                android:icon="@android:drawable/ic_menu_share"
+                android:title="@string/igra_spojnice_naslov" />
+            <item
+                android:id="@+id/nav_asocijacije"
+                android:icon="@android:drawable/ic_menu_view"
+                android:title="@string/igra_asocijacije_naslov" />
         </menu>
     </item>
 
