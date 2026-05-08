@@ -58,7 +58,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         return when (item.itemId) {
             R.id.action_notifikacije -> { navController.navigate(R.id.nav_notifikacije); true }
             R.id.action_profil -> {
-                Snackbar.make(binding.root, "Profile - Student 2", Snackbar.LENGTH_SHORT).show()
+                navController.navigate(R.id.profilFragment)
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -70,6 +70,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             R.id.nav_igraj -> navController.navigate(R.id.nav_igraj)
             R.id.nav_notifikacije -> navController.navigate(R.id.nav_notifikacije)
             R.id.nav_korak_po_korak -> navController.navigate(R.id.nav_korak_po_korak)
+            R.id.nav_ko_zna_zna -> navController.navigate(R.id.kzzFragment)
+            R.id.nav_spojnice -> navController.navigate(R.id.spojniceFragment)
+            R.id.nav_asocijacije -> navController.navigate(R.id.asocijacijeFragment)
             R.id.nav_moj_broj -> navController.navigate(R.id.nav_moj_broj)
             R.id.nav_skocko -> navController.navigate(R.id.nav_skocko)
             R.id.nav_odjava -> {

@@ -13,6 +13,7 @@
         android:label="Igraj"
         tools:layout="@layout/fragment_igraj"/>
 
+
     <!-- Notifikacije -->
     <fragment
         android:id="@+id/nav_notifikacije"
@@ -26,6 +27,27 @@
         android:name="com.example.slagalica.ui.games.KorakPoKorakFragment"
         android:label="@string/igra_korak_naslov"
         tools:layout="@layout/fragment_korak_po_korak"/>
+
+    <!-- Igra: Ko zna zna -->
+    <fragment
+        android:id="@+id/kzzFragment"
+        android:name="com.example.slagalica.ui.games.KzzFragment"
+        android:label="@string/igra_ko_zna_zna_naslov"
+        tools:layout="@layout/fragment_ko_zna_zna" />
+
+    <!-- Igra: Spojnice -->
+    <fragment
+        android:id="@+id/spojniceFragment"
+        android:name="com.example.slagalica.ui.games.SpojniceFragment"
+        android:label="@string/igra_spojnice_naslov"
+        tools:layout="@layout/fragment_spojnice" />
+
+    <!-- Igra: asocijacije -->
+    <fragment
+        android:id="@+id/asocijacijeFragment"
+        android:name="com.example.slagalica.ui.games.AsocijacijeFragment"
+        android:label="@string/igra_asocijacije_naslov"
+        tools:layout="@layout/fragment_asocijacije" />
 
     <!-- Igra: Moj broj -->
     <fragment
@@ -41,4 +63,9 @@
         android:label="@string/igra_skocko_naslov"
         tools:layout="@layout/fragment_skocko"/>
 
+    <fragment
+        android:id="@+id/profilFragment"
+        android:name="com.example.slagalica.ui.profil.ProfilFragment"
+        android:label="@string/title_profil"
+        tools:layout="@layout/fragment_profil" />
 </navigation>

@@ -1,0 +1,295 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FAFAFA"
+    android:fillViewport="true"
+    tools:context=".ui.profil.ProfilFragment">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="@dimen/profil_section_spacing">
+
+        <!-- ============================================== -->
+        <!-- ZAGLAVLJE: avatar + osnovni podaci + QR kod    -->
+        <!-- ============================================== -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/profil_section_spacing"
+            app:cardCornerRadius="@dimen/profil_card_radius"
+            app:cardElevation="2dp">
+
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="@dimen/profil_card_padding">
+
+                <!-- Avatar sa okvirom -->
+                <ImageView
+                    android:id="@+id/iv_avatar"
+                    android:layout_width="@dimen/profil_avatar_size"
+                    android:layout_height="@dimen/profil_avatar_size"
+                    android:background="@drawable/bg_avatar_okvir"
+                    android:contentDescription="@string/lbl_korisnicko_ime"
+                    android:padding="@dimen/profil_avatar_border"
+                    android:src="@drawable/avatar_1"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <!-- Korisničko ime -->
+                <TextView
+                    android:id="@+id/tv_korisnicko_ime"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:textColor="@color/primary"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/iv_avatar"
+                    app:layout_constraintTop_toTopOf="@id/iv_avatar"
+                    tools:text="igrac_123" />
+
+                <!-- Email -->
+                <TextView
+                    android:id="@+id/tv_email"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="4dp"
+                    android:textColor="@android:color/darker_gray"
+                    android:textSize="14sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/iv_avatar"
+                    app:layout_constraintTop_toBottomOf="@id/tv_korisnicko_ime"
+                    tools:text="igrac@example.com" />
+
+                <!-- Region -->
+                <TextView
+                    android:id="@+id/tv_region"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="8dp"
+                    android:textSize="14sp"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/iv_avatar"
+                    app:layout_constraintTop_toBottomOf="@id/tv_email"
+                    tools:text="🌍 Vojvodina" />
+
+                <!-- Dugme za promenu avatara -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_promeni_avatar"
+                    style="@style/Widget.Material3.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/btn_promeni_avatar"
+                    android:textSize="12sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/iv_avatar" />
+
+                <!-- Razdvajač -->
+                <View
+                    android:id="@+id/divider_1"
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="16dp"
+                    android:background="#E0E0E0"
+                    app:layout_constraintTop_toBottomOf="@id/btn_promeni_avatar" />
+
+                <!-- Tokeni / Zvezde / Liga - tri kolone -->
+                <TextView
+                    android:id="@+id/tv_tokeni"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toStartOf="@id/tv_zvezde"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/divider_1"
+                    tools:text="🪙 1250" />
+
+                <TextView
+                    android:id="@+id/tv_zvezde"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toStartOf="@id/tv_liga"
+                    app:layout_constraintStart_toEndOf="@id/tv_tokeni"
+                    app:layout_constraintTop_toBottomOf="@id/divider_1"
+                    tools:text="⭐ 87" />
+
+                <TextView
+                    android:id="@+id/tv_liga"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@id/tv_zvezde"
+                    app:layout_constraintTop_toBottomOf="@id/divider_1"
+                    tools:text="🥇 Zlatna" />
+
+                <!-- QR kod label -->
+                <TextView
+                    android:id="@+id/lbl_qr"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:text="@string/lbl_qr_kod"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tv_tokeni" />
+
+                <!-- QR kod slika -->
+                <ImageView
+                    android:id="@+id/iv_qr_kod"
+                    android:layout_width="@dimen/profil_qr_size"
+                    android:layout_height="@dimen/profil_qr_size"
+                    android:layout_marginTop="8dp"
+                    android:background="#F5F5F5"
+                    android:contentDescription="@string/lbl_qr_kod"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/lbl_qr" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- ============================================== -->
+        <!-- STATISTIKA                                      -->
+        <!-- ============================================== -->
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="@dimen/profil_section_spacing"
+            app:cardCornerRadius="@dimen/profil_card_radius"
+            app:cardElevation="2dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="@dimen/profil_card_padding">
+
+                <!-- Naslov sekcije -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="12dp"
+                    android:text="@string/lbl_statistika"
+                    android:textColor="@color/primary"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <!-- Ukupno odigranih partija -->
+                <TextView
+                    android:id="@+id/tv_ukupno_partija"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="14sp"
+                    tools:text="Ukupno partija: 142" />
+
+                <!-- Pobede sa progres barom -->
+                <TextView
+                    android:id="@+id/tv_pobede_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textSize="13sp"
+                    tools:text="Pobede: 65%" />
+
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                    android:id="@+id/pb_pobede"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    app:indicatorColor="@color/success"
+                    app:trackThickness="6dp"
+                    tools:progress="65" />
+
+                <!-- Porazi sa progres barom -->
+                <TextView
+                    android:id="@+id/tv_porazi_label"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:textSize="13sp"
+                    tools:text="Porazi: 35%" />
+
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                    android:id="@+id/pb_porazi"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    app:indicatorColor="@color/error"
+                    app:trackThickness="6dp"
+                    tools:progress="35" />
+
+                <!-- Razdvajač pre statistike po igrama -->
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="16dp"
+                    android:background="#E0E0E0" />
+
+                <!-- 6 statistika po igri (svaka iz item_game_statistika.xml) -->
+                <include
+                    android:id="@+id/stat_ko_zna_zna"
+                    layout="@layout/item_game_statistika" />
+
+                <include
+                    android:id="@+id/stat_moj_broj"
+                    layout="@layout/item_game_statistika" />
+
+                <include
+                    android:id="@+id/stat_korak_po_korak"
+                    layout="@layout/item_game_statistika" />
+
+                <include
+                    android:id="@+id/stat_asocijacije"
+                    layout="@layout/item_game_statistika" />
+
+                <include
+                    android:id="@+id/stat_skocko"
+                    layout="@layout/item_game_statistika" />
+
+                <include
+                    android:id="@+id/stat_spojnice"
+                    layout="@layout/item_game_statistika" />
+
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
+
+        <!-- ============================================== -->
+        <!-- LOGOUT DUGME                                    -->
+        <!-- ============================================== -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_logout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp"
+            android:backgroundTint="@color/error"
+            android:text="@string/btn_logout"
+            android:textColor="@android:color/white" />
+
+    </LinearLayout>
+</ScrollView>

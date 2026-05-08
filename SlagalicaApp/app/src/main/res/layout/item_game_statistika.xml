@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="16dp"
+    android:orientation="vertical">
+
+    <!-- Naziv igre -->
+    <TextView
+        android:id="@+id/tv_game_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/primary_dark"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        tools:text="Ko zna zna" />
+
+    <!-- Prosek bodova (levo) + broj partija (desno) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tv_average_points"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="12sp"
+            tools:text="Prosek: 40 - 60 bodova" />
+
+        <TextView
+            android:id="@+id/tv_games_played"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@android:color/darker_gray"
+            android:textSize="12sp"
+            tools:text="24 partije" />
+    </LinearLayout>
+
+    <!-- Glavna metrika: tekst (levo) + procenat (desno) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tv_metric_label"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textSize="13sp"
+            tools:text="Pogođenih pitanja" />
+
+        <TextView
+            android:id="@+id/tv_metric_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            tools:text="72%" />
+    </LinearLayout>
+
+    <!-- Progres bar za metriku -->
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/pb_metric"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        app:indicatorColor="@color/accent"
+        app:trackThickness="6dp"
+        tools:progress="72" />
+
+</LinearLayout>
