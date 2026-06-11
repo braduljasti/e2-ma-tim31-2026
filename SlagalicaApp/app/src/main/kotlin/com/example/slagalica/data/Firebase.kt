@@ -25,4 +25,9 @@ object FirestoreCollections {
     const val USERNAMES = "usernames"        // mapiranje korisnickoIme -> email (za login po imenu)
     const val NOTIFICATIONS = "notifications" // podkolekcija unutar users/{uid}/notifications
     const val GAME_RESULTS = "gameResults"    // podkolekcija unutar users/{uid}/gameResults
+
+    // Podaci za igre (vidi GameDataRepository)
+    const val KZZ_QUESTIONS = "kzzQuestions"
+    const val SPOJNICE_RUNDE = "spojniceRunde"
+    const val ASOCIJACIJE_RUNDE = "asocijacijeRunde"
 }

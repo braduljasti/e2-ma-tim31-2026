@@ -31,6 +31,18 @@ service cloud.firestore {
       allow create, update, delete: if signedIn();
     }
 
+    // Podaci za igre (pitanja, spojnice, asocijacije) - čitaju ih prijavljeni,
+    // a upis je dozvoljen prijavljenima zbog inicijalnog seed-a iz aplikacije.
+    match /kzzQuestions/{id} {
+      allow read, write: if signedIn();
+    }
+    match /spojniceRunde/{id} {
+      allow read, write: if signedIn();
+    }
+    match /asocijacijeRunde/{id} {
+      allow read, write: if signedIn();
+    }
+
     // Mečevi: čitaju ih prijavljeni; mijenjaju samo dva učesnika meča.
     match /matches/{matchId} {
       allow read: if signedIn();
