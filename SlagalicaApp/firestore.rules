@@ -1,0 +1,43 @@
+rules_version = '2';
+
+// Sigurnosna pravila za Slagalica aplikaciju.
+// Postavi ih u Firebase konzoli: Firestore Database -> Rules.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    // Korisnici: svako prijavljen može da čita profile (za rang listu / prikaz imena),
+    // ali samo vlasnik mijenja svoj profil i svoje podkolekcije (notifikacije, rezultati).
+    match /users/{uid} {
+      allow read: if signedIn();
+      allow write: if signedIn() && request.auth.uid == uid;
+      match /{document=**} {
+        allow read, write: if signedIn() && request.auth.uid == uid;
+      }
+    }
+
+    // Mapiranje korisničkih imena (za login po imenu).
+    match /usernames/{username} {
+      allow read: if true;            // login po imenu mora da pročita prije autentifikacije
+      allow write: if signedIn();
+    }
+
+    // Matchmaking tiketi.
+    match /matchmaking/{ticketId} {
+      allow read: if signedIn();
+      allow create, update, delete: if signedIn();
+    }
+
+    // Mečevi: čitaju ih prijavljeni; mijenjaju samo dva učesnika meča.
+    match /matches/{matchId} {
+      allow read: if signedIn();
+      allow create: if signedIn();
+      allow update: if signedIn() &&
+        (request.auth.uid == resource.data.player1Id ||
+         request.auth.uid == resource.data.player2Id);
+    }
+  }
+}

@@ -1,6 +1,8 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
+    // Firebase / Google Services (obrada google-services.json)
+    id 'com.google.gms.google-services'
 }
 
 android {
@@ -23,6 +25,11 @@ android {
         }
     }
 
+    // Izvorni kod je u src/main/kotlin (umjesto podrazumijevanog src/main/java)
+    sourceSets {
+        main.kotlin.srcDirs += 'src/main/kotlin'
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -43,6 +50,15 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+
+    // ===== Firebase =====
+    // BOM upravlja verzijama svih Firebase biblioteka
+    implementation platform('com.google.firebase:firebase-bom:33.1.2')
+    implementation 'com.google.firebase:firebase-auth-ktx'          // Registracija i logovanje
+    implementation 'com.google.firebase:firebase-firestore-ktx'     // Baza: korisnici, notifikacije, rezultati igara
+    implementation 'com.google.firebase:firebase-messaging-ktx'     // Push notifikacije (FCM)
+    // Coroutines + Firebase (kotlinx-coroutines-play-services -> .await())
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3'
 
     // QR kod generisanje (ZXing core - bez UI dela, samo enkodiranje)
     implementation 'com.google.zxing:core:3.5.3'
