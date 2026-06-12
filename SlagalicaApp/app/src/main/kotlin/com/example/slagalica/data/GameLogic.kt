@@ -1,5 +1,7 @@
 package com.example.slagalica.data
 
+import com.example.slagalica.model.KzzKonstante
+import com.example.slagalica.model.KzzOdgovor
 import com.example.slagalica.model.SkockoSymbol
 import kotlin.math.abs
 
@@ -60,6 +62,40 @@ object GameLogic {
         if (sAttempt > 0) return skockoPointsForAttempt(sAttempt) to 0
         if (solvedAt(oppGuesses) > 0) return 0 to SKOCKO_STEAL   // d) krađa 10
         return 0 to 0
+    }
+
+    // ===== KO ZNA ZNA =====
+
+    /**
+     * Bodovanje cijele KZZ runde po specifikaciji:
+     *   +10 tačan odgovor, -5 netačan, 0 bez odgovora;
+     *   ako su OBA igrača tačna na istom pitanju, bodove dobija samo brži.
+     * Oba igrača odgovaraju na ista pitanja (iz konfiguracije runde u meču).
+     * Vraća (bodovi player1, bodovi player2).
+     */
+    fun resolveKzz(
+        tacniIndeksi: List<Int>,
+        p1Odgovori: List<KzzOdgovor>,
+        p2Odgovori: List<KzzOdgovor>
+    ): Pair<Int, Int> {
+        var bodovi1 = 0
+        var bodovi2 = 0
+        for (i in tacniIndeksi.indices) {
+            val o1 = p1Odgovori.getOrNull(i) ?: KzzOdgovor(KzzOdgovor.NIJE_ODGOVORIO, 0)
+            val o2 = p2Odgovori.getOrNull(i) ?: KzzOdgovor(KzzOdgovor.NIJE_ODGOVORIO, 0)
+            val tacan1 = o1.index == tacniIndeksi[i]
+            val tacan2 = o2.index == tacniIndeksi[i]
+            when {
+                tacan1 && tacan2 ->                       // d) bodove dobija brži
+                    if (o1.vremeMs <= o2.vremeMs) bodovi1 += KzzKonstante.BODOVA_ZA_TACAN
+                    else bodovi2 += KzzKonstante.BODOVA_ZA_TACAN
+                tacan1 -> bodovi1 += KzzKonstante.BODOVA_ZA_TACAN
+                tacan2 -> bodovi2 += KzzKonstante.BODOVA_ZA_TACAN
+            }
+            if (!tacan1 && o1.index != KzzOdgovor.NIJE_ODGOVORIO) bodovi1 += KzzKonstante.BODOVA_ZA_NETACAN
+            if (!tacan2 && o2.index != KzzOdgovor.NIJE_ODGOVORIO) bodovi2 += KzzKonstante.BODOVA_ZA_NETACAN
+        }
+        return bodovi1 to bodovi2
     }
 
     // ===== KORAK PO KORAK (za proširenje na multiplayer) =====

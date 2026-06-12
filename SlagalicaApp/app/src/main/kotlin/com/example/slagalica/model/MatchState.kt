@@ -10,6 +10,7 @@ data class MatchState(
     val player1Name: String,
     val player2Id: String,
     val player2Name: String,
+    val gameType: String,          // "Skocko" | "Kzz" | "Spojnice" | "Asocijacije"
     val status: String,            // "in_progress" | "finished"
     val currentRoundIndex: Int,
     val rounds: List<RoundState>,
@@ -54,4 +55,23 @@ data class RoundState(
             (row as? String)?.split(",")?.mapNotNull { it.trim().toIntOrNull() }
         }
     }
+
+    /** Ko zna zna: pitanja runde iz konfiguracije (ista za oba igrača). */
+    fun kzzPitanja(): List<KzzPitanje> =
+        (config["pitanja"] as? List<*>)?.mapNotNull { p ->
+            val m = p as? Map<*, *> ?: return@mapNotNull null
+            runCatching {
+                KzzPitanje(
+                    tekst = m["tekst"] as String,
+                    odgovori = (m["odgovori"] as List<*>).map { it as String },
+                    tacanIndex = (m["tacanIndex"] as Number).toInt()
+                )
+            }.getOrNull()
+        } ?: emptyList()
+
+    /** Ko zna zna: odgovori igrača (svaki je string "indeks,vremeMs"). */
+    fun kzzOdgovori(sub: Map<String, Any?>?): List<KzzOdgovor> =
+        (sub?.get("odgovori") as? List<*>)?.mapNotNull {
+            (it as? String)?.let(KzzOdgovor::decode)
+        } ?: emptyList()
 }

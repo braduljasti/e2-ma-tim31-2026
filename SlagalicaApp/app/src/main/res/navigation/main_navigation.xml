@@ -69,6 +69,13 @@
         android:label="@string/igra_skocko_naslov"
         tools:layout="@layout/fragment_skocko"/>
 
+    <!-- Igra: Ko zna zna (multiplayer preko Firestore-a) -->
+    <fragment
+        android:id="@+id/nav_kzz_mp"
+        android:name="com.example.slagalica.ui.games.KzzMpFragment"
+        android:label="@string/igra_ko_zna_zna_naslov"
+        tools:layout="@layout/fragment_ko_zna_zna"/>
+
     <fragment
         android:id="@+id/profilFragment"
         android:name="com.example.slagalica.ui.profil.ProfilFragment"

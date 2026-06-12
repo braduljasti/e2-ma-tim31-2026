@@ -55,7 +55,10 @@ data class FirebaseUser(
 enum class GameType(val displayName: String) {
     SKOCKO("Skočko"),
     KORAK_PO_KORAK("Korak po korak"),
-    MOJ_BROJ("Moj broj")
+    MOJ_BROJ("Moj broj"),
+    KO_ZNA_ZNA("Ko zna zna"),
+    SPOJNICE("Spojnice"),
+    ASOCIJACIJE("Asocijacije")
 }
 
 /**
@@ -223,6 +226,28 @@ data class KzzRezultat(
     val mojiNetacni: Int,
     val mojiPromaseni: Int   // istekao timer
 )
+
+/**
+ * Odgovor igrača na jedno pitanje u multiplayer meču.
+ * `index` je odabrani odgovor (0..3) ili NIJE_ODGOVORIO; `vremeMs` je vrijeme
+ * od prikaza pitanja do odgovora - bitno jer "ako oba tačno, bodove nosi brži".
+ * U Firestore se čuva kompaktno kao string "index,vremeMs".
+ */
+data class KzzOdgovor(val index: Int, val vremeMs: Long) {
+    fun encode() = "$index,$vremeMs"
+
+    companion object {
+        const val NIJE_ODGOVORIO = -1
+
+        fun decode(s: String): KzzOdgovor {
+            val delovi = s.split(",")
+            return KzzOdgovor(
+                index = delovi.getOrNull(0)?.toIntOrNull() ?: NIJE_ODGOVORIO,
+                vremeMs = delovi.getOrNull(1)?.toLongOrNull() ?: 0L
+            )
+        }
+    }
+}
 
 /**
  * Konstante za igru - stavljam ih u object da budu lako dostupne

@@ -1,5 +1,7 @@
 package com.example.slagalica.data
 
+import com.example.slagalica.model.KzzKonstante
+import com.example.slagalica.model.KzzOdgovor
 import com.example.slagalica.model.MatchState
 import com.example.slagalica.model.RoundState
 import com.google.firebase.firestore.FieldValue
@@ -22,28 +24,44 @@ import kotlinx.coroutines.tasks.await
 class MultiplayerRepository {
 
     private val db = FirebaseProvider.db
+    private val gameData = GameDataRepository()
     private val matchmaking get() = db.collection("matchmaking")
     private val matches get() = db.collection("matches")
 
+    companion object {
+        // Vrijednosti gameType polja u matchmaking tiketu i rundama meča
+        const val GAME_SKOCKO = "Skocko"
+        const val GAME_KZZ = "Kzz"
+        const val GAME_SPOJNICE = "Spojnice"
+        const val GAME_ASOCIJACIJE = "Asocijacije"
+    }
+
     // ===== MATCHMAKING =====
 
-    /** Pokušava da se odmah spoji sa nekim ko čeka. Vraća matchId ili null. */
-    suspend fun tryJoin(myUid: String, myName: String): String? {
+    /**
+     * Pokušava da se odmah spoji sa nekim ko čeka ISTU igru. Vraća matchId ili null.
+     * Podaci rundi (pitanja i sl.) se čitaju iz baze PRIJE transakcije, jer
+     * Firestore transakcija ne smije da radi dodatne upite ka drugim kolekcijama.
+     */
+    suspend fun tryJoin(myUid: String, myName: String, gameType: String): String? {
         val candidate = matchmaking
             .whereEqualTo("status", "waiting")
             .get().await()
-            .documents.firstOrNull { it.getString("uid") != myUid }
+            .documents.firstOrNull {
+                it.getString("uid") != myUid && it.getString("gameType") == gameType
+            }
             ?: return null
 
         val matchId = matches.document().id
         val ticketRef = candidate.reference
+        val rounds = buildRounds(gameType, candidate.getString("uid")!!, myUid)
 
         return db.runTransaction<String?> { tx ->
             val snap = tx.get(ticketRef)
             if (snap.getString("status") != "waiting") return@runTransaction null
             val p1 = snap.getString("uid")!!
             val p1Name = snap.getString("name") ?: "Igrač"
-            tx.set(matches.document(matchId), buildMatchData(p1, p1Name, myUid, myName))
+            tx.set(matches.document(matchId), buildMatchData(p1, p1Name, myUid, myName, gameType, rounds))
             tx.update(ticketRef, mapOf("status" to "matched", "matchId" to matchId))
             matchId
         }.await()
@@ -53,12 +71,14 @@ class MultiplayerRepository {
     fun createTicketAndWait(
         myUid: String,
         myName: String,
+        gameType: String,
         onMatched: (String) -> Unit,
         onError: (Exception) -> Unit
     ): ListenerRegistration {
         val ref = matchmaking.document(myUid)
         ref.set(mapOf(
             "uid" to myUid, "name" to myName, "status" to "waiting",
+            "gameType" to gameType,
             "matchId" to null, "createdAt" to FieldValue.serverTimestamp()
         ))
         return ref.addSnapshotListener { snap, err ->
@@ -73,33 +93,61 @@ class MultiplayerRepository {
         runCatching { matchmaking.document(myUid).delete().await() }
     }
 
-    // ===== KREIRANJE MEČA (demo: Skočko, 2 runde) =====
+    // ===== KREIRANJE MEČA =====
 
-    private fun buildMatchData(p1: String, p1Name: String, p2: String, p2Name: String): Map<String, Any?> {
-        val rounds = (1..2).map { round ->
-            mapOf(
-                "gameType" to "Skocko",
-                "roundNumber" to round,
-                "starterId" to if (round == 1) p1 else p2,
-                "config" to mapOf("secret" to GameLogic.newSkockoSecret()),
-                "p1Sub" to null,
-                "p2Sub" to null,
-                "p1Points" to 0,
-                "p2Points" to 0,
-                "resolved" to false
-            )
+    /**
+     * Pravi runde za izabranu igru. Konfiguracija (pitanja, tajna kombinacija...)
+     * se UGRAĐUJE u dokument meča da bi oba igrača garantovano vidjela iste podatke.
+     */
+    private suspend fun buildRounds(gameType: String, p1: String, p2: String): List<Map<String, Any?>> =
+        when (gameType) {
+            // KZZ: jedna runda (po spec-u), oba igrača istovremeno odgovaraju ista pitanja
+            GAME_KZZ -> {
+                val pitanja = gameData.nasumicnaKzzPitanja(KzzKonstante.BROJ_PITANJA)
+                listOf(roundMap(GAME_KZZ, 1, p1, mapOf(
+                    "pitanja" to pitanja.map {
+                        mapOf("tekst" to it.tekst, "odgovori" to it.odgovori, "tacanIndex" to it.tacanIndex)
+                    }
+                )))
+            }
+            // Skočko: 2 runde, svaku počinje po jedan igrač
+            else -> (1..2).map { r ->
+                roundMap(GAME_SKOCKO, r, if (r == 1) p1 else p2,
+                    mapOf("secret" to GameLogic.newSkockoSecret()))
+            }
         }
-        return mapOf(
-            "player1Id" to p1, "player1Name" to p1Name,
-            "player2Id" to p2, "player2Name" to p2Name,
-            "status" to "in_progress",
-            "currentRoundIndex" to 0,
-            "rounds" to rounds,
-            "player1Score" to 0, "player2Score" to 0,
-            "winnerId" to null,
-            "createdAt" to FieldValue.serverTimestamp()
-        )
-    }
+
+    private fun roundMap(
+        gameType: String,
+        roundNumber: Int,
+        starterId: String,
+        config: Map<String, Any?>
+    ): Map<String, Any?> = mapOf(
+        "gameType" to gameType,
+        "roundNumber" to roundNumber,
+        "starterId" to starterId,
+        "config" to config,
+        "p1Sub" to null,
+        "p2Sub" to null,
+        "p1Points" to 0,
+        "p2Points" to 0,
+        "resolved" to false
+    )
+
+    private fun buildMatchData(
+        p1: String, p1Name: String, p2: String, p2Name: String,
+        gameType: String, rounds: List<Map<String, Any?>>
+    ): Map<String, Any?> = mapOf(
+        "player1Id" to p1, "player1Name" to p1Name,
+        "player2Id" to p2, "player2Name" to p2Name,
+        "gameType" to gameType,
+        "status" to "in_progress",
+        "currentRoundIndex" to 0,
+        "rounds" to rounds,
+        "player1Score" to 0, "player2Score" to 0,
+        "winnerId" to null,
+        "createdAt" to FieldValue.serverTimestamp()
+    )
 
     // ===== SINHRONIZACIJA =====
 
@@ -132,6 +180,7 @@ class MultiplayerRepository {
             player1Name = d["player1Name"] as? String ?: "Igrač 1",
             player2Id = d["player2Id"] as? String ?: "",
             player2Name = d["player2Name"] as? String ?: "Igrač 2",
+            gameType = d["gameType"] as? String ?: GAME_SKOCKO,
             status = d["status"] as? String ?: "in_progress",
             currentRoundIndex = (d["currentRoundIndex"] as? Number)?.toInt() ?: 0,
             rounds = rounds,
@@ -144,7 +193,15 @@ class MultiplayerRepository {
     // ===== POTEZI =====
 
     /** Upisuje pokušaje (Skočko) trenutnog igrača za tekuću rundu. */
-    suspend fun submitSkocko(matchId: String, isP1: Boolean, guesses: List<List<Int>>) {
+    suspend fun submitSkocko(matchId: String, isP1: Boolean, guesses: List<List<Int>>) =
+        submitSub(matchId, isP1, mapOf("guesses" to guesses.map { it.joinToString(",") }))
+
+    /** Upisuje odgovore (Ko zna zna): svaki odgovor je string "indeks,vremeMs". */
+    suspend fun submitKzz(matchId: String, isP1: Boolean, odgovori: List<KzzOdgovor>) =
+        submitSub(matchId, isP1, mapOf("odgovori" to odgovori.map { it.encode() }))
+
+    /** Zajednički upis poteza za tekuću rundu - upisuje samo ako igrač već nije odigrao. */
+    private suspend fun submitSub(matchId: String, isP1: Boolean, sub: Map<String, Any?>) {
         val ref = matches.document(matchId)
         db.runTransaction<Void?> { tx ->
             val snap = tx.get(ref)
@@ -155,7 +212,7 @@ class MultiplayerRepository {
             val round = rounds.getOrNull(idx) ?: return@runTransaction null
             val key = if (isP1) "p1Sub" else "p2Sub"
             if (round[key] == null) {
-                round[key] = mapOf("guesses" to guesses.map { it.joinToString(",") })
+                round[key] = sub
                 tx.update(ref, "rounds", rounds)
             }
             null
@@ -182,24 +239,15 @@ class MultiplayerRepository {
             val p2Sub = round["p2Sub"] as? Map<*, *>
             if (resolved || p1Sub == null || p2Sub == null) return@runTransaction null
 
-            @Suppress("UNCHECKED_CAST")
-            val secret = ((round["config"] as? Map<String, Any?>)?.get("secret") as? List<*>)
-                ?.mapNotNull { (it as? Number)?.toInt() } ?: emptyList()
-            val starterId = round["starterId"] as? String ?: ""
-            val player1Id = snap.getString("player1Id")
-            val starterIsP1 = starterId == player1Id
+            // Bodovanje zavisi od igre u tekućoj rundi
+            val gameType = round["gameType"] as? String ?: GAME_SKOCKO
+            val (p1Pts, p2Pts) = when (gameType) {
+                GAME_KZZ -> resolveKzzRound(round, p1Sub, p2Sub)
+                else -> resolveSkockoRound(snap.getString("player1Id"), round, p1Sub, p2Sub)
+            }
 
-            fun parseGuesses(sub: Map<*, *>?): List<List<Int>> =
-                (sub?.get("guesses") as? List<*>)?.mapNotNull { row ->
-                    (row as? String)?.split(",")?.mapNotNull { it.trim().toIntOrNull() }
-                } ?: emptyList()
-
-            val starterGuesses = parseGuesses(if (starterIsP1) p1Sub else p2Sub)
-            val oppGuesses = parseGuesses(if (starterIsP1) p2Sub else p1Sub)
-            val (starterPts, oppPts) = GameLogic.resolveSkocko(secret, starterGuesses, oppGuesses)
-
-            round["p1Points"] = if (starterIsP1) starterPts else oppPts
-            round["p2Points"] = if (starterIsP1) oppPts else starterPts
+            round["p1Points"] = p1Pts
+            round["p2Points"] = p2Pts
             round["resolved"] = true
 
             val newIndex = idx + 1
@@ -221,5 +269,47 @@ class MultiplayerRepository {
             tx.update(ref, updates)
             null
         }.await()
+    }
+
+    // ===== BODOVANJE POJEDINAČNIH IGARA (poziva host iz transakcije) =====
+
+    /** Skočko: bodovanje zavisi od toga ko je starter runde. Vraća (p1, p2) bodove. */
+    private fun resolveSkockoRound(
+        player1Id: String?,
+        round: Map<String, Any?>,
+        p1Sub: Map<*, *>,
+        p2Sub: Map<*, *>
+    ): Pair<Int, Int> {
+        val secret = ((round["config"] as? Map<*, *>)?.get("secret") as? List<*>)
+            ?.mapNotNull { (it as? Number)?.toInt() } ?: emptyList()
+        val starterIsP1 = (round["starterId"] as? String ?: "") == player1Id
+
+        fun parseGuesses(sub: Map<*, *>?): List<List<Int>> =
+            (sub?.get("guesses") as? List<*>)?.mapNotNull { row ->
+                (row as? String)?.split(",")?.mapNotNull { it.trim().toIntOrNull() }
+            } ?: emptyList()
+
+        val starterGuesses = parseGuesses(if (starterIsP1) p1Sub else p2Sub)
+        val oppGuesses = parseGuesses(if (starterIsP1) p2Sub else p1Sub)
+        val (starterPts, oppPts) = GameLogic.resolveSkocko(secret, starterGuesses, oppGuesses)
+        return if (starterIsP1) starterPts to oppPts else oppPts to starterPts
+    }
+
+    /** Ko zna zna: oba igrača odgovaraju ista pitanja; brži tačan nosi bodove. */
+    private fun resolveKzzRound(
+        round: Map<String, Any?>,
+        p1Sub: Map<*, *>,
+        p2Sub: Map<*, *>
+    ): Pair<Int, Int> {
+        val tacniIndeksi = ((round["config"] as? Map<*, *>)?.get("pitanja") as? List<*>)
+            ?.mapNotNull { ((it as? Map<*, *>)?.get("tacanIndex") as? Number)?.toInt() }
+            ?: emptyList()
+
+        fun parseOdgovori(sub: Map<*, *>?): List<KzzOdgovor> =
+            (sub?.get("odgovori") as? List<*>)?.mapNotNull {
+                (it as? String)?.let(KzzOdgovor::decode)
+            } ?: emptyList()
+
+        return GameLogic.resolveKzz(tacniIndeksi, parseOdgovori(p1Sub), parseOdgovori(p2Sub))
     }
 }

@@ -9,6 +9,7 @@ import com.example.slagalica.data.FirebaseProvider
 import com.example.slagalica.data.GameResultRepository
 import com.example.slagalica.data.MultiplayerRepository
 import com.example.slagalica.model.GameType
+import com.example.slagalica.model.KzzOdgovor
 import com.example.slagalica.model.MatchState
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.launch
@@ -40,18 +41,23 @@ class MultiplayerViewModel(
     private var resultSaved = false
     private var lastMatchId: String? = null
 
+    /** Igra koju je igrač izabrao pri matchmaking-u - koristi se i za navigaciju na pravi ekran. */
+    var requestedGameType: String = MultiplayerRepository.GAME_SKOCKO
+        private set
+
     // ===== MATCHMAKING =====
 
-    fun startMatchmaking() {
+    fun startMatchmaking(gameType: String) {
+        requestedGameType = gameType
         _searching.value = true
         viewModelScope.launch {
             val myName = currentUsername()
-            val joined = runCatching { repo.tryJoin(uid, myName) }.getOrNull()
+            val joined = runCatching { repo.tryJoin(uid, myName, gameType) }.getOrNull()
             if (joined != null) {
                 onMatched(joined)
             } else {
                 ticketListener = repo.createTicketAndWait(
-                    uid, myName,
+                    uid, myName, gameType,
                     onMatched = { id -> onMatched(id) },
                     onError = { _searching.postValue(false) }
                 )
@@ -106,11 +112,24 @@ class MultiplayerViewModel(
         }
     }
 
+    fun submitKzz(odgovori: List<KzzOdgovor>) {
+        val state = _match.value ?: return
+        viewModelScope.launch {
+            runCatching { repo.submitKzz(state.id, state.isPlayer1(uid), odgovori) }
+        }
+    }
+
     private fun saveMyResult(state: MatchState) {
+        val type = when (state.gameType) {
+            MultiplayerRepository.GAME_KZZ -> GameType.KO_ZNA_ZNA
+            MultiplayerRepository.GAME_SPOJNICE -> GameType.SPOJNICE
+            MultiplayerRepository.GAME_ASOCIJACIJE -> GameType.ASOCIJACIJE
+            else -> GameType.SKOCKO
+        }
         val my = state.myScore(uid)
         val opp = state.opponentScore(uid)
         viewModelScope.launch {
-            runCatching { resultsRepo.saveResult(GameType.SKOCKO, my, opp) }
+            runCatching { resultsRepo.saveResult(type, my, opp) }
         }
     }
 
