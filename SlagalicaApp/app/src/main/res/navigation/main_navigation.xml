@@ -83,6 +83,13 @@
         android:label="@string/igra_spojnice_naslov"
         tools:layout="@layout/fragment_spojnice"/>
 
+    <!-- Igra: Asocijacije (multiplayer preko Firestore-a) -->
+    <fragment
+        android:id="@+id/nav_asocijacije_mp"
+        android:name="com.example.slagalica.ui.games.AsocijacijeMpFragment"
+        android:label="@string/igra_asocijacije_naslov"
+        tools:layout="@layout/fragment_asocijacije"/>
+
     <fragment
         android:id="@+id/profilFragment"
         android:name="com.example.slagalica.ui.profil.ProfilFragment"

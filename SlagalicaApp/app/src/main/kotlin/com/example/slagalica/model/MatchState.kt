@@ -44,7 +44,10 @@ data class RoundState(
     // Potezi koje igrač objavljuje UŽIVO u toku svoje faze (npr. Spojnice:
     // "levi,desni" po pokušaju) - da protivnik može da posmatra igru u realnom vremenu.
     val p1Live: List<String> = emptyList(),
-    val p2Live: List<String> = emptyList()
+    val p2Live: List<String> = emptyList(),
+    // Kompletna sirova mapa runde iz Firestore-a - za igre čije ŽIVO stanje
+    // živi u rundi (Asocijacije: turnUid, otvorena polja, rešene kolone...).
+    val raw: Map<String, Any?> = emptyMap()
 ) {
     val bothSubmitted: Boolean get() = p1Sub != null && p2Sub != null
 
@@ -106,4 +109,45 @@ data class RoundState(
         val desni = delovi.getOrNull(1)?.toIntOrNull() ?: return null
         return levi to desni
     }
+
+    // ===== ASOCIJACIJE: konfiguracija + živo stanje table =====
+
+    /** Asocijacije: podaci runde iz konfiguracije (isti za oba igrača). */
+    fun asocRunda(): AsocijacijeRundaPodaci? = runCatching {
+        val kolone = config["kolone"] as Map<*, *>
+        AsocijacijeRundaPodaci(
+            polja = listOf("A", "B", "C", "D").map { k ->
+                (kolone[k] as List<*>).map { it as String }
+            },
+            resenjaKolona = (config["resenjaKolona"] as List<*>).map { it as String },
+            finalnoResenje = config["finalnoResenje"] as String
+        )
+    }.getOrNull()
+
+    /** Ko je trenutno na potezu. */
+    fun asocTurnUid(): String = raw["turnUid"] as? String ?: ""
+
+    /** Da li igrač na potezu sme da pogađa (otvorio je polje / u nizu je pogodaka). */
+    fun asocMozeDaPogadja(): Boolean = raw["mozeDaPogadja"] == true
+
+    /** Otvorena polja kao (kolona, red) parovi. */
+    fun asocOtvorena(): List<Pair<Int, Int>> =
+        ((raw["otvorena"] as? List<*>) ?: emptyList<Any>()).mapNotNull {
+            parseSpojnicaPar(it as? String)
+        }
+
+    /** Rešene kolone: indeks kolone -> uid igrača koji ju je rešio. */
+    fun asocReseneKolone(): Map<Int, String> =
+        ((raw["reseneKolone"] as? Map<*, *>) ?: emptyMap<Any, Any>()).entries
+            .mapNotNull { e ->
+                val col = (e.key as? String)?.toIntOrNull() ?: return@mapNotNull null
+                val uid = e.value as? String ?: return@mapNotNull null
+                col to uid
+            }.toMap()
+
+    /** Uid igrača koji je pogodio konačno rešenje (null ako niko nije). */
+    fun asocResenoFinalnoUid(): String? = raw["resenoFinalnoUid"] as? String
+
+    /** Da li je igranje runde gotovo (finalno pogođeno ili isteklo vreme). */
+    fun asocZavrsena(): Boolean = raw["zavrsena"] == true
 }

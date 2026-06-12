@@ -131,6 +131,12 @@
     <!-- Multiplayer (zajedničko za sve igre) -->
     <string name="mp_cekamo_protivnika">Poslato! Čekamo protivnika…</string>
     <string name="mp_protivnik_na_potezu">⏳ Protivnik je na potezu…</string>
+    <string name="mp_nije_tvoj_potez">Nije tvoj potez!</string>
+    <string name="mp_asoc_tvoj_potez">Tvoj potez - otvori polje</string>
+    <string name="mp_asoc_pogadjaj">Pogađaj ili propusti potez</string>
+    <string name="mp_asoc_protivnik">Protivnik je na potezu</string>
+    <string name="mp_asoc_propusti">Propusti potez</string>
+    <string name="mp_asoc_finalno_tacno">🎉 Pogodio si konačno rešenje!</string>
     <string name="mp_pobjeda">🎉 Pobjeda!</string>
     <string name="mp_poraz">😔 Poraz</string>
     <string name="mp_nereseno">Neriješeno!</string>

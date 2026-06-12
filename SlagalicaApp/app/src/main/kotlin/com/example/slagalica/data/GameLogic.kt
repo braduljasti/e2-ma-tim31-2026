@@ -1,5 +1,6 @@
 package com.example.slagalica.data
 
+import com.example.slagalica.model.AsocijacijeKonstante
 import com.example.slagalica.model.KzzKonstante
 import com.example.slagalica.model.KzzOdgovor
 import com.example.slagalica.model.SkockoSymbol
@@ -123,6 +124,34 @@ object GameLogic {
         return starterTacniLevi.size * SpojniceKonstante.BODOVA_PO_VEZI to
                 oppTacne * SpojniceKonstante.BODOVA_PO_VEZI
     }
+
+    // ===== ASOCIJACIJE =====
+
+    /** Rešenje kolone: 2 boda + 1 po neotvorenom polju u toj koloni. */
+    fun asocijacijePoeniKolona(otvorenihUKoloni: Int): Int =
+        AsocijacijeKonstante.KOLONA_BAZA +
+                (AsocijacijeKonstante.POLJA_PO_KOLONI - otvorenihUKoloni) *
+                AsocijacijeKonstante.BODOVI_PO_NEOTVORENOM
+
+    /**
+     * Konačno rešenje: 7 bodova + za svaku NEREŠENU kolonu bodovi kao da je
+     * pogođena (2 + neotvorena polja; potpuno neotvorena kolona = 6).
+     */
+    fun asocijacijePoeniFinalno(
+        otvorenihPoKoloni: List<Int>,
+        kolonaResena: List<Boolean>
+    ): Int {
+        var bodovi = AsocijacijeKonstante.FINALNO_BAZA
+        for (col in 0 until AsocijacijeKonstante.BROJ_KOLONA) {
+            if (!kolonaResena.getOrElse(col) { false }) {
+                bodovi += asocijacijePoeniKolona(otvorenihPoKoloni.getOrElse(col) { 0 })
+            }
+        }
+        return bodovi
+    }
+
+    fun asocijacijeTacno(guess: String, correct: String): Boolean =
+        guess.trim().equals(correct.trim(), ignoreCase = true)
 
     // ===== KORAK PO KORAK (za proširenje na multiplayer) =====
 

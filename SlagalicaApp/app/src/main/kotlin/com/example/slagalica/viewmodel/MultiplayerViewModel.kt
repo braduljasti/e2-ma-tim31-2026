@@ -136,6 +136,35 @@ class MultiplayerViewModel(
         }
     }
 
+    // ===== ASOCIJACIJE: potezi na zajedničkoj tabli =====
+
+    fun asocijacijeOtvoriPolje(col: Int, row: Int) = asocPotez { id, idx ->
+        repo.asocijacijeOtvoriPolje(id, idx, uid, col, row)
+    }
+
+    fun asocijacijePogodiKolonu(col: Int, guess: String) = asocPotez { id, idx ->
+        repo.asocijacijePogodiKolonu(id, idx, uid, col, guess)
+    }
+
+    fun asocijacijePogodiFinalno(guess: String) = asocPotez { id, idx ->
+        repo.asocijacijePogodiFinalno(id, idx, uid, guess)
+    }
+
+    fun asocijacijePropusti() = asocPotez { id, idx ->
+        repo.asocijacijePropusti(id, idx, uid)
+    }
+
+    fun asocijacijeIstekloVreme() = asocPotez { id, idx ->
+        repo.asocijacijeIstekloVreme(id, idx)
+    }
+
+    private fun asocPotez(akcija: suspend (matchId: String, roundIndex: Int) -> Unit) {
+        val state = _match.value ?: return
+        viewModelScope.launch {
+            runCatching { akcija(state.id, state.currentRoundIndex) }
+        }
+    }
+
     private fun saveMyResult(state: MatchState) {
         val type = when (state.gameType) {
             MultiplayerRepository.GAME_KZZ -> GameType.KO_ZNA_ZNA
