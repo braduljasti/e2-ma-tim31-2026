@@ -74,4 +74,25 @@ data class RoundState(
         (sub?.get("odgovori") as? List<*>)?.mapNotNull {
             (it as? String)?.let(KzzOdgovor::decode)
         } ?: emptyList()
+
+    /** Spojnice: podaci runde iz konfiguracije (isti za oba igrača). */
+    fun spojniceRunda(): SpojniceRundaPodaci? = runCatching {
+        SpojniceRundaPodaci(
+            kriterijum = config["kriterijum"] as String,
+            leviPojmovi = (config["levi"] as List<*>).map { it as String },
+            desniPojmovi = (config["desni"] as List<*>).map { it as String },
+            tacneVeze = (config["veze"] as Map<*, *>).entries.associate {
+                (it.key as String).toInt() to (it.value as Number).toInt()
+            }
+        )
+    }.getOrNull()
+
+    /** Spojnice: pokušaji igrača (svaki je string "leviIndeks,desniIndeks"). */
+    fun spojniceParovi(sub: Map<String, Any?>?): List<Pair<Int, Int>> =
+        (sub?.get("parovi") as? List<*>)?.mapNotNull {
+            val delovi = (it as? String)?.split(",") ?: return@mapNotNull null
+            val levi = delovi.getOrNull(0)?.toIntOrNull() ?: return@mapNotNull null
+            val desni = delovi.getOrNull(1)?.toIntOrNull() ?: return@mapNotNull null
+            levi to desni
+        } ?: emptyList()
 }

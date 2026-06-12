@@ -76,6 +76,13 @@
         android:label="@string/igra_ko_zna_zna_naslov"
         tools:layout="@layout/fragment_ko_zna_zna"/>
 
+    <!-- Igra: Spojnice (multiplayer preko Firestore-a) -->
+    <fragment
+        android:id="@+id/nav_spojnice_mp"
+        android:name="com.example.slagalica.ui.games.SpojniceMpFragment"
+        android:label="@string/igra_spojnice_naslov"
+        tools:layout="@layout/fragment_spojnice"/>
+
     <fragment
         android:id="@+id/profilFragment"
         android:name="com.example.slagalica.ui.profil.ProfilFragment"

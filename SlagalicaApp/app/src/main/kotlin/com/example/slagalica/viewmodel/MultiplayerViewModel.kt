@@ -119,6 +119,13 @@ class MultiplayerViewModel(
         }
     }
 
+    fun submitSpojnice(parovi: List<Pair<Int, Int>>) {
+        val state = _match.value ?: return
+        viewModelScope.launch {
+            runCatching { repo.submitSpojnice(state.id, state.isPlayer1(uid), parovi) }
+        }
+    }
+
     private fun saveMyResult(state: MatchState) {
         val type = when (state.gameType) {
             MultiplayerRepository.GAME_KZZ -> GameType.KO_ZNA_ZNA

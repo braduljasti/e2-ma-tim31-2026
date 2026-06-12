@@ -50,8 +50,12 @@ class IgrajFragment : Fragment() {
      * Kasnije će partija automatski ređati svih 6 igara po specifikaciji.
      */
     private fun showGamePicker() {
-        val nazivi = arrayOf("Ko zna zna", "Skočko")
-        val tipovi = arrayOf(MultiplayerRepository.GAME_KZZ, MultiplayerRepository.GAME_SKOCKO)
+        val nazivi = arrayOf("Ko zna zna", "Spojnice", "Skočko")
+        val tipovi = arrayOf(
+            MultiplayerRepository.GAME_KZZ,
+            MultiplayerRepository.GAME_SPOJNICE,
+            MultiplayerRepository.GAME_SKOCKO
+        )
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.mp_izaberi_igru)
             .setItems(nazivi) { _, which ->
@@ -75,6 +79,7 @@ class IgrajFragment : Fragment() {
                 binding.cardIgraj.visibility = View.VISIBLE
                 val odrediste = when (mpViewModel.requestedGameType) {
                     MultiplayerRepository.GAME_KZZ -> R.id.nav_kzz_mp
+                    MultiplayerRepository.GAME_SPOJNICE -> R.id.nav_spojnice_mp
                     else -> R.id.nav_skocko_mp
                 }
                 findNavController().navigate(odrediste)

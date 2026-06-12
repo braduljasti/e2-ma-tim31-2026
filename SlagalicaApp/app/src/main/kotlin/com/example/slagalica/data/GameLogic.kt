@@ -3,6 +3,7 @@ package com.example.slagalica.data
 import com.example.slagalica.model.KzzKonstante
 import com.example.slagalica.model.KzzOdgovor
 import com.example.slagalica.model.SkockoSymbol
+import com.example.slagalica.model.SpojniceKonstante
 import kotlin.math.abs
 
 /**
@@ -96,6 +97,31 @@ object GameLogic {
             if (!tacan2 && o2.index != KzzOdgovor.NIJE_ODGOVORIO) bodovi2 += KzzKonstante.BODOVA_ZA_NETACAN
         }
         return bodovi1 to bodovi2
+    }
+
+    // ===== SPOJNICE =====
+
+    /**
+     * Bodovanje jedne runde Spojnica po specifikaciji:
+     *   starter prolazi kroz svih 5 pojmova; pojmove koje NIJE tačno povezao
+     *   protivnik dobija na pokušaj. Svaka tačna veza nosi 2 boda.
+     * `veze` mapira levi indeks na tačan desni indeks; parovi su pokušaji
+     * (leviIndeks, desniIndeks). Vraća (bodovi startera, bodovi protivnika).
+     */
+    fun resolveSpojnice(
+        veze: Map<Int, Int>,
+        starterParovi: List<Pair<Int, Int>>,
+        oppParovi: List<Pair<Int, Int>>
+    ): Pair<Int, Int> {
+        val starterTacniLevi = starterParovi
+            .filter { veze[it.first] == it.second }
+            .map { it.first }
+            .toSet()
+        val oppTacne = oppParovi.count {
+            veze[it.first] == it.second && it.first !in starterTacniLevi
+        }
+        return starterTacniLevi.size * SpojniceKonstante.BODOVA_PO_VEZI to
+                oppTacne * SpojniceKonstante.BODOVA_PO_VEZI
     }
 
     // ===== KORAK PO KORAK (za proširenje na multiplayer) =====

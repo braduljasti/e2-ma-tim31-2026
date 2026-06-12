@@ -4,6 +4,7 @@ import com.example.slagalica.model.KzzKonstante
 import com.example.slagalica.model.KzzOdgovor
 import com.example.slagalica.model.MatchState
 import com.example.slagalica.model.RoundState
+import com.example.slagalica.model.SpojniceKonstante
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.tasks.await
@@ -110,6 +111,19 @@ class MultiplayerRepository {
                     }
                 )))
             }
+            // Spojnice: 2 runde, svaku počinje po jedan igrač; protivnik dobija
+            // pojmove koje starter nije tačno povezao
+            GAME_SPOJNICE -> {
+                val runde = gameData.nasumicneSpojnice(SpojniceKonstante.BROJ_RUNDI)
+                runde.mapIndexed { i, r ->
+                    roundMap(GAME_SPOJNICE, i + 1, if (i == 0) p1 else p2, mapOf(
+                        "kriterijum" to r.kriterijum,
+                        "levi" to r.leviPojmovi,
+                        "desni" to r.desniPojmovi,
+                        "veze" to r.tacneVeze.entries.associate { e -> e.key.toString() to e.value }
+                    ))
+                }
+            }
             // Skočko: 2 runde, svaku počinje po jedan igrač
             else -> (1..2).map { r ->
                 roundMap(GAME_SKOCKO, r, if (r == 1) p1 else p2,
@@ -200,6 +214,10 @@ class MultiplayerRepository {
     suspend fun submitKzz(matchId: String, isP1: Boolean, odgovori: List<KzzOdgovor>) =
         submitSub(matchId, isP1, mapOf("odgovori" to odgovori.map { it.encode() }))
 
+    /** Upisuje pokušaje (Spojnice): svaki par je string "leviIndeks,desniIndeks". */
+    suspend fun submitSpojnice(matchId: String, isP1: Boolean, parovi: List<Pair<Int, Int>>) =
+        submitSub(matchId, isP1, mapOf("parovi" to parovi.map { "${it.first},${it.second}" }))
+
     /** Zajednički upis poteza za tekuću rundu - upisuje samo ako igrač već nije odigrao. */
     private suspend fun submitSub(matchId: String, isP1: Boolean, sub: Map<String, Any?>) {
         val ref = matches.document(matchId)
@@ -243,6 +261,7 @@ class MultiplayerRepository {
             val gameType = round["gameType"] as? String ?: GAME_SKOCKO
             val (p1Pts, p2Pts) = when (gameType) {
                 GAME_KZZ -> resolveKzzRound(round, p1Sub, p2Sub)
+                GAME_SPOJNICE -> resolveSpojniceRound(snap.getString("player1Id"), round, p1Sub, p2Sub)
                 else -> resolveSkockoRound(snap.getString("player1Id"), round, p1Sub, p2Sub)
             }
 
@@ -292,6 +311,35 @@ class MultiplayerRepository {
         val starterGuesses = parseGuesses(if (starterIsP1) p1Sub else p2Sub)
         val oppGuesses = parseGuesses(if (starterIsP1) p2Sub else p1Sub)
         val (starterPts, oppPts) = GameLogic.resolveSkocko(secret, starterGuesses, oppGuesses)
+        return if (starterIsP1) starterPts to oppPts else oppPts to starterPts
+    }
+
+    /** Spojnice: starter povezuje prvi, protivnik dobija preostale. Vraća (p1, p2). */
+    private fun resolveSpojniceRound(
+        player1Id: String?,
+        round: Map<String, Any?>,
+        p1Sub: Map<*, *>,
+        p2Sub: Map<*, *>
+    ): Pair<Int, Int> {
+        val veze = ((round["config"] as? Map<*, *>)?.get("veze") as? Map<*, *>)?.entries
+            ?.mapNotNull { e ->
+                val levi = (e.key as? String)?.toIntOrNull() ?: return@mapNotNull null
+                val desni = (e.value as? Number)?.toInt() ?: return@mapNotNull null
+                levi to desni
+            }?.toMap() ?: emptyMap()
+        val starterIsP1 = (round["starterId"] as? String ?: "") == player1Id
+
+        fun parseParovi(sub: Map<*, *>?): List<Pair<Int, Int>> =
+            (sub?.get("parovi") as? List<*>)?.mapNotNull {
+                val delovi = (it as? String)?.split(",") ?: return@mapNotNull null
+                val levi = delovi.getOrNull(0)?.toIntOrNull() ?: return@mapNotNull null
+                val desni = delovi.getOrNull(1)?.toIntOrNull() ?: return@mapNotNull null
+                levi to desni
+            } ?: emptyList()
+
+        val starterParovi = parseParovi(if (starterIsP1) p1Sub else p2Sub)
+        val oppParovi = parseParovi(if (starterIsP1) p2Sub else p1Sub)
+        val (starterPts, oppPts) = GameLogic.resolveSpojnice(veze, starterParovi, oppParovi)
         return if (starterIsP1) starterPts to oppPts else oppPts to starterPts
     }
 

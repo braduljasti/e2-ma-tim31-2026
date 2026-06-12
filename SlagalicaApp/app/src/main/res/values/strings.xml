@@ -130,6 +130,7 @@
 
     <!-- Multiplayer (zajedničko za sve igre) -->
     <string name="mp_cekamo_protivnika">Poslato! Čekamo protivnika…</string>
+    <string name="mp_protivnik_na_potezu">⏳ Protivnik je na potezu…</string>
     <string name="mp_pobjeda">🎉 Pobjeda!</string>
     <string name="mp_poraz">😔 Poraz</string>
     <string name="mp_nereseno">Neriješeno!</string>
