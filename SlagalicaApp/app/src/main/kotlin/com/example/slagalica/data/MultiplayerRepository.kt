@@ -185,7 +185,9 @@ class MultiplayerRepository {
                 p2Sub = r["p2Sub"] as? Map<String, Any?>,
                 p1Points = (r["p1Points"] as? Number)?.toInt() ?: 0,
                 p2Points = (r["p2Points"] as? Number)?.toInt() ?: 0,
-                resolved = r["resolved"] as? Boolean ?: false
+                resolved = r["resolved"] as? Boolean ?: false,
+                p1Live = (r["p1Live"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList(),
+                p2Live = (r["p2Live"] as? List<*>)?.mapNotNull { it as? String } ?: emptyList()
             )
         }
         return MatchState(
@@ -217,6 +219,32 @@ class MultiplayerRepository {
     /** Upisuje pokušaje (Spojnice): svaki par je string "leviIndeks,desniIndeks". */
     suspend fun submitSpojnice(matchId: String, isP1: Boolean, parovi: List<Pair<Int, Int>>) =
         submitSub(matchId, isP1, mapOf("parovi" to parovi.map { "${it.first},${it.second}" }))
+
+    /**
+     * Objavljuje jedan potez UŽIVO u toku faze (Spojnice) - protivnik ga odmah
+     * vidi kroz snapshot listener i može da posmatra igru u realnom vremenu.
+     * `roundIndex` štiti od kasnih upisa: ako je runda u međuvremenu bodovana
+     * i meč otišao dalje, potez se tiho odbacuje.
+     */
+    suspend fun spojniceLivePotez(matchId: String, isP1: Boolean, roundIndex: Int, par: Pair<Int, Int>) {
+        val ref = matches.document(matchId)
+        db.runTransaction<Void?> { tx ->
+            val snap = tx.get(ref)
+            @Suppress("UNCHECKED_CAST")
+            val rounds = (snap.get("rounds") as? MutableList<MutableMap<String, Any?>>)
+                ?: return@runTransaction null
+            val idx = (snap.getLong("currentRoundIndex") ?: 0L).toInt()
+            if (idx != roundIndex) return@runTransaction null
+            val round = rounds.getOrNull(idx) ?: return@runTransaction null
+            val key = if (isP1) "p1Live" else "p2Live"
+            val live = ((round[key] as? List<*>)?.mapNotNull { it as? String } ?: emptyList())
+                .toMutableList()
+            live.add("${par.first},${par.second}")
+            round[key] = live
+            tx.update(ref, "rounds", rounds)
+            null
+        }.await()
+    }
 
     /** Zajednički upis poteza za tekuću rundu - upisuje samo ako igrač već nije odigrao. */
     private suspend fun submitSub(matchId: String, isP1: Boolean, sub: Map<String, Any?>) {

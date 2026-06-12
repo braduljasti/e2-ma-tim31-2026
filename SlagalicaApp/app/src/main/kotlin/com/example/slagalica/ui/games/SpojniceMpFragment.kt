@@ -146,7 +146,12 @@ class SpojniceMpFragment : Fragment() {
 
     /** Određuje šta igrač trenutno radi na osnovu poteza upisanih u meč. */
     private fun refreshPhase(state: MatchState) {
-        if (submitted || mojaFazaAktivna) return
+        if (submitted) {
+            // Poslao sam svoje - gledam protivnika uživo dok ne završi
+            renderProtivnikUzivo(state)
+            return
+        }
+        if (mojaFazaAktivna) return
         val round = state.currentRound ?: return
         val r = runda ?: return
 
@@ -164,8 +169,9 @@ class SpojniceMpFragment : Fragment() {
             // Starter igra odmah, svih 5 pojmova
             startMyPhase(playable = (0 until 5).toList())
         } else if (starterSub == null) {
-            // Protivnik (starter) još igra - mi čekamo
+            // Protivnik (starter) još igra - čekamo i gledamo njegove poteze uživo
             showWaiting(getString(R.string.mp_protivnik_na_potezu))
+            renderProtivnikUzivo(state)
         } else {
             // Starter je završio: njegove tačne veze su plave (zauzete),
             // a mi igramo pojmove koje nije tačno povezao
@@ -215,12 +221,14 @@ class SpojniceMpFragment : Fragment() {
         if (desnaStanja[index] != SpojniceStanjeCelije.POCETNO) return
         val r = runda ?: return
 
-        val tacno = r.tacneVeze[aktivanLevi] == index
-        mojiPokusaji.add(aktivanLevi to index)
+        val levi = aktivanLevi
+        val tacno = r.tacneVeze[levi] == index
+        mojiPokusaji.add(levi to index)
+        mp.spojniceLivePotez(levi to index)   // protivnik prati moju igru uživo
 
         val novoStanje = if (tacno) SpojniceStanjeCelije.POVEZANA_MOJA_TACNO
         else SpojniceStanjeCelije.POVEZANA_MOJA_NETACNO
-        leveStanja[aktivanLevi] = novoStanje
+        leveStanja[levi] = novoStanje
         desnaStanja[index] = novoStanje
         aktivanLevi = -1
         selektujSledeciLevi()
@@ -277,9 +285,38 @@ class SpojniceMpFragment : Fragment() {
     // RENDER (stilizacija kao u SpojniceFragment)
     // ============================================================
 
-    private fun renderStanja() {
-        leveStanja.forEachIndexed { i, s -> stilirajKarticu(leveKartice[i], leviTekstovi[i], s, isLevi = true) }
-        desnaStanja.forEachIndexed { i, s -> stilirajKarticu(desneKartice[i], desniTekstovi[i], s, isLevi = false) }
+    private fun renderStanja(
+        leve: List<SpojniceStanjeCelije> = leveStanja,
+        desne: List<SpojniceStanjeCelije> = desnaStanja
+    ) {
+        leve.forEachIndexed { i, s -> stilirajKarticu(leveKartice[i], leviTekstovi[i], s, isLevi = true) }
+        desne.forEachIndexed { i, s -> stilirajKarticu(desneKartice[i], desniTekstovi[i], s, isLevi = false) }
+    }
+
+    /**
+     * Dok čekam svoj red, protivnikove poteze crtam UŽIVO preko svoje table:
+     * tačna veza plavo, netačna crveno. Ovo je čisto vizuelni sloj - lokalno
+     * stanje (leveStanja/desnaStanja) se ne dira, da bi moja faza koja slijedi
+     * krenula od ispravne table.
+     */
+    private fun renderProtivnikUzivo(state: MatchState) {
+        val round = state.currentRound ?: return
+        val r = runda ?: return
+        val oppLive = round.spojniceLiveParovi(isP1 = !state.isPlayer1(mp.uid))
+        if (oppLive.isEmpty()) return
+
+        val dozvoljena = setOf(SpojniceStanjeCelije.POCETNO, SpojniceStanjeCelije.POVEZANA_MOJA_NETACNO)
+        val leve = leveStanja.toMutableList()
+        val desne = desnaStanja.toMutableList()
+        for ((levi, desni) in oppLive) {
+            if (levi !in 0..4 || desni !in 0..4) continue
+            if (leve[levi] !in dozvoljena || desne[desni] !in dozvoljena) continue
+            val stanje = if (r.tacneVeze[levi] == desni) SpojniceStanjeCelije.POVEZANA_PROTIVNIKOVA
+            else SpojniceStanjeCelije.POVEZANA_MOJA_NETACNO
+            leve[levi] = stanje
+            desne[desni] = stanje
+        }
+        renderStanja(leve, desne)
     }
 
     private fun stilirajKarticu(

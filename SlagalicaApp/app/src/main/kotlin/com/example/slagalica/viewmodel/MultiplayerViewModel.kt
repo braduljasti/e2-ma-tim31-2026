@@ -126,6 +126,16 @@ class MultiplayerViewModel(
         }
     }
 
+    /** Objavljuje jedan potez uživo (Spojnice) da bi ga protivnik gledao u realnom vremenu. */
+    fun spojniceLivePotez(par: Pair<Int, Int>) {
+        val state = _match.value ?: return
+        viewModelScope.launch {
+            runCatching {
+                repo.spojniceLivePotez(state.id, state.isPlayer1(uid), state.currentRoundIndex, par)
+            }
+        }
+    }
+
     private fun saveMyResult(state: MatchState) {
         val type = when (state.gameType) {
             MultiplayerRepository.GAME_KZZ -> GameType.KO_ZNA_ZNA

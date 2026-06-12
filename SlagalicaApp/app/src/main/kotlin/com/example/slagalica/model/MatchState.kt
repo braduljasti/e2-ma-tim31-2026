@@ -32,7 +32,7 @@ data class MatchState(
  * a `p1Sub`/`p2Sub` su potezi igrača (null dok igrač nije odigrao).
  */
 data class RoundState(
-    val gameType: String,          // "Skocko" | "KorakPoKorak" | "MojBroj"
+    val gameType: String,          // "Skocko" | "Kzz" | "Spojnice" | "Asocijacije"
     val roundNumber: Int,
     val starterId: String,
     val config: Map<String, Any?>,
@@ -40,7 +40,11 @@ data class RoundState(
     val p2Sub: Map<String, Any?>?,
     val p1Points: Int,
     val p2Points: Int,
-    val resolved: Boolean
+    val resolved: Boolean,
+    // Potezi koje igrač objavljuje UŽIVO u toku svoje faze (npr. Spojnice:
+    // "levi,desni" po pokušaju) - da protivnik može da posmatra igru u realnom vremenu.
+    val p1Live: List<String> = emptyList(),
+    val p2Live: List<String> = emptyList()
 ) {
     val bothSubmitted: Boolean get() = p1Sub != null && p2Sub != null
 
@@ -89,10 +93,17 @@ data class RoundState(
 
     /** Spojnice: pokušaji igrača (svaki je string "leviIndeks,desniIndeks"). */
     fun spojniceParovi(sub: Map<String, Any?>?): List<Pair<Int, Int>> =
-        (sub?.get("parovi") as? List<*>)?.mapNotNull {
-            val delovi = (it as? String)?.split(",") ?: return@mapNotNull null
-            val levi = delovi.getOrNull(0)?.toIntOrNull() ?: return@mapNotNull null
-            val desni = delovi.getOrNull(1)?.toIntOrNull() ?: return@mapNotNull null
-            levi to desni
-        } ?: emptyList()
+        (sub?.get("parovi") as? List<*>)?.mapNotNull { parseSpojnicaPar(it as? String) }
+            ?: emptyList()
+
+    /** Spojnice: potezi koje igrač objavljuje uživo dok igra svoju fazu. */
+    fun spojniceLiveParovi(isP1: Boolean): List<Pair<Int, Int>> =
+        (if (isP1) p1Live else p2Live).mapNotNull { parseSpojnicaPar(it) }
+
+    private fun parseSpojnicaPar(s: String?): Pair<Int, Int>? {
+        val delovi = s?.split(",") ?: return null
+        val levi = delovi.getOrNull(0)?.toIntOrNull() ?: return null
+        val desni = delovi.getOrNull(1)?.toIntOrNull() ?: return null
+        return levi to desni
+    }
 }
