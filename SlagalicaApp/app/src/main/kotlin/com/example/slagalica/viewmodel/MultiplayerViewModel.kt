@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.slagalica.data.AuthRepository
 import com.example.slagalica.data.FirebaseProvider
+import com.example.slagalica.data.GameLogic
 import com.example.slagalica.data.GameResultRepository
 import com.example.slagalica.data.MultiplayerRepository
 import com.example.slagalica.model.GameType
@@ -179,8 +180,71 @@ class MultiplayerViewModel(
         }
         val my = state.myScore(uid)
         val opp = state.opponentScore(uid)
+        val details = buildDetails(state)
         viewModelScope.launch {
-            runCatching { resultsRepo.saveResult(type, my, opp) }
+            runCatching { resultsRepo.saveResult(type, my, opp, details) }
+        }
+    }
+
+    /**
+     * Detalji za statistiku profila (spec 2.c) - računaju se iz finalnog
+     * stanja meča, jer dokument meča sadrži sve poteze oba igrača.
+     */
+    private fun buildDetails(state: MatchState): Map<String, Long> {
+        val isP1 = state.isPlayer1(uid)
+        fun mojSub(r: com.example.slagalica.model.RoundState) = if (isP1) r.p1Sub else r.p2Sub
+
+        return when (state.gameType) {
+            // Odnos pogođenih i promašenih pitanja (2.c.ii)
+            MultiplayerRepository.GAME_KZZ -> {
+                val round = state.rounds.firstOrNull() ?: return emptyMap()
+                val tacniIndeksi = round.kzzPitanja().map { it.tacanIndex }
+                val moji = round.kzzOdgovori(mojSub(round))
+                var tacnih = 0L; var netacnih = 0L; var bezOdgovora = 0L
+                tacniIndeksi.forEachIndexed { i, tacan ->
+                    val o = moji.getOrNull(i)
+                    when {
+                        o == null || o.index == KzzOdgovor.NIJE_ODGOVORIO -> bezOdgovora++
+                        o.index == tacan -> tacnih++
+                        else -> netacnih++
+                    }
+                }
+                mapOf("tacnih" to tacnih, "netacnih" to netacnih, "bezOdgovora" to bezOdgovora)
+            }
+            // Procenat uspešno povezanih pojmova (2.c.vii)
+            MultiplayerRepository.GAME_SPOJNICE -> {
+                var povezanih = 0L; var pokusaja = 0L
+                state.rounds.forEach { r ->
+                    val veze = r.spojniceRunda()?.tacneVeze ?: return@forEach
+                    val moji = r.spojniceParovi(mojSub(r))
+                    pokusaja += moji.size
+                    povezanih += moji.count { veze[it.first] == it.second }
+                }
+                mapOf("povezanih" to povezanih, "pokusaja" to pokusaja)
+            }
+            // Odnos rešenih i nerešenih asocijacija (2.c.v)
+            MultiplayerRepository.GAME_ASOCIJACIJE -> {
+                var resenihFinala = 0L; var resenihKolona = 0L
+                state.rounds.forEach { r ->
+                    if (r.asocResenoFinalnoUid() == uid) resenihFinala++
+                    resenihKolona += r.asocReseneKolone().values.count { it == uid }
+                }
+                mapOf(
+                    "resenihFinala" to resenihFinala,
+                    "resenihKolona" to resenihKolona,
+                    "rundi" to state.rounds.size.toLong()
+                )
+            }
+            // Skočko: u koliko rundi je kombinacija pogođena (2.c.vi)
+            else -> {
+                var resenihRundi = 0L
+                state.rounds.forEach { r ->
+                    val secret = r.skockoSecret()
+                    val moji = r.skockoGuesses(mojSub(r))
+                    if (moji.any { GameLogic.evaluateSkocko(secret, it).first == 4 }) resenihRundi++
+                }
+                mapOf("resenihRundi" to resenihRundi, "rundi" to state.rounds.size.toLong())
+            }
         }
     }
 

@@ -26,7 +26,8 @@ class GameResultRepository {
     suspend fun saveResult(
         gameType: GameType,
         myPoints: Int,
-        opponentPoints: Int
+        opponentPoints: Int,
+        details: Map<String, Long> = emptyMap()
     ) {
         if (FirebaseProvider.currentUid == null) return  // neregistrovan igrac
         val result = GameResult(
@@ -34,7 +35,8 @@ class GameResultRepository {
             myPoints = myPoints,
             opponentPoints = opponentPoints,
             won = myPoints >= opponentPoints,
-            playedAt = System.currentTimeMillis()
+            playedAt = System.currentTimeMillis(),
+            details = details
         )
         collection().add(result).await()
     }

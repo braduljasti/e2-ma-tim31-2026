@@ -47,7 +47,12 @@ data class FirebaseUser(
     val username: String = "",
     val region: String = "",
     val createdAt: Long = 0L,
-    val emailVerified: Boolean = false
+    val emailVerified: Boolean = false,
+    // Profil (KT2): avatar, tokeni (5 pri registraciji po spec 3.a), zvezde i liga
+    val avatarId: Int = 1,
+    val tokens: Int = 5,
+    val stars: Int = 0,
+    val league: Int = 0          // indeks lige: 0 = nulta liga
 )
 
 // ===== FIREBASE: REZULTAT IGRE =====
@@ -71,7 +76,11 @@ data class GameResult(
     val myPoints: Int = 0,
     val opponentPoints: Int = 0,
     val won: Boolean = false,
-    val playedAt: Long = 0L
+    val playedAt: Long = 0L,
+    // Detalji specifični za igru, za statistiku profila (spec 2.c):
+    // KZZ: tacnih/netacnih/bezOdgovora; Spojnice: povezanih/pokusaja;
+    // Asocijacije: resenihFinala/resenihKolona/rundi; Skočko: resenihRundi/rundi
+    val details: Map<String, Long> = emptyMap()
 )
 
 data class SkockoAttempt(
@@ -124,11 +133,17 @@ data class MyNumberData(
  * Emoji koristimo u tekstu, a `iconResId` u ImageView-u.
  */
 enum class Liga(val displayName: String, val emoji: String) {
+    NULTA("Nulta liga", "🌱"),          // spec 6.a: igrač počinje u nultoj ligi
     BRONZANA("Bronzana liga", "🥉"),
     SREBRNA("Srebrna liga", "🥈"),
     ZLATNA("Zlatna liga", "🥇"),
     PLATINASTA("Platinasta liga", "💎"),
-    DIJAMANTSKA("Dijamantska liga", "💠")
+    DIJAMANTSKA("Dijamantska liga", "💠");
+
+    companion object {
+        /** Liga iz indeksa sačuvanog u users/{uid}.league (van opsega -> nulta). */
+        fun fromIndex(index: Int): Liga = values().getOrElse(index) { NULTA }
+    }
 }
 
 /**

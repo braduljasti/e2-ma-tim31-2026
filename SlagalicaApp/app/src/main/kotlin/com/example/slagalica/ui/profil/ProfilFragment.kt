@@ -193,11 +193,12 @@ class ProfilFragment : Fragment() {
     }
 
     /**
-     * Vodimo korisnika nazad na LoginActivity i zatvaramo MainActivity
-     * iz back stack-a (FLAG_ACTIVITY_CLEAR_TASK), tako da pritisak na "back"
-     * iz Login-a ne moze da vrati ovde.
+     * Prvo se ODJAVI sa Firebase naloga (bez ovoga bi sledeće pokretanje
+     * aplikacije preskočilo login), pa vodimo korisnika na LoginActivity
+     * i zatvaramo MainActivity iz back stack-a (FLAG_ACTIVITY_CLEAR_TASK).
      */
     private fun performLogout() {
+        viewModel.logout()
         val intent = Intent(requireContext(), LoginActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
         }

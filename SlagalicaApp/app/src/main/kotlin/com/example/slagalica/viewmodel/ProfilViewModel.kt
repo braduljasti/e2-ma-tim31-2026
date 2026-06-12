@@ -3,24 +3,30 @@ package com.example.slagalica.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.slagalica.R
+import com.example.slagalica.data.AuthRepository
+import com.example.slagalica.data.ProfilRepository
+import com.example.slagalica.model.GameResult
 import com.example.slagalica.model.GameStatistic
+import com.example.slagalica.model.GameType
 import com.example.slagalica.model.Liga
 import com.example.slagalica.model.PlayerStats
 import com.example.slagalica.model.UserProfile
+import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 /**
- * ViewModel za ProfilFragment.
+ * ViewModel za ProfilFragment (spec 2).
  *
- * Drži dva LiveData stream-a:
- *  - userProfile: osnovni podaci o korisniku (zaglavlje profila)
- *  - playerStats: statistika po igrama + ukupno
- *
- * Pošto trenutno ne koristimo backend, podaci se hardkoduju u init bloku.
- * Kad se kasnije bude radio repository sloj, samo loadProfile/loadStats
- * funkcije će se izmeniti — Fragment ostaje isti.
+ * Profil se čita iz users/{uid} (korisničko ime, mejl, avatar, tokeni,
+ * zvezde, liga, region), a statistika se računa iz users/{uid}/gameResults -
+ * svaki odigrani meč nosi i detalje specifične za igru (vidi GameResult.details).
  */
-class ProfilViewModel : ViewModel() {
+class ProfilViewModel(
+    private val profilRepo: ProfilRepository = ProfilRepository(),
+    private val authRepo: AuthRepository = AuthRepository()
+) : ViewModel() {
 
     // === Profil ===
     private val _userProfile = MutableLiveData<UserProfile>()
@@ -30,10 +36,7 @@ class ProfilViewModel : ViewModel() {
     private val _playerStats = MutableLiveData<PlayerStats>()
     val playerStats: LiveData<PlayerStats> = _playerStats
 
-    /**
-     * Lista avatara koje korisnik može da izabere u dijalogu.
-     * Drawable resursi iz Koraka 2.
-     */
+    /** Avatari koje korisnik može da izabere; indeks + 1 = avatarId u bazi. */
     val availableAvatars = listOf(
         R.drawable.avatar_1,
         R.drawable.avatar_2,
@@ -47,75 +50,123 @@ class ProfilViewModel : ViewModel() {
     }
 
     private fun loadProfile() {
-        _userProfile.value = UserProfile(
-            username = "igrac_123",
-            email = "igrac123@slagalica.rs",
-            avatarResId = R.drawable.avatar_1,
-            tokens = 1250,
-            totalStars = 87,
-            league = Liga.ZLATNA,
-            region = "Vojvodina",
-            qrPayload = "slagalica://invite/igrac_123"
-        )
+        viewModelScope.launch {
+            val user = runCatching { profilRepo.ucitajKorisnika() }.getOrNull() ?: return@launch
+            _userProfile.value = UserProfile(
+                username = user.username,
+                email = user.email,
+                avatarResId = avatarRes(user.avatarId),
+                tokens = user.tokens,
+                totalStars = user.stars,
+                league = Liga.fromIndex(user.league),
+                region = user.region,
+                // QR sadrži uid - prijatelj ga skenira da pošalje poziv (spec 2.a.viii)
+                qrPayload = "slagalica://invite/${user.uid}"
+            )
+        }
     }
 
     private fun loadStats() {
-        _playerStats.value = PlayerStats(
-            koZnaZna = GameStatistic(
-                gameName = "Ko zna zna",
-                averagePointsLabel = "Prosek: 40 - 60 bodova",
-                mainMetricLabel = "Pogođenih pitanja",
-                mainMetricPercent = 72f,
-                gamesPlayed = 24
-            ),
-            mojBroj = GameStatistic(
-                gameName = "Moj broj",
-                averagePointsLabel = "Prosek: 50 - 80 bodova",
-                mainMetricLabel = "Pronađen tačan broj",
-                mainMetricPercent = 68f,
-                gamesPlayed = 31
-            ),
-            korakPoKorak = GameStatistic(
-                gameName = "Korak po korak",
-                averagePointsLabel = "Prosek: 30 - 70 bodova",
-                mainMetricLabel = "Pogođen pojam",
-                mainMetricPercent = 55f,
-                gamesPlayed = 18
-            ),
-            asocijacije = GameStatistic(
-                gameName = "Asocijacije",
-                averagePointsLabel = "Prosek: 60 - 90 bodova",
-                mainMetricLabel = "Rešeno asocijacija",
-                mainMetricPercent = 80f,
-                gamesPlayed = 22
-            ),
-            skocko = GameStatistic(
-                gameName = "Skočko",
-                averagePointsLabel = "Prosek: 45 - 75 bodova",
-                mainMetricLabel = "Pogođena kombinacija",
-                mainMetricPercent = 64f,
-                gamesPlayed = 28
-            ),
-            spojnice = GameStatistic(
-                gameName = "Spojnice",
-                averagePointsLabel = "Prosek: 35 - 65 bodova",
-                mainMetricLabel = "Povezanih pojmova",
-                mainMetricPercent = 78f,
-                gamesPlayed = 19
-            ),
-            totalGamesPlayed = 142,
-            totalWins = 92,
-            totalLosses = 50
+        viewModelScope.launch {
+            val rezultati = runCatching { profilRepo.sviRezultati() }.getOrDefault(emptyList())
+            _playerStats.value = izracunajStatistiku(rezultati)
+        }
+    }
+
+    // ============================================================
+    // STATISTIKA IZ ODIGRANIH MEČEVA (spec 2.c)
+    // ============================================================
+
+    private fun izracunajStatistiku(svi: List<GameResult>): PlayerStats {
+        // 2.c.ii - odnos pogođenih i promašenih pitanja
+        val kzz = statistikaIgre(svi, GameType.KO_ZNA_ZNA, "Pogođenih pitanja") { r ->
+            val tacnih = sumDetail(r, "tacnih")
+            val ukupno = tacnih + sumDetail(r, "netacnih") + sumDetail(r, "bezOdgovora")
+            procenat(tacnih, ukupno)
+        }
+        // 2.c.vii - procenat uspešno povezanih pojmova
+        val spojnice = statistikaIgre(svi, GameType.SPOJNICE, "Povezanih pojmova") { r ->
+            procenat(sumDetail(r, "povezanih"), sumDetail(r, "pokusaja"))
+        }
+        // 2.c.v - odnos rešenih i nerešenih asocijacija
+        val asocijacije = statistikaIgre(svi, GameType.ASOCIJACIJE, "Rešenih asocijacija") { r ->
+            procenat(sumDetail(r, "resenihFinala"), sumDetail(r, "rundi"))
+        }
+        // 2.c.vi - pogođena kombinacija (po rundama)
+        val skocko = statistikaIgre(svi, GameType.SKOCKO, "Pogođena kombinacija") { r ->
+            procenat(sumDetail(r, "resenihRundi"), sumDetail(r, "rundi"))
+        }
+        // 2.c.iii - pronađen tačan broj (10 bodova = pogođen broj)
+        val mojBroj = statistikaIgre(svi, GameType.MOJ_BROJ, "Pronađen tačan broj") { r ->
+            procenat(r.count { it.myPoints >= 10 }.toLong(), r.size.toLong())
+        }
+        // 2.c.iv - pogođen pojam
+        val korak = statistikaIgre(svi, GameType.KORAK_PO_KORAK, "Pogođen pojam") { r ->
+            procenat(r.count { it.myPoints > 0 }.toLong(), r.size.toLong())
+        }
+
+        return PlayerStats(
+            koZnaZna = kzz,
+            mojBroj = mojBroj,
+            korakPoKorak = korak,
+            asocijacije = asocijacije,
+            skocko = skocko,
+            spojnice = spojnice,
+            totalGamesPlayed = svi.size,                  // 2.c.viii
+            totalWins = svi.count { it.won },             // 2.c.ix
+            totalLosses = svi.count { !it.won }
         )
     }
 
-    /**
-     * Poziva se kad korisnik izabere novi avatar iz dijaloga.
-     * Pravi novu instancu UserProfile-a sa promenjenim avatarom
-     * i okidaju se observer-i u Fragmentu.
-     */
+    /** Gradi GameStatistic za jednu igru: opseg/prosek bodova + glavna metrika. */
+    private fun statistikaIgre(
+        svi: List<GameResult>,
+        tip: GameType,
+        metrikaLabel: String,
+        metrika: (List<GameResult>) -> Float
+    ): GameStatistic {
+        val rezultati = svi.filter { it.gameType == tip.name }
+        // 2.c.i - opseg prosečno osvojenih bodova
+        val bodoviLabel = if (rezultati.isEmpty()) {
+            "Još nema odigranih partija"
+        } else {
+            val bodovi = rezultati.map { it.myPoints }
+            "Prosek: ${bodovi.average().roundToInt()} bodova " +
+                    "(${bodovi.minOrNull()} – ${bodovi.maxOrNull()})"
+        }
+        return GameStatistic(
+            gameName = tip.displayName,
+            averagePointsLabel = bodoviLabel,
+            mainMetricLabel = metrikaLabel,
+            mainMetricPercent = if (rezultati.isEmpty()) 0f else metrika(rezultati),
+            gamesPlayed = rezultati.size
+        )
+    }
+
+    private fun sumDetail(rezultati: List<GameResult>, key: String): Long =
+        rezultati.sumOf { it.details[key] ?: 0L }
+
+    private fun procenat(deo: Long, celina: Long): Float =
+        if (celina > 0) deo * 100f / celina else 0f
+
+    // ============================================================
+    // AKCIJE
+    // ============================================================
+
+    /** Spec 2.b - izmena avatara: odmah u UI, trajno u Firestore. */
     fun changeAvatar(avatarResId: Int) {
         val current = _userProfile.value ?: return
         _userProfile.value = current.copy(avatarResId = avatarResId)
+
+        val avatarId = availableAvatars.indexOf(avatarResId) + 1
+        if (avatarId > 0) {
+            viewModelScope.launch { runCatching { profilRepo.sacuvajAvatar(avatarId) } }
+        }
     }
+
+    /** Spec 2.d - odjava sa Firebase naloga. */
+    fun logout() = authRepo.logout()
+
+    private fun avatarRes(avatarId: Int): Int =
+        availableAvatars.getOrElse(avatarId - 1) { availableAvatars[0] }
 }

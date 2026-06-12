@@ -84,6 +84,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             R.id.nav_moj_broj -> navController.navigate(R.id.nav_moj_broj)
             R.id.nav_skocko -> navController.navigate(R.id.nav_skocko)
             R.id.nav_odjava -> {
+                com.example.slagalica.data.FirebaseProvider.auth.signOut()
                 val intent = Intent(this, LoginActivity::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 startActivity(intent)
