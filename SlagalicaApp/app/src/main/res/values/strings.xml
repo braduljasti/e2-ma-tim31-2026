@@ -137,6 +137,9 @@
     <string name="mp_asoc_protivnik">Protivnik je na potezu</string>
     <string name="mp_asoc_propusti">Propusti potez</string>
     <string name="mp_asoc_finalno_tacno">🎉 Pogodio si konačno rešenje!</string>
+    <string name="mp_asoc_kraj_runde">Kraj runde - rešenja su otkrivena</string>
+    <string name="mp_asoc_pokusaj_kolona">Protivnik pogađa kolonu %1$s: %2$s</string>
+    <string name="mp_asoc_pokusaj_finalno">Protivnik pogađa konačno rešenje: %1$s</string>
     <string name="mp_pobjeda">🎉 Pobjeda!</string>
     <string name="mp_poraz">😔 Poraz</string>
     <string name="mp_nereseno">Neriješeno!</string>

@@ -427,11 +427,20 @@ class MultiplayerRepository {
             val resenja = ((round["config"] as? Map<*, *>)?.get("resenjaKolona") as? List<*>)
                 ?.mapNotNull { it as? String } ?: return@asocijacijePotez null
 
-            if (GameLogic.asocijacijeTacno(guess, resenja.getOrNull(col) ?: "")) {
+            val tacno = GameLogic.asocijacijeTacno(guess, resenja.getOrNull(col) ?: "")
+            zabeleziPokusaj(round, uid, "ABCD"[col].toString(), guess, tacno)
+            if (tacno) {
                 resene[col.toString()] = uid
                 round["reseneKolone"] = resene
-                val otvorenihUKoloni = strList(round["otvorena"]).count { it.startsWith("$col,") }
+                // Bodovi po broju otvorenih PRE pogotka, pa se kolona otkriva cela
+                val otvorena = strList(round["otvorena"]).toMutableList()
+                val otvorenihUKoloni = otvorena.count { it.startsWith("$col,") }
                 dodajPoene(snap, round, uid, GameLogic.asocijacijePoeniKolona(otvorenihUKoloni))
+                for (row in 0 until AsocijacijeKonstante.POLJA_PO_KOLONI) {
+                    val polje = "$col,$row"
+                    if (polje !in otvorena) otvorena.add(polje)
+                }
+                round["otvorena"] = otvorena
             } else {
                 predajPotez(snap, round, uid)
             }
@@ -446,7 +455,9 @@ class MultiplayerRepository {
             val finalno = (round["config"] as? Map<*, *>)?.get("finalnoResenje") as? String
                 ?: return@asocijacijePotez null
 
-            if (GameLogic.asocijacijeTacno(guess, finalno)) {
+            val tacno = GameLogic.asocijacijeTacno(guess, finalno)
+            zabeleziPokusaj(round, uid, "F", guess, tacno)
+            if (tacno) {
                 round["resenoFinalnoUid"] = uid
                 val otvorena = strList(round["otvorena"])
                 val resene = (round["reseneKolone"] as? Map<*, *>) ?: emptyMap<Any, Any>()
@@ -454,11 +465,11 @@ class MultiplayerRepository {
                 val kolonaResena = (0..3).map { resene.containsKey(it.toString()) }
                 dodajPoene(snap, round, uid,
                     GameLogic.asocijacijePoeniFinalno(otvorenihPoKoloni, kolonaResena))
-                zavrsiAsocRundu(snap, rounds, round)
+                zavrsiAsocRundu(round)
             } else {
                 predajPotez(snap, round, uid)
-                emptyMap()
             }
+            emptyMap()
         }
 
     /** Igrač ne želi da pogađa - potez prelazi protivniku. */
@@ -471,9 +482,47 @@ class MultiplayerRepository {
 
     /** Isteklo vreme runde (2 min) - bilo koji klijent sme da je zatvori. */
     suspend fun asocijacijeIstekloVreme(matchId: String, roundIndex: Int) =
-        asocijacijePotez(matchId, roundIndex) { snap, rounds, round ->
-            zavrsiAsocRundu(snap, rounds, round)
+        asocijacijePotez(matchId, roundIndex) { _, _, round ->
+            zavrsiAsocRundu(round)
+            emptyMap()
         }
+
+    /**
+     * Pomera meč na sledeću rundu (ili ga završava) NAKON pauze za pregled
+     * otkrivene table. Zovu je oba klijenta posle 7 sekundi - prva transakcija
+     * pobedi, druga vidi pomeren indeks i tiho odustane.
+     */
+    suspend fun asocijacijeSledecaRunda(matchId: String, roundIndex: Int) {
+        val ref = matches.document(matchId)
+        db.runTransaction<Void?> { tx ->
+            val snap = tx.get(ref)
+            if (snap.getString("status") == "finished") return@runTransaction null
+            @Suppress("UNCHECKED_CAST")
+            val rounds = (snap.get("rounds") as? MutableList<MutableMap<String, Any?>>)
+                ?: return@runTransaction null
+            val idx = (snap.getLong("currentRoundIndex") ?: 0L).toInt()
+            if (idx != roundIndex) return@runTransaction null
+            val round = rounds.getOrNull(idx) ?: return@runTransaction null
+            if (round["zavrsena"] != true) return@runTransaction null
+
+            val newIndex = idx + 1
+            val updates = hashMapOf<String, Any?>("currentRoundIndex" to newIndex)
+            if (newIndex >= rounds.size) {
+                val p1Total = rounds.sumOf { (it["p1Points"] as? Number)?.toInt() ?: 0 }
+                val p2Total = rounds.sumOf { (it["p2Points"] as? Number)?.toInt() ?: 0 }
+                updates["player1Score"] = p1Total
+                updates["player2Score"] = p2Total
+                updates["winnerId"] = when {
+                    p1Total > p2Total -> snap.getString("player1Id")
+                    p2Total > p1Total -> snap.getString("player2Id")
+                    else -> null
+                }
+                updates["status"] = "finished"
+            }
+            tx.update(ref, updates)
+            null
+        }.await()
+    }
 
     /**
      * Zajednički okvir za potez: transakcija + zaštite (meč nije gotov, runda
@@ -521,30 +570,32 @@ class MultiplayerRepository {
         round["mozeDaPogadja"] = svaOtvorena
     }
 
-    /** Zatvara rundu i pomera meč dalje; posle poslednje runde proglašava pobednika. */
-    private fun zavrsiAsocRundu(
-        snap: DocumentSnapshot,
-        rounds: List<MutableMap<String, Any?>>,
-        round: MutableMap<String, Any?>
-    ): Map<String, Any?> {
+    /**
+     * Zatvara IGRANJE runde: otkriva celu tablu i označava rundu završenom.
+     * Meč se ne pomera odmah - klijenti 7s prikazuju otkrivena rešenja,
+     * a zatim pozivaju asocijacijeSledecaRunda().
+     */
+    private fun zavrsiAsocRundu(round: MutableMap<String, Any?>) {
         round["zavrsena"] = true
         round["resolved"] = true
-        val idx = (snap.getLong("currentRoundIndex") ?: 0L).toInt()
-        val newIndex = idx + 1
-        val updates = hashMapOf<String, Any?>("currentRoundIndex" to newIndex)
-        if (newIndex >= rounds.size) {
-            val p1Total = rounds.sumOf { (it["p1Points"] as? Number)?.toInt() ?: 0 }
-            val p2Total = rounds.sumOf { (it["p2Points"] as? Number)?.toInt() ?: 0 }
-            updates["player1Score"] = p1Total
-            updates["player2Score"] = p2Total
-            updates["winnerId"] = when {
-                p1Total > p2Total -> snap.getString("player1Id")
-                p2Total > p1Total -> snap.getString("player2Id")
-                else -> null
-            }
-            updates["status"] = "finished"
+        round["mozeDaPogadja"] = false
+        round["otvorena"] = (0 until AsocijacijeKonstante.BROJ_KOLONA).flatMap { col ->
+            (0 until AsocijacijeKonstante.POLJA_PO_KOLONI).map { row -> "$col,$row" }
         }
-        return updates
+    }
+
+    /** Beleži poslednji pokušaj pogađanja - protivnik ga prikazuje na par sekundi. */
+    private fun zabeleziPokusaj(
+        round: MutableMap<String, Any?>,
+        uid: String,
+        cilj: String,        // "A".."D" za kolonu, "F" za konačno rešenje
+        tekst: String,
+        tacno: Boolean
+    ) {
+        round["poslednjiPokusaj"] = mapOf(
+            "uid" to uid, "cilj" to cilj, "tekst" to tekst.trim(),
+            "tacno" to tacno, "ts" to System.currentTimeMillis()
+        )
     }
 
     private fun strList(v: Any?): List<String> =

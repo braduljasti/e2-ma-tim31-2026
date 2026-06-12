@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import com.example.slagalica.R
 import com.example.slagalica.data.GameLogic
 import com.example.slagalica.data.MultiplayerRepository
@@ -21,6 +22,10 @@ import com.example.slagalica.model.MatchState
 import com.example.slagalica.viewmodel.MultiplayerViewModel
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 /**
  * Multiplayer Asocijacije: za razliku od KZZ i Spojnica, tabla je ZAJEDNIČKA
@@ -49,6 +54,11 @@ class AsocijacijeMpFragment : Fragment() {
     private var timer: CountDownTimer? = null
     private var finalShown = false
     private var lastState: MatchState? = null
+
+    // Pauza na kraju runde (otkrivena tabla) + dedup za prikaz tuđih pokušaja
+    private var advanceScheduled = false
+    private var advanceJob: Job? = null
+    private var lastPokusajTs = 0L
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentAsocijacijeBinding.inflate(inflater, container, false)
@@ -127,10 +137,49 @@ class AsocijacijeMpFragment : Fragment() {
         // Nova runda -> restart lokalnog tajmera (2 min)
         if (state.currentRoundIndex != playedRoundIndex) {
             playedRoundIndex = state.currentRoundIndex
+            advanceScheduled = false
+            advanceJob?.cancel()
             startTimer()
         }
 
         renderBoard(state)
+        prikaziProtivnikovPokusaj(state)
+
+        // Kraj runde: tabla je otkrivena, 7 sekundi pregleda pa meč ide dalje.
+        // Oba klijenta zakazuju - prva transakcija pobedi, druga tiho odustane.
+        if (round.asocZavrsena() && !advanceScheduled) {
+            advanceScheduled = true
+            timer?.cancel()
+            binding.tvTimerAsoc.text = "–"
+            binding.cardTimerAsoc.setCardBackgroundColor(boja(R.color.timer_normalno))
+            advanceJob = viewLifecycleOwner.lifecycleScope.launch {
+                delay(REVEAL_PAUSE_MS)
+                mp.asocijacijeSledecaRunda()
+            }
+        }
+    }
+
+    /** Prikazuje protivnikov pokušaj pogađanja (Snackbar, ~3 sekunde). */
+    private fun prikaziProtivnikovPokusaj(state: MatchState) {
+        val pokusaj = state.currentRound?.asocPoslednjiPokusaj() ?: return
+        val uid = pokusaj["uid"] as? String ?: return
+        val ts = (pokusaj["ts"] as? Number)?.toLong() ?: return
+        if (uid == mp.uid || ts == lastPokusajTs) return   // moj pokušaj / već prikazan
+        lastPokusajTs = ts
+        if (System.currentTimeMillis() - ts > 10_000) return   // star pokušaj (npr. posle rotacije)
+
+        val cilj = pokusaj["cilj"] as? String ?: return
+        val tekst = pokusaj["tekst"] as? String ?: ""
+        val tacno = pokusaj["tacno"] == true
+        val poruka = if (cilj == "F") {
+            getString(R.string.mp_asoc_pokusaj_finalno, tekst)
+        } else {
+            getString(R.string.mp_asoc_pokusaj_kolona, cilj, tekst)
+        } + if (tacno) " ✓" else " ✗"
+
+        Snackbar.make(binding.root, poruka, Snackbar.LENGTH_INDEFINITE)
+            .setDuration(POKUSAJ_PRIKAZ_MS)
+            .show()
     }
 
     /** Crta celu tablu iz stanja meča - tabla je ista na oba telefona. */
@@ -151,12 +200,14 @@ class AsocijacijeMpFragment : Fragment() {
                 )
             }
         }
+        val zavrsena = round.asocZavrsena()
         for (col in 0..3) {
             val resioUid = resene[col]
             val stanje = when {
-                resioUid == null -> AsocijacijaCelijaStanje.ZAKLJUCANO
                 resioUid == mp.uid -> AsocijacijaCelijaStanje.POGODENO_MOJE
-                else -> AsocijacijaCelijaStanje.POGODENO_PROTIVNIK
+                resioUid != null -> AsocijacijaCelijaStanje.POGODENO_PROTIVNIK
+                zavrsena -> AsocijacijaCelijaStanje.OTKRIVENO   // niko nije rešio - sivo
+                else -> AsocijacijaCelijaStanje.ZAKLJUCANO
             }
             stilirajResenje(
                 resenjeKartice[col], resenjeTekstovi[col],
@@ -164,9 +215,10 @@ class AsocijacijeMpFragment : Fragment() {
             )
         }
         val finalnoStanje = when {
-            finalnoUid == null -> AsocijacijaCelijaStanje.ZAKLJUCANO
             finalnoUid == mp.uid -> AsocijacijaCelijaStanje.POGODENO_MOJE
-            else -> AsocijacijaCelijaStanje.POGODENO_PROTIVNIK
+            finalnoUid != null -> AsocijacijaCelijaStanje.POGODENO_PROTIVNIK
+            zavrsena -> AsocijacijaCelijaStanje.OTKRIVENO
+            else -> AsocijacijaCelijaStanje.ZAKLJUCANO
         }
         stilirajResenje(
             binding.resenjeFinalno.root, binding.resenjeFinalno.tvAsocCelija,
@@ -176,6 +228,7 @@ class AsocijacijeMpFragment : Fragment() {
         // Runda + status poteza u jednom redu
         val mojPotez = round.asocTurnUid() == mp.uid
         val status = when {
+            zavrsena -> getString(R.string.mp_asoc_kraj_runde)
             !mojPotez -> getString(R.string.mp_asoc_protivnik)
             round.asocMozeDaPogadja() -> getString(R.string.mp_asoc_pogadjaj)
             else -> getString(R.string.mp_asoc_tvoj_potez)
@@ -185,7 +238,7 @@ class AsocijacijeMpFragment : Fragment() {
         ) + " • " + status
         binding.progressRundeAsoc.progress =
             (round.roundNumber * 100) / AsocijacijeKonstante.BROJ_RUNDI
-        binding.btnDaljeAsoc.isEnabled = mojPotez
+        binding.btnDaljeAsoc.isEnabled = mojPotez && !zavrsena
     }
 
     // ============================================================
@@ -389,6 +442,12 @@ class AsocijacijeMpFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         timer?.cancel()
+        advanceJob?.cancel()
         _binding = null
+    }
+
+    companion object {
+        private const val REVEAL_PAUSE_MS = 7_000L     // pregled otkrivene table
+        private const val POKUSAJ_PRIKAZ_MS = 3_000    // prikaz tuđeg pokušaja
     }
 }

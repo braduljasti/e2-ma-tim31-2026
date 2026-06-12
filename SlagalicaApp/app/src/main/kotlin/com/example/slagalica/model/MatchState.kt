@@ -150,4 +150,9 @@ data class RoundState(
 
     /** Da li je igranje runde gotovo (finalno pogođeno ili isteklo vreme). */
     fun asocZavrsena(): Boolean = raw["zavrsena"] == true
+
+    /** Poslednji pokušaj pogađanja: {uid, cilj ("A".."D"/"F"), tekst, tacno, ts}. */
+    @Suppress("UNCHECKED_CAST")
+    fun asocPoslednjiPokusaj(): Map<String, Any?>? =
+        raw["poslednjiPokusaj"] as? Map<String, Any?>
 }

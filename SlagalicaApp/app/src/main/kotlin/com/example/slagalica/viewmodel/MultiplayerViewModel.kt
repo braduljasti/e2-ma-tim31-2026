@@ -158,6 +158,11 @@ class MultiplayerViewModel(
         repo.asocijacijeIstekloVreme(id, idx)
     }
 
+    /** Posle pauze za pregled rešenja - pomera meč na sledeću rundu / kraj. */
+    fun asocijacijeSledecaRunda() = asocPotez { id, idx ->
+        repo.asocijacijeSledecaRunda(id, idx)
+    }
+
     private fun asocPotez(akcija: suspend (matchId: String, roundIndex: Int) -> Unit) {
         val state = _match.value ?: return
         viewModelScope.launch {
