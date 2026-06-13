@@ -128,6 +128,24 @@
     <string name="kanal_nagrade">Nagrade</string>
     <string name="kanal_ostalo">Ostalo</string>
 
+    <!-- Multiplayer (zajedničko za sve igre) -->
+    <string name="mp_cekamo_protivnika">Poslato! Čekamo protivnika…</string>
+    <string name="mp_protivnik_na_potezu">⏳ Protivnik je na potezu…</string>
+    <string name="mp_nije_tvoj_potez">Nije tvoj potez!</string>
+    <string name="mp_asoc_tvoj_potez">Tvoj potez - otvori polje</string>
+    <string name="mp_asoc_pogadjaj">Pogađaj ili propusti potez</string>
+    <string name="mp_asoc_protivnik">Protivnik je na potezu</string>
+    <string name="mp_asoc_propusti">Propusti potez</string>
+    <string name="mp_asoc_finalno_tacno">🎉 Pogodio si konačno rešenje!</string>
+    <string name="mp_asoc_kraj_runde">Kraj runde - rešenja su otkrivena</string>
+    <string name="mp_asoc_pokusaj_kolona">Protivnik pogađa kolonu %1$s: %2$s</string>
+    <string name="mp_asoc_pokusaj_finalno">Protivnik pogađa konačno rešenje: %1$s</string>
+    <string name="mp_pobjeda">🎉 Pobjeda!</string>
+    <string name="mp_poraz">😔 Poraz</string>
+    <string name="mp_nereseno">Neriješeno!</string>
+    <string name="mp_zatvori">Zatvori</string>
+    <string name="mp_izaberi_igru">Izaberi igru</string>
+
     <!-- Ko zna zna igra -->
     <string name="igra_ko_zna_zna_naslov">Ko zna zna</string>
     <string name="kzz_pitanje_format">Pitanje %1$d / %2$d</string>

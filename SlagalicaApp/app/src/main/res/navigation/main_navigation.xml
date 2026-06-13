@@ -62,6 +62,34 @@
         android:label="@string/igra_skocko_naslov"
         tools:layout="@layout/fragment_skocko"/>
 
+    <!-- Igra: Skočko (multiplayer preko Firestore-a) -->
+    <fragment
+        android:id="@+id/nav_skocko_mp"
+        android:name="com.example.slagalica.ui.games.SkockoMpFragment"
+        android:label="@string/igra_skocko_naslov"
+        tools:layout="@layout/fragment_skocko"/>
+
+    <!-- Igra: Ko zna zna (multiplayer preko Firestore-a) -->
+    <fragment
+        android:id="@+id/nav_kzz_mp"
+        android:name="com.example.slagalica.ui.games.KzzMpFragment"
+        android:label="@string/igra_ko_zna_zna_naslov"
+        tools:layout="@layout/fragment_ko_zna_zna"/>
+
+    <!-- Igra: Spojnice (multiplayer preko Firestore-a) -->
+    <fragment
+        android:id="@+id/nav_spojnice_mp"
+        android:name="com.example.slagalica.ui.games.SpojniceMpFragment"
+        android:label="@string/igra_spojnice_naslov"
+        tools:layout="@layout/fragment_spojnice"/>
+
+    <!-- Igra: Asocijacije (multiplayer preko Firestore-a) -->
+    <fragment
+        android:id="@+id/nav_asocijacije_mp"
+        android:name="com.example.slagalica.ui.games.AsocijacijeMpFragment"
+        android:label="@string/igra_asocijacije_naslov"
+        tools:layout="@layout/fragment_asocijacije"/>
+
     <fragment
         android:id="@+id/profilFragment"
         android:name="com.example.slagalica.ui.profil.ProfilFragment"

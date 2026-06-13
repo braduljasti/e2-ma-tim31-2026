@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Glavna tema aplikacije - Material Design -->
-    <style name="Theme.Slagalica" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+    <!-- Glavna tema aplikacije - Material Design.
+         Namerno "Light" (ne "DayNight"): aplikacija je dizajnirana za svetle
+         boje, pa sistemska tamna tema ne sme da je menja. -->
+    <style name="Theme.Slagalica" parent="Theme.MaterialComponents.Light.DarkActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryVariant">@color/primary_dark</item>
         <item name="colorOnPrimary">@color/text_on_primary</item>
@@ -12,6 +14,8 @@
         <item name="android:statusBarColor" tools:targetApi="l">@color/primary_dark</item>
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+        <!-- Sprečava da OEM "Force Dark" (Xiaomi/Huawei...) nasilno zatamni svetlu temu -->
+        <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
     </style>
 
     <!-- Tema bez ActionBar-a za aktivnosti sa Toolbar-om -->
@@ -21,11 +25,12 @@
     </style>
 
     <!-- Splash tema - fullscreen, AppCompat kompatibilna -->
-    <style name="Theme.Slagalica.Splash" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+    <style name="Theme.Slagalica.Splash" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="android:windowBackground">@color/primary</item>
         <item name="android:statusBarColor">@color/primary_dark</item>
         <item name="android:navigationBarColor">@color/primary</item>
         <item name="android:windowFullscreen">true</item>
+        <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
     </style>
 
     <!-- AppBar overlay tema -->
