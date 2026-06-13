@@ -35,7 +35,6 @@
             android:name=".ui.main.MainActivity"
             android:exported="false" />
 
-        <!-- Firebase Cloud Messaging - prijem push notifikacija (zahtjev 11) -->
         <service
             android:name=".data.SlagalicaMessagingService"
             android:exported="false">

@@ -14,15 +14,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-/**
- * Spojnice - korigovana logika:
- *  - Levi pojmovi se auto-selektuju redom (1, 2, 3, 4, 5)
- *  - Korisnik bira SAMO sa desne kolone
- *  - Tacan spoj -> oba zeleno, trajno do kraja runde
- *  - Netacan spoj -> oba crveno, trajno (bez retry-a, par je "potrosen")
- *  - Posle svakog spoja auto-skok na sledeci levi
- *  - Dalje preskace celu rundu
- */
 class SpojniceViewModel : ViewModel() {
 
     private val runde = listOf(
@@ -39,10 +30,6 @@ class SpojniceViewModel : ViewModel() {
             tacneVeze = mapOf(0 to 2, 1 to 0, 2 to 4, 3 to 3, 4 to 1)
         )
     )
-
-    // ============================================================
-    // STATE
-    // ============================================================
 
     private val _trenutnaRunda = MutableLiveData(0)
     val trenutnaRunda: LiveData<Int> = _trenutnaRunda
@@ -81,10 +68,6 @@ class SpojniceViewModel : ViewModel() {
     private val _krajIgre = MutableLiveData<SpojniceRezultat?>(null)
     val krajIgre: LiveData<SpojniceRezultat?> = _krajIgre
 
-    // ============================================================
-    // INTERNAL
-    // ============================================================
-
     private var timer: CountDownTimer? = null
     private var advanceJob: Job? = null
     private var trenutnaRundaPodaci: SpojniceRundaPodaci? = null
@@ -94,10 +77,6 @@ class SpojniceViewModel : ViewModel() {
 
     private var mojeVeze = 0
     private var protivnikoVeza = 0
-
-    // ============================================================
-    // PUBLIC API
-    // ============================================================
 
     fun startGameIfNeeded() {
         if (gameStarted) return
@@ -117,15 +96,11 @@ class SpojniceViewModel : ViewModel() {
         loadRound(0, opponentFirst = false)
     }
 
-    /**
-     * Klik na desnu kolonu - jedini nacin korisnika da intereaguje.
-     * Levi je auto-selektovan, samo se bira par.
-     */
     fun onDesniClick(index: Int) {
         if (roundEnding) return
         if (aktivanLeviIndex < 0) return
         val desnaStanja = _desnaStanja.value ?: return
-        if (desnaStanja[index] != SpojniceStanjeCelije.POCETNO) return  // vec zauzet
+        if (desnaStanja[index] != SpojniceStanjeCelije.POCETNO) return
 
         val round = trenutnaRundaPodaci ?: return
         val tacanDesni = round.tacneVeze[aktivanLeviIndex]
@@ -139,10 +114,6 @@ class SpojniceViewModel : ViewModel() {
         if (roundEnding) return
         endRound()
     }
-
-    // ============================================================
-    // INTERNAL LOGIC
-    // ============================================================
 
     private fun loadRound(roundIndex: Int, opponentFirst: Boolean) {
         roundEnding = false
@@ -159,11 +130,10 @@ class SpojniceViewModel : ViewModel() {
         _timerBojaRes.value = R.color.timer_normalno
 
         if (opponentFirst) {
-            // Runda 2: protivnik prvi povlaci 1-2 spoja
+
             simulirajProtivnikaPocetak(round)
         }
 
-        // Pronadji prvi POCETNO levi i selektuj ga
         selektujSledeciLevi()
         startTimer()
     }
@@ -173,7 +143,7 @@ class SpojniceViewModel : ViewModel() {
         val sledeci = left.indexOfFirst { it == SpojniceStanjeCelije.POCETNO }
 
         if (sledeci == -1) {
-            // Svi su obradjeni - kraj runde
+
             aktivanLeviIndex = -1
             onRoundEarlyEnd()
             return
@@ -211,25 +181,16 @@ class SpojniceViewModel : ViewModel() {
         selektujSledeciLevi()
     }
 
-    /**
-     * Pre Runde 2: protivnik vec ima 1-2 spoja jer "on prvi povlaci".
-     */
     private fun simulirajProtivnikaPocetak(round: SpojniceRundaPodaci) {
         val brojSpojeva = (1..2).random()
         val zaSpoj = round.tacneVeze.keys.shuffled().take(brojSpojeva)
         primeniProtivnikoveSpoje(zaSpoj, round)
     }
 
-    /**
-     * Posle isteka tajmera/skip-a: protivnik dobija sansu samo za POCETNO leve
-     * pojmove (one koje korisnik nije ni pokusao). Pogresno povezani su trajno
-     * crveni i protivnik im se vise ne moze priblizi.
-     */
     private fun simulirajProtivnikaKraj() {
         val left = _leveStanja.value ?: return
         val round = trenutnaRundaPodaci ?: return
 
-        // Samo POCETNO i SELEKTOVANA su validni - oni nisu jos pokusani
         val nepovezani = left.indices.filter {
             left[it] == SpojniceStanjeCelije.POCETNO ||
                     left[it] == SpojniceStanjeCelije.SELEKTOVANA
@@ -252,8 +213,7 @@ class SpojniceViewModel : ViewModel() {
         var primenjeno = 0
         for (leviIdx in zaSpoj) {
             val desniIdx = round.tacneVeze[leviIdx] ?: continue
-            // Ako je tacni desni vec zakljucan (korisnik ga je pogresno koristio za drugi par),
-            // protivnik ne moze nista da uradi
+
             if (novaDesna[desniIdx] != SpojniceStanjeCelije.POCETNO) continue
             novaLeva[leviIdx] = SpojniceStanjeCelije.POVEZANA_PROTIVNIKOVA
             novaDesna[desniIdx] = SpojniceStanjeCelije.POVEZANA_PROTIVNIKOVA
@@ -266,10 +226,6 @@ class SpojniceViewModel : ViewModel() {
         protivnikoVeza += primenjeno
     }
 
-    /**
-     * Vrati eventualno preostalu SELEKTOVANA u POCETNO (npr. korisnik pritisnuo Dalje
-     * dok je levi pojam bio aktivan).
-     */
     private fun ocistiSelektovan() {
         val left = _leveStanja.value ?: return
         if (left.none { it == SpojniceStanjeCelije.SELEKTOVANA }) return

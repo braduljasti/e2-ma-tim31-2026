@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Jedan red u tabli Skočko: 4 polja + 2 indikatora (tačno/pogrešno mjesto) -->
+
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
@@ -9,56 +9,52 @@
     android:padding="4dp"
     android:background="@android:color/transparent">
 
-    <!-- 4 polja kombinacije -->
     <TextView
         android:id="@+id/tvPolje1"
-        android:layout_width="@dimen/skocko_celija_vel"
-        android:layout_height="@dimen/skocko_celija_vel"
+        android:layout_width="@dimen/skocko_red_celija_vel"
+        android:layout_height="@dimen/skocko_red_celija_vel"
         android:layout_margin="3dp"
         android:background="@drawable/bg_skocko_celija_prazna"
         android:gravity="center"
-        android:textSize="24sp"/>
+        android:textSize="20sp"/>
 
     <TextView
         android:id="@+id/tvPolje2"
-        android:layout_width="@dimen/skocko_celija_vel"
-        android:layout_height="@dimen/skocko_celija_vel"
+        android:layout_width="@dimen/skocko_red_celija_vel"
+        android:layout_height="@dimen/skocko_red_celija_vel"
         android:layout_margin="3dp"
         android:background="@drawable/bg_skocko_celija_prazna"
         android:gravity="center"
-        android:textSize="24sp"/>
+        android:textSize="20sp"/>
 
     <TextView
         android:id="@+id/tvPolje3"
-        android:layout_width="@dimen/skocko_celija_vel"
-        android:layout_height="@dimen/skocko_celija_vel"
+        android:layout_width="@dimen/skocko_red_celija_vel"
+        android:layout_height="@dimen/skocko_red_celija_vel"
         android:layout_margin="3dp"
         android:background="@drawable/bg_skocko_celija_prazna"
         android:gravity="center"
-        android:textSize="24sp"/>
+        android:textSize="20sp"/>
 
     <TextView
         android:id="@+id/tvPolje4"
-        android:layout_width="@dimen/skocko_celija_vel"
-        android:layout_height="@dimen/skocko_celija_vel"
+        android:layout_width="@dimen/skocko_red_celija_vel"
+        android:layout_height="@dimen/skocko_red_celija_vel"
         android:layout_margin="3dp"
         android:background="@drawable/bg_skocko_celija_prazna"
         android:gravity="center"
-        android:textSize="24sp"/>
+        android:textSize="20sp"/>
 
-    <!-- Razmak -->
     <View
         android:layout_width="0dp"
         android:layout_height="1dp"
         android:layout_weight="1"/>
 
-    <!-- Indikatori rezultata (tačno/pogrešno mjesto) -->
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <!-- 2 x 2 grid indikatora -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

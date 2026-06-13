@@ -1,9 +1,11 @@
 package com.example.slagalica.data
 
 import com.example.slagalica.model.AsocijacijeKonstante
+import com.example.slagalica.model.KorakKonstante
 import com.example.slagalica.model.KzzKonstante
 import com.example.slagalica.model.KzzOdgovor
 import com.example.slagalica.model.MatchState
+import com.example.slagalica.model.MojBrojKonstante
 import com.example.slagalica.model.RoundState
 import com.example.slagalica.model.SpojniceKonstante
 import com.google.firebase.firestore.DocumentSnapshot
@@ -11,19 +13,6 @@ import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.tasks.await
 
-/**
- * Realtime 1-na-1 preko Firestore-a, bez ijednog servera.
- *
- * Tok:
- *  1) matchmaking: igrač se prijavi u "matchmaking"; ako neko već čeka - spaja ih u meč.
- *  2) oba telefona slušaju matches/{id} u realnom vremenu.
- *  3) svaki igrač upiše svoj potez; kad oba odigraju, HOST (player1) boduje rundu
- *     i pomjera meč naprijed. Drugi telefon samo prati promjene.
- *
- * Napomena: pošto nema servera, tajna kombinacija je u dijeljenom dokumentu
- * (oba je vide). To je svjestan kompromis Firebase-only pristupa - dovoljno za
- * projekat; za pravi anti-cheat bio bi potreban server.
- */
 class MultiplayerRepository {
 
     private val db = FirebaseProvider.db
@@ -32,20 +21,15 @@ class MultiplayerRepository {
     private val matches get() = db.collection("matches")
 
     companion object {
-        // Vrijednosti gameType polja u matchmaking tiketu i rundama meča
+
         const val GAME_SKOCKO = "Skocko"
         const val GAME_KZZ = "Kzz"
         const val GAME_SPOJNICE = "Spojnice"
         const val GAME_ASOCIJACIJE = "Asocijacije"
+        const val GAME_KORAK = "Korak"
+        const val GAME_MOJ_BROJ = "MojBroj"
     }
 
-    // ===== MATCHMAKING =====
-
-    /**
-     * Pokušava da se odmah spoji sa nekim ko čeka ISTU igru. Vraća matchId ili null.
-     * Podaci rundi (pitanja i sl.) se čitaju iz baze PRIJE transakcije, jer
-     * Firestore transakcija ne smije da radi dodatne upite ka drugim kolekcijama.
-     */
     suspend fun tryJoin(myUid: String, myName: String, gameType: String): String? {
         val candidate = matchmaking
             .whereEqualTo("status", "waiting")
@@ -70,7 +54,6 @@ class MultiplayerRepository {
         }.await()
     }
 
-    /** Kreira sopstveni "waiting" tiket i sluša dok ga neko ne upari. */
     fun createTicketAndWait(
         myUid: String,
         myName: String,
@@ -96,15 +79,9 @@ class MultiplayerRepository {
         runCatching { matchmaking.document(myUid).delete().await() }
     }
 
-    // ===== KREIRANJE MEČA =====
-
-    /**
-     * Pravi runde za izabranu igru. Konfiguracija (pitanja, tajna kombinacija...)
-     * se UGRAĐUJE u dokument meča da bi oba igrača garantovano vidjela iste podatke.
-     */
     private suspend fun buildRounds(gameType: String, p1: String, p2: String): List<Map<String, Any?>> =
         when (gameType) {
-            // KZZ: jedna runda (po spec-u), oba igrača istovremeno odgovaraju ista pitanja
+
             GAME_KZZ -> {
                 val pitanja = gameData.nasumicnaKzzPitanja(KzzKonstante.BROJ_PITANJA)
                 listOf(roundMap(GAME_KZZ, 1, p1, mapOf(
@@ -113,8 +90,7 @@ class MultiplayerRepository {
                     }
                 )))
             }
-            // Spojnice: 2 runde, svaku počinje po jedan igrač; protivnik dobija
-            // pojmove koje starter nije tačno povezao
+
             GAME_SPOJNICE -> {
                 val runde = gameData.nasumicneSpojnice(SpojniceKonstante.BROJ_RUNDI)
                 runde.mapIndexed { i, r ->
@@ -126,8 +102,7 @@ class MultiplayerRepository {
                     ))
                 }
             }
-            // Asocijacije: 2 runde na zajedničkoj tabli, igrači se smenjuju potez
-            // po potez; živo stanje table je u samoj rundi (turnUid, otvorena...)
+
             GAME_ASOCIJACIJE -> {
                 val runde = gameData.nasumicneAsocijacije(AsocijacijeKonstante.BROJ_RUNDI)
                 runde.mapIndexed { i, r ->
@@ -149,7 +124,24 @@ class MultiplayerRepository {
                     )
                 }
             }
-            // Skočko: 2 runde, svaku počinje po jedan igrač
+
+            GAME_KORAK -> {
+                val pojmovi = gameData.nasumicniKorakPojmovi(KorakKonstante.BROJ_RUNDI)
+                pojmovi.mapIndexed { i, p ->
+                    roundMap(GAME_KORAK, i + 1, if (i == 0) p1 else p2, mapOf(
+                        "word" to p.rijec,
+                        "hints" to p.tragovi
+                    ))
+                }
+            }
+
+            GAME_MOJ_BROJ -> (1..MojBrojKonstante.BROJ_RUNDI).map { r ->
+                roundMap(GAME_MOJ_BROJ, r, if (r == 1) p1 else p2, mapOf(
+                    "target" to GameLogic.newMojBrojTarget(),
+                    "numbers" to GameLogic.newMojBrojNumbers()
+                ))
+            }
+
             else -> (1..2).map { r ->
                 roundMap(GAME_SKOCKO, r, if (r == 1) p1 else p2,
                     mapOf("secret" to GameLogic.newSkockoSecret()))
@@ -187,8 +179,6 @@ class MultiplayerRepository {
         "winnerId" to null,
         "createdAt" to FieldValue.serverTimestamp()
     )
-
-    // ===== SINHRONIZACIJA =====
 
     fun listenMatch(matchId: String, onUpdate: (MatchState) -> Unit): ListenerRegistration {
         return matches.document(matchId).addSnapshotListener { snap, _ ->
@@ -232,26 +222,21 @@ class MultiplayerRepository {
         )
     }
 
-    // ===== POTEZI =====
-
-    /** Upisuje pokušaje (Skočko) trenutnog igrača za tekuću rundu. */
     suspend fun submitSkocko(matchId: String, isP1: Boolean, guesses: List<List<Int>>) =
         submitSub(matchId, isP1, mapOf("guesses" to guesses.map { it.joinToString(",") }))
 
-    /** Upisuje odgovore (Ko zna zna): svaki odgovor je string "indeks,vremeMs". */
     suspend fun submitKzz(matchId: String, isP1: Boolean, odgovori: List<KzzOdgovor>) =
         submitSub(matchId, isP1, mapOf("odgovori" to odgovori.map { it.encode() }))
 
-    /** Upisuje pokušaje (Spojnice): svaki par je string "leviIndeks,desniIndeks". */
     suspend fun submitSpojnice(matchId: String, isP1: Boolean, parovi: List<Pair<Int, Int>>) =
         submitSub(matchId, isP1, mapOf("parovi" to parovi.map { "${it.first},${it.second}" }))
 
-    /**
-     * Objavljuje jedan potez UŽIVO u toku faze (Spojnice) - protivnik ga odmah
-     * vidi kroz snapshot listener i može da posmatra igru u realnom vremenu.
-     * `roundIndex` štiti od kasnih upisa: ako je runda u međuvremenu bodovana
-     * i meč otišao dalje, potez se tiho odbacuje.
-     */
+    suspend fun submitKorak(matchId: String, isP1: Boolean, guess: String, step: Int) =
+        submitSub(matchId, isP1, mapOf("guess" to guess, "step" to step))
+
+    suspend fun submitMojBroj(matchId: String, isP1: Boolean, expr: String) =
+        submitSub(matchId, isP1, mapOf("expr" to expr))
+
     suspend fun spojniceLivePotez(matchId: String, isP1: Boolean, roundIndex: Int, par: Pair<Int, Int>) {
         val ref = matches.document(matchId)
         db.runTransaction<Void?> { tx ->
@@ -272,7 +257,6 @@ class MultiplayerRepository {
         }.await()
     }
 
-    /** Zajednički upis poteza za tekuću rundu - upisuje samo ako igrač već nije odigrao. */
     private suspend fun submitSub(matchId: String, isP1: Boolean, sub: Map<String, Any?>) {
         val ref = matches.document(matchId)
         db.runTransaction<Void?> { tx ->
@@ -291,10 +275,6 @@ class MultiplayerRepository {
         }.await()
     }
 
-    /**
-     * HOST (player1) zove na svaki update: ako su oba odigrala tekuću rundu,
-     * boduje je, upisuje poene, pomjera meč i na kraju proglašava pobjednika.
-     */
     suspend fun hostResolveIfReady(matchId: String) {
         val ref = matches.document(matchId)
         db.runTransaction<Void?> { tx ->
@@ -311,11 +291,12 @@ class MultiplayerRepository {
             val p2Sub = round["p2Sub"] as? Map<*, *>
             if (resolved || p1Sub == null || p2Sub == null) return@runTransaction null
 
-            // Bodovanje zavisi od igre u tekućoj rundi
             val gameType = round["gameType"] as? String ?: GAME_SKOCKO
             val (p1Pts, p2Pts) = when (gameType) {
                 GAME_KZZ -> resolveKzzRound(round, p1Sub, p2Sub)
                 GAME_SPOJNICE -> resolveSpojniceRound(snap.getString("player1Id"), round, p1Sub, p2Sub)
+                GAME_KORAK -> resolveKorakRound(snap.getString("player1Id"), round, p1Sub, p2Sub)
+                GAME_MOJ_BROJ -> resolveMojBrojRound(snap.getString("player1Id"), round, p1Sub, p2Sub)
                 else -> resolveSkockoRound(snap.getString("player1Id"), round, p1Sub, p2Sub)
             }
 
@@ -344,9 +325,6 @@ class MultiplayerRepository {
         }.await()
     }
 
-    // ===== BODOVANJE POJEDINAČNIH IGARA (poziva host iz transakcije) =====
-
-    /** Skočko: bodovanje zavisi od toga ko je starter runde. Vraća (p1, p2) bodove. */
     private fun resolveSkockoRound(
         player1Id: String?,
         round: Map<String, Any?>,
@@ -368,7 +346,6 @@ class MultiplayerRepository {
         return if (starterIsP1) starterPts to oppPts else oppPts to starterPts
     }
 
-    /** Spojnice: starter povezuje prvi, protivnik dobija preostale. Vraća (p1, p2). */
     private fun resolveSpojniceRound(
         player1Id: String?,
         round: Map<String, Any?>,
@@ -397,12 +374,44 @@ class MultiplayerRepository {
         return if (starterIsP1) starterPts to oppPts else oppPts to starterPts
     }
 
-    // ===== ASOCIJACIJE: potezi na zajedničkoj tabli =====
-    // Svaki potez je transakcija nad rundom; runda se završava pogotkom
-    // konačnog rešenja ili istekom vremena, i tada se odmah (u istoj
-    // transakciji) boduje i meč pomera dalje - nema posebnog host koraka.
+    private fun resolveKorakRound(
+        player1Id: String?,
+        round: Map<String, Any?>,
+        p1Sub: Map<*, *>,
+        p2Sub: Map<*, *>
+    ): Pair<Int, Int> {
+        val target = (round["config"] as? Map<*, *>)?.get("word") as? String ?: ""
+        val starterIsP1 = (round["starterId"] as? String ?: "") == player1Id
 
-    /** Otvaranje polja - dozvoljeno samo igraču koji je na potezu. */
+        fun guessOf(sub: Map<*, *>?) = sub?.get("guess") as? String ?: ""
+        fun stepOf(sub: Map<*, *>?) = (sub?.get("step") as? Number)?.toInt() ?: KorakKonstante.MAX_KORAKA
+
+        val sSub = if (starterIsP1) p1Sub else p2Sub
+        val oSub = if (starterIsP1) p2Sub else p1Sub
+        val (starterPts, oppPts) = GameLogic.resolveKorak(
+            target, guessOf(sSub), stepOf(sSub), guessOf(oSub)
+        )
+        return if (starterIsP1) starterPts to oppPts else oppPts to starterPts
+    }
+
+    private fun resolveMojBrojRound(
+        player1Id: String?,
+        round: Map<String, Any?>,
+        p1Sub: Map<*, *>,
+        p2Sub: Map<*, *>
+    ): Pair<Int, Int> {
+        val config = round["config"] as? Map<*, *>
+        val target = (config?.get("target") as? Number)?.toInt() ?: 0
+        val numbers = (config?.get("numbers") as? List<*>)?.mapNotNull { (it as? Number)?.toInt() } ?: emptyList()
+        val starterIsP1 = (round["starterId"] as? String ?: "") == player1Id
+
+        fun exprOf(sub: Map<*, *>?) = sub?.get("expr") as? String ?: ""
+        val sExpr = exprOf(if (starterIsP1) p1Sub else p2Sub)
+        val oExpr = exprOf(if (starterIsP1) p2Sub else p1Sub)
+        val (starterPts, oppPts) = GameLogic.resolveMojBroj(target, numbers, sExpr, oExpr)
+        return if (starterIsP1) starterPts to oppPts else oppPts to starterPts
+    }
+
     suspend fun asocijacijeOtvoriPolje(matchId: String, roundIndex: Int, uid: String, col: Int, row: Int) =
         asocijacijePotez(matchId, roundIndex) { _, _, round ->
             if (round["turnUid"] != uid) return@asocijacijePotez null
@@ -415,7 +424,6 @@ class MultiplayerRepository {
             emptyMap()
         }
 
-    /** Pogađanje rešenja kolone. Tačno -> bodovi i ostaje na potezu; netačno -> potez prelazi. */
     suspend fun asocijacijePogodiKolonu(matchId: String, roundIndex: Int, uid: String, col: Int, guess: String) =
         asocijacijePotez(matchId, roundIndex) { snap, _, round ->
             if (round["turnUid"] != uid || round["mozeDaPogadja"] != true) return@asocijacijePotez null
@@ -432,7 +440,7 @@ class MultiplayerRepository {
             if (tacno) {
                 resene[col.toString()] = uid
                 round["reseneKolone"] = resene
-                // Bodovi po broju otvorenih PRE pogotka, pa se kolona otkriva cela
+
                 val otvorena = strList(round["otvorena"]).toMutableList()
                 val otvorenihUKoloni = otvorena.count { it.startsWith("$col,") }
                 dodajPoene(snap, round, uid, GameLogic.asocijacijePoeniKolona(otvorenihUKoloni))
@@ -447,7 +455,6 @@ class MultiplayerRepository {
             emptyMap()
         }
 
-    /** Pogađanje konačnog rešenja. Tačno -> bodovi i kraj runde; netačno -> potez prelazi. */
     suspend fun asocijacijePogodiFinalno(matchId: String, roundIndex: Int, uid: String, guess: String) =
         asocijacijePotez(matchId, roundIndex) { snap, rounds, round ->
             if (round["turnUid"] != uid || round["mozeDaPogadja"] != true) return@asocijacijePotez null
@@ -472,7 +479,6 @@ class MultiplayerRepository {
             emptyMap()
         }
 
-    /** Igrač ne želi da pogađa - potez prelazi protivniku. */
     suspend fun asocijacijePropusti(matchId: String, roundIndex: Int, uid: String) =
         asocijacijePotez(matchId, roundIndex) { snap, _, round ->
             if (round["turnUid"] != uid) return@asocijacijePotez null
@@ -480,18 +486,12 @@ class MultiplayerRepository {
             emptyMap()
         }
 
-    /** Isteklo vreme runde (2 min) - bilo koji klijent sme da je zatvori. */
     suspend fun asocijacijeIstekloVreme(matchId: String, roundIndex: Int) =
         asocijacijePotez(matchId, roundIndex) { _, _, round ->
             zavrsiAsocRundu(round)
             emptyMap()
         }
 
-    /**
-     * Pomera meč na sledeću rundu (ili ga završava) NAKON pauze za pregled
-     * otkrivene table. Zovu je oba klijenta posle 7 sekundi - prva transakcija
-     * pobedi, druga vidi pomeren indeks i tiho odustane.
-     */
     suspend fun asocijacijeSledecaRunda(matchId: String, roundIndex: Int) {
         val ref = matches.document(matchId)
         db.runTransaction<Void?> { tx ->
@@ -524,11 +524,6 @@ class MultiplayerRepository {
         }.await()
     }
 
-    /**
-     * Zajednički okvir za potez: transakcija + zaštite (meč nije gotov, runda
-     * je i dalje tekuća i nije završena). `block` menja rundu i vraća dodatne
-     * top-level izmene, ili null da tiho odustane.
-     */
     private suspend fun asocijacijePotez(
         matchId: String,
         roundIndex: Int,
@@ -554,7 +549,6 @@ class MultiplayerRepository {
         }.await()
     }
 
-    /** Upisuje poene igraču u tekuću rundu (bodovi se računaju u trenutku pogotka). */
     private fun dodajPoene(snap: DocumentSnapshot, round: MutableMap<String, Any?>, uid: String, poeni: Int) {
         val key = if (uid == snap.getString("player1Id")) "p1Points" else "p2Points"
         round[key] = ((round[key] as? Number)?.toInt() ?: 0) + poeni
@@ -563,18 +557,12 @@ class MultiplayerRepository {
     private fun predajPotez(snap: DocumentSnapshot, round: MutableMap<String, Any?>, uid: String) {
         val p1 = snap.getString("player1Id")
         round["turnUid"] = if (uid == p1) snap.getString("player2Id") else p1
-        // Ako su sva polja već otvorena, novi igrač nema šta da otvori -
-        // odmah dobija pravo pogađanja (inače bi se igra zaglavila do isteka vremena)
+
         val svaOtvorena = strList(round["otvorena"]).size >=
                 AsocijacijeKonstante.BROJ_KOLONA * AsocijacijeKonstante.POLJA_PO_KOLONI
         round["mozeDaPogadja"] = svaOtvorena
     }
 
-    /**
-     * Zatvara IGRANJE runde: otkriva celu tablu i označava rundu završenom.
-     * Meč se ne pomera odmah - klijenti 7s prikazuju otkrivena rešenja,
-     * a zatim pozivaju asocijacijeSledecaRunda().
-     */
     private fun zavrsiAsocRundu(round: MutableMap<String, Any?>) {
         round["zavrsena"] = true
         round["resolved"] = true
@@ -584,11 +572,10 @@ class MultiplayerRepository {
         }
     }
 
-    /** Beleži poslednji pokušaj pogađanja - protivnik ga prikazuje na par sekundi. */
     private fun zabeleziPokusaj(
         round: MutableMap<String, Any?>,
         uid: String,
-        cilj: String,        // "A".."D" za kolonu, "F" za konačno rešenje
+        cilj: String,
         tekst: String,
         tacno: Boolean
     ) {
@@ -601,7 +588,6 @@ class MultiplayerRepository {
     private fun strList(v: Any?): List<String> =
         (v as? List<*>)?.mapNotNull { it as? String } ?: emptyList()
 
-    /** Ko zna zna: oba igrača odgovaraju ista pitanja; brži tačan nosi bodove. */
     private fun resolveKzzRound(
         round: Map<String, Any?>,
         p1Sub: Map<*, *>,

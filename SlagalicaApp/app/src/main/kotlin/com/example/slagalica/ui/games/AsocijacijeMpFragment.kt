@@ -27,17 +27,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-/**
- * Multiplayer Asocijacije: za razliku od KZZ i Spojnica, tabla je ZAJEDNIČKA
- * i živa - igrači se smenjuju potez po potez. Svaki potez (otvori polje,
- * pogodi kolonu/finalno, propusti) ide odmah u Firestore kao transakcija,
- * a oba telefona crtaju tablu isključivo iz stanja meča (jedan izvor istine).
- *
- * Pravila po specifikaciji: na svom potezu igrač otvara polje, pa može da
- * pogađa rešenje kolone ili konačno rešenje; dok pogađa tačno - nastavlja;
- * na grešku (ili "propusti") potez prelazi protivniku. Runda se završava
- * pogotkom konačnog rešenja ili istekom 2 minuta.
- */
 class AsocijacijeMpFragment : Fragment() {
 
     private var _binding: FragmentAsocijacijeBinding? = null
@@ -55,7 +44,6 @@ class AsocijacijeMpFragment : Fragment() {
     private var finalShown = false
     private var lastState: MatchState? = null
 
-    // Pauza na kraju runde (otkrivena tabla) + dedup za prikaz tuđih pokušaja
     private var advanceScheduled = false
     private var advanceJob: Job? = null
     private var lastPokusajTs = 0L
@@ -115,14 +103,9 @@ class AsocijacijeMpFragment : Fragment() {
         binding.btnDaljeAsoc.setOnClickListener { onPropusti() }
     }
 
-    // ============================================================
-    // SINHRONIZACIJA SA MEČOM
-    // ============================================================
-
     private fun onMatchUpdate(state: MatchState) {
         lastState = state
 
-        // Skor uživo: bodovi se upisuju u rundu u trenutku pogotka
         val isP1 = state.isPlayer1(mp.uid)
         binding.scoreboardAsoc.tvMojiBodovi.text =
             state.rounds.sumOf { if (isP1) it.p1Points else it.p2Points }.toString()
@@ -134,7 +117,6 @@ class AsocijacijeMpFragment : Fragment() {
         val round = state.currentRound ?: return
         if (round.gameType != MultiplayerRepository.GAME_ASOCIJACIJE) return
 
-        // Nova runda -> restart lokalnog tajmera (2 min)
         if (state.currentRoundIndex != playedRoundIndex) {
             playedRoundIndex = state.currentRoundIndex
             advanceScheduled = false
@@ -145,8 +127,6 @@ class AsocijacijeMpFragment : Fragment() {
         renderBoard(state)
         prikaziProtivnikovPokusaj(state)
 
-        // Kraj runde: tabla je otkrivena, 7 sekundi pregleda pa meč ide dalje.
-        // Oba klijenta zakazuju - prva transakcija pobedi, druga tiho odustane.
         if (round.asocZavrsena() && !advanceScheduled) {
             advanceScheduled = true
             timer?.cancel()
@@ -159,14 +139,13 @@ class AsocijacijeMpFragment : Fragment() {
         }
     }
 
-    /** Prikazuje protivnikov pokušaj pogađanja (Snackbar, ~3 sekunde). */
     private fun prikaziProtivnikovPokusaj(state: MatchState) {
         val pokusaj = state.currentRound?.asocPoslednjiPokusaj() ?: return
         val uid = pokusaj["uid"] as? String ?: return
         val ts = (pokusaj["ts"] as? Number)?.toLong() ?: return
-        if (uid == mp.uid || ts == lastPokusajTs) return   // moj pokušaj / već prikazan
+        if (uid == mp.uid || ts == lastPokusajTs) return
         lastPokusajTs = ts
-        if (System.currentTimeMillis() - ts > 10_000) return   // star pokušaj (npr. posle rotacije)
+        if (System.currentTimeMillis() - ts > 10_000) return
 
         val cilj = pokusaj["cilj"] as? String ?: return
         val tekst = pokusaj["tekst"] as? String ?: ""
@@ -182,7 +161,6 @@ class AsocijacijeMpFragment : Fragment() {
             .show()
     }
 
-    /** Crta celu tablu iz stanja meča - tabla je ista na oba telefona. */
     private fun renderBoard(state: MatchState) {
         val round = state.currentRound ?: return
         val runda = round.asocRunda() ?: return
@@ -206,7 +184,7 @@ class AsocijacijeMpFragment : Fragment() {
             val stanje = when {
                 resioUid == mp.uid -> AsocijacijaCelijaStanje.POGODENO_MOJE
                 resioUid != null -> AsocijacijaCelijaStanje.POGODENO_PROTIVNIK
-                zavrsena -> AsocijacijaCelijaStanje.OTKRIVENO   // niko nije rešio - sivo
+                zavrsena -> AsocijacijaCelijaStanje.OTKRIVENO
                 else -> AsocijacijaCelijaStanje.ZAKLJUCANO
             }
             stilirajResenje(
@@ -225,7 +203,6 @@ class AsocijacijeMpFragment : Fragment() {
             finalnoStanje, runda.finalnoResenje, getString(R.string.asoc_finalno_zakljucano)
         )
 
-        // Runda + status poteza u jednom redu
         val mojPotez = round.asocTurnUid() == mp.uid
         val status = when {
             zavrsena -> getString(R.string.mp_asoc_kraj_runde)
@@ -241,18 +218,13 @@ class AsocijacijeMpFragment : Fragment() {
         binding.btnDaljeAsoc.isEnabled = mojPotez && !zavrsena
     }
 
-    // ============================================================
-    // POTEZI
-    // ============================================================
-
     private fun onPoljeClick(col: Int, row: Int) {
         val round = lastState?.currentRound ?: return
         if (round.asocTurnUid() != mp.uid) {
             Toast.makeText(requireContext(), R.string.mp_nije_tvoj_potez, Toast.LENGTH_SHORT).show()
             return
         }
-        // Na svom potezu igrač otvara JEDNO polje; ako već može da pogađa,
-        // sledeće polje dobija tek u narednom potezu
+
         if (round.asocMozeDaPogadja()) return
         mp.asocijacijeOtvoriPolje(col, row)
     }
@@ -265,7 +237,7 @@ class AsocijacijeMpFragment : Fragment() {
 
         val colLetter = "ABCD"[col].toString()
         showGuessDialog(getString(R.string.asoc_pogadjanje_kolone, colLetter)) { unos ->
-            // Lokalna provera za momentalni feedback; server svejedno validira
+
             if (GameLogic.asocijacijeTacno(unos, runda.resenjaKolona[col])) {
                 val otvorenihUKoloni = lastState?.currentRound?.asocOtvorena()
                     ?.count { it.first == col } ?: 0
@@ -325,10 +297,6 @@ class AsocijacijeMpFragment : Fragment() {
             .show()
     }
 
-    // ============================================================
-    // TAJMER RUNDE (2 min) - na istek bilo koji klijent zatvara rundu
-    // ============================================================
-
     private fun startTimer() {
         timer?.cancel()
         timer = object : CountDownTimer(AsocijacijeKonstante.VREME_PO_RUNDI_S * 1000L, 1000L) {
@@ -348,10 +316,6 @@ class AsocijacijeMpFragment : Fragment() {
             }
         }.start()
     }
-
-    // ============================================================
-    // STILIZACIJA (kao u AsocijacijeFragment)
-    // ============================================================
 
     private fun stilirajPolje(
         kartica: MaterialCardView, tekst: TextView,
@@ -413,10 +377,6 @@ class AsocijacijeMpFragment : Fragment() {
 
     private fun boja(resId: Int): Int = ContextCompat.getColor(requireContext(), resId)
 
-    // ============================================================
-    // KRAJ MEČA
-    // ============================================================
-
     private fun showFinal(state: MatchState) {
         if (finalShown) return
         finalShown = true
@@ -447,7 +407,7 @@ class AsocijacijeMpFragment : Fragment() {
     }
 
     companion object {
-        private const val REVEAL_PAUSE_MS = 7_000L     // pregled otkrivene table
-        private const val POKUSAJ_PRIKAZ_MS = 3_000    // prikaz tuđeg pokušaja
+        private const val REVEAL_PAUSE_MS = 7_000L
+        private const val POKUSAJ_PRIKAZ_MS = 3_000
     }
 }

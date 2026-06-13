@@ -7,22 +7,13 @@ import com.example.slagalica.model.SkockoSymbol
 import com.example.slagalica.model.SpojniceKonstante
 import kotlin.math.abs
 
-/**
- * Čista logika igara - generisanje konfiguracije runde, provjera i bodovanje
- * po specifikaciji. Dijeli je i host (koji boduje runde) i klijent (za prikaz).
- * Sve radi nad ordinalima (Int) jer se tako lako čuva u Firestore-u.
- */
 object GameLogic {
 
     private val rng = java.util.Random()
 
-    // ===== SKOČKO =====
-
-    /** Tajna kombinacija: 4 znaka od 6 (ordinali 0..5), ponavljanje dozvoljeno. */
     fun newSkockoSecret(): List<Int> =
         (0 until 4).map { rng.nextInt(SkockoSymbol.values().size) }
 
-    /** Vraća (tačnih na poziciji, tačnih na pogrešnoj poziciji). */
     fun evaluateSkocko(secret: List<Int>, guess: List<Int>): Pair<Int, Int> {
         var correct = 0
         val secretLeft = mutableListOf<Int>()
@@ -36,18 +27,12 @@ object GameLogic {
         return correct to misplaced
     }
 
-    /** Bodovi za pogodak u pokušaju: 1-2 →20, 3-4 →15, 5-6 →10. */
     fun skockoPointsForAttempt(attempt: Int): Int = when (attempt) {
         1, 2 -> 20; 3, 4 -> 15; else -> 10
     }
 
     const val SKOCKO_STEAL = 10
 
-    /**
-     * Bodovanje cijele Skočko runde iz pokušaja oba igrača.
-     * starterGuesses/oppGuesses su liste pokušaja (svaki = 4 ordinala).
-     * Vraća (bodovi startera, bodovi protivnika).
-     */
     fun resolveSkocko(
         secret: List<Int>,
         starterGuesses: List<List<Int>>,
@@ -62,19 +47,10 @@ object GameLogic {
         }
         val sAttempt = solvedAt(starterGuesses)
         if (sAttempt > 0) return skockoPointsForAttempt(sAttempt) to 0
-        if (solvedAt(oppGuesses) > 0) return 0 to SKOCKO_STEAL   // d) krađa 10
+        if (solvedAt(oppGuesses) > 0) return 0 to SKOCKO_STEAL
         return 0 to 0
     }
 
-    // ===== KO ZNA ZNA =====
-
-    /**
-     * Bodovanje cijele KZZ runde po specifikaciji:
-     *   +10 tačan odgovor, -5 netačan, 0 bez odgovora;
-     *   ako su OBA igrača tačna na istom pitanju, bodove dobija samo brži.
-     * Oba igrača odgovaraju na ista pitanja (iz konfiguracije runde u meču).
-     * Vraća (bodovi player1, bodovi player2).
-     */
     fun resolveKzz(
         tacniIndeksi: List<Int>,
         p1Odgovori: List<KzzOdgovor>,
@@ -88,7 +64,7 @@ object GameLogic {
             val tacan1 = o1.index == tacniIndeksi[i]
             val tacan2 = o2.index == tacniIndeksi[i]
             when {
-                tacan1 && tacan2 ->                       // d) bodove dobija brži
+                tacan1 && tacan2 ->
                     if (o1.vremeMs <= o2.vremeMs) bodovi1 += KzzKonstante.BODOVA_ZA_TACAN
                     else bodovi2 += KzzKonstante.BODOVA_ZA_TACAN
                 tacan1 -> bodovi1 += KzzKonstante.BODOVA_ZA_TACAN
@@ -100,15 +76,6 @@ object GameLogic {
         return bodovi1 to bodovi2
     }
 
-    // ===== SPOJNICE =====
-
-    /**
-     * Bodovanje jedne runde Spojnica po specifikaciji:
-     *   starter prolazi kroz svih 5 pojmova; pojmove koje NIJE tačno povezao
-     *   protivnik dobija na pokušaj. Svaka tačna veza nosi 2 boda.
-     * `veze` mapira levi indeks na tačan desni indeks; parovi su pokušaji
-     * (leviIndeks, desniIndeks). Vraća (bodovi startera, bodovi protivnika).
-     */
     fun resolveSpojnice(
         veze: Map<Int, Int>,
         starterParovi: List<Pair<Int, Int>>,
@@ -125,18 +92,11 @@ object GameLogic {
                 oppTacne * SpojniceKonstante.BODOVA_PO_VEZI
     }
 
-    // ===== ASOCIJACIJE =====
-
-    /** Rešenje kolone: 2 boda + 1 po neotvorenom polju u toj koloni. */
     fun asocijacijePoeniKolona(otvorenihUKoloni: Int): Int =
         AsocijacijeKonstante.KOLONA_BAZA +
                 (AsocijacijeKonstante.POLJA_PO_KOLONI - otvorenihUKoloni) *
                 AsocijacijeKonstante.BODOVI_PO_NEOTVORENOM
 
-    /**
-     * Konačno rešenje: 7 bodova + za svaku NEREŠENU kolonu bodovi kao da je
-     * pogođena (2 + neotvorena polja; potpuno neotvorena kolona = 6).
-     */
     fun asocijacijePoeniFinalno(
         otvorenihPoKoloni: List<Int>,
         kolonaResena: List<Boolean>
@@ -152,8 +112,6 @@ object GameLogic {
 
     fun asocijacijeTacno(guess: String, correct: String): Boolean =
         guess.trim().equals(correct.trim(), ignoreCase = true)
-
-    // ===== KORAK PO KORAK (za proširenje na multiplayer) =====
 
     data class KorakConfig(val word: String, val hints: List<String>)
 
@@ -179,8 +137,6 @@ object GameLogic {
         return 0 to 0
     }
 
-    // ===== MOJ BROJ (za proširenje na multiplayer) =====
-
     fun newMojBrojTarget(): Int = 100 + rng.nextInt(900)
     fun newMojBrojNumbers(): List<Int> {
         val single = (0 until 4).map { 1 + rng.nextInt(9) }
@@ -192,7 +148,6 @@ object GameLogic {
     const val MOJBROJ_EXACT = 10
     const val MOJBROJ_CLOSER = 5
 
-    /** (validan, vrijednost, tačan) - provjerava i da su korišteni samo dozvoljeni brojevi. */
     fun evalMojBroj(expr: String, target: Int, available: List<Int>): Triple<Boolean, Int, Boolean> {
         if (expr.isBlank()) return Triple(false, 0, false)
         val used = Regex("\\d+").findAll(expr).map { it.value.toInt() }.toList()
@@ -216,12 +171,11 @@ object GameLogic {
             sDiff == Int.MAX_VALUE && oDiff == Int.MAX_VALUE -> 0 to 0
             sDiff < oDiff -> MOJBROJ_CLOSER to 0
             oDiff < sDiff -> 0 to MOJBROJ_CLOSER
-            else -> MOJBROJ_CLOSER to 0   // jednaka razlika -> čija je runda
+            else -> MOJBROJ_CLOSER to 0
         }
     }
 }
 
-/** Mali siguran evaluator izraza (bez eval-a). */
 object SafeMath {
     fun eval(expr: String): Double {
         return object {

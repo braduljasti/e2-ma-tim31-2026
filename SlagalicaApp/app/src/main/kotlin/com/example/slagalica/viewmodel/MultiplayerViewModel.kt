@@ -15,11 +15,6 @@ import com.example.slagalica.model.MatchState
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.launch
 
-/**
- * Vodi matchmaking i živi meč. Dijeli se na nivou Activity-ja
- * (ViewModelProvider(requireActivity())) da bi i ekran za traženje protivnika
- * i ekrani igara gledali isto stanje.
- */
 class MultiplayerViewModel(
     private val repo: MultiplayerRepository = MultiplayerRepository(),
     private val authRepo: AuthRepository = AuthRepository(),
@@ -32,7 +27,7 @@ class MultiplayerViewModel(
     val searching: LiveData<Boolean> = _searching
 
     private val _matchFound = MutableLiveData<String?>()
-    val matchFound: LiveData<String?> = _matchFound      // matchId kad se nađe protivnik
+    val matchFound: LiveData<String?> = _matchFound
 
     private val _match = MutableLiveData<MatchState?>()
     val match: LiveData<MatchState?> = _match
@@ -42,11 +37,8 @@ class MultiplayerViewModel(
     private var resultSaved = false
     private var lastMatchId: String? = null
 
-    /** Igra koju je igrač izabrao pri matchmaking-u - koristi se i za navigaciju na pravi ekran. */
     var requestedGameType: String = MultiplayerRepository.GAME_SKOCKO
         private set
-
-    // ===== MATCHMAKING =====
 
     fun startMatchmaking(gameType: String) {
         requestedGameType = gameType
@@ -73,7 +65,6 @@ class MultiplayerViewModel(
         _matchFound.postValue(matchId)
     }
 
-    /** Veže ekran igre na posljednje pronađeni meč. */
     fun bindCurrentMatch() { lastMatchId?.let { bindMatch(it) } }
 
     fun cancelMatchmaking() {
@@ -82,23 +73,20 @@ class MultiplayerViewModel(
         viewModelScope.launch { repo.cancelMatchmaking(uid) }
     }
 
-    /** Poziva se nakon što ekran igre obradi navigaciju, da se event ne ponovi. */
     fun consumeMatchFound() { _matchFound.value = null }
-
-    // ===== ŽIVI MEČ =====
 
     fun bindMatch(matchId: String) {
         matchListener?.remove()
         resultSaved = false
         matchListener = repo.listenMatch(matchId) { state ->
             _match.postValue(state)
-            // HOST boduje rundu kad oba odigraju
+
             val isHost = state.isPlayer1(uid)
             val round = state.currentRound
             if (isHost && !state.finished && round != null && round.bothSubmitted && !round.resolved) {
                 viewModelScope.launch { runCatching { repo.hostResolveIfReady(matchId) } }
             }
-            // Na kraju meča svaki igrač snimi svoj rezultat (jednom)
+
             if (state.finished && !resultSaved) {
                 resultSaved = true
                 saveMyResult(state)
@@ -127,7 +115,20 @@ class MultiplayerViewModel(
         }
     }
 
-    /** Objavljuje jedan potez uživo (Spojnice) da bi ga protivnik gledao u realnom vremenu. */
+    fun submitKorak(guess: String, step: Int) {
+        val state = _match.value ?: return
+        viewModelScope.launch {
+            runCatching { repo.submitKorak(state.id, state.isPlayer1(uid), guess, step) }
+        }
+    }
+
+    fun submitMojBroj(expr: String) {
+        val state = _match.value ?: return
+        viewModelScope.launch {
+            runCatching { repo.submitMojBroj(state.id, state.isPlayer1(uid), expr) }
+        }
+    }
+
     fun spojniceLivePotez(par: Pair<Int, Int>) {
         val state = _match.value ?: return
         viewModelScope.launch {
@@ -136,8 +137,6 @@ class MultiplayerViewModel(
             }
         }
     }
-
-    // ===== ASOCIJACIJE: potezi na zajedničkoj tabli =====
 
     fun asocijacijeOtvoriPolje(col: Int, row: Int) = asocPotez { id, idx ->
         repo.asocijacijeOtvoriPolje(id, idx, uid, col, row)
@@ -159,7 +158,6 @@ class MultiplayerViewModel(
         repo.asocijacijeIstekloVreme(id, idx)
     }
 
-    /** Posle pauze za pregled rešenja - pomera meč na sledeću rundu / kraj. */
     fun asocijacijeSledecaRunda() = asocPotez { id, idx ->
         repo.asocijacijeSledecaRunda(id, idx)
     }
@@ -176,6 +174,8 @@ class MultiplayerViewModel(
             MultiplayerRepository.GAME_KZZ -> GameType.KO_ZNA_ZNA
             MultiplayerRepository.GAME_SPOJNICE -> GameType.SPOJNICE
             MultiplayerRepository.GAME_ASOCIJACIJE -> GameType.ASOCIJACIJE
+            MultiplayerRepository.GAME_KORAK -> GameType.KORAK_PO_KORAK
+            MultiplayerRepository.GAME_MOJ_BROJ -> GameType.MOJ_BROJ
             else -> GameType.SKOCKO
         }
         val my = state.myScore(uid)
@@ -186,16 +186,12 @@ class MultiplayerViewModel(
         }
     }
 
-    /**
-     * Detalji za statistiku profila (spec 2.c) - računaju se iz finalnog
-     * stanja meča, jer dokument meča sadrži sve poteze oba igrača.
-     */
     private fun buildDetails(state: MatchState): Map<String, Long> {
         val isP1 = state.isPlayer1(uid)
         fun mojSub(r: com.example.slagalica.model.RoundState) = if (isP1) r.p1Sub else r.p2Sub
 
         return when (state.gameType) {
-            // Odnos pogođenih i promašenih pitanja (2.c.ii)
+
             MultiplayerRepository.GAME_KZZ -> {
                 val round = state.rounds.firstOrNull() ?: return emptyMap()
                 val tacniIndeksi = round.kzzPitanja().map { it.tacanIndex }
@@ -211,7 +207,7 @@ class MultiplayerViewModel(
                 }
                 mapOf("tacnih" to tacnih, "netacnih" to netacnih, "bezOdgovora" to bezOdgovora)
             }
-            // Procenat uspešno povezanih pojmova (2.c.vii)
+
             MultiplayerRepository.GAME_SPOJNICE -> {
                 var povezanih = 0L; var pokusaja = 0L
                 state.rounds.forEach { r ->
@@ -222,7 +218,7 @@ class MultiplayerViewModel(
                 }
                 mapOf("povezanih" to povezanih, "pokusaja" to pokusaja)
             }
-            // Odnos rešenih i nerešenih asocijacija (2.c.v)
+
             MultiplayerRepository.GAME_ASOCIJACIJE -> {
                 var resenihFinala = 0L; var resenihKolona = 0L
                 state.rounds.forEach { r ->
@@ -235,7 +231,7 @@ class MultiplayerViewModel(
                     "rundi" to state.rounds.size.toLong()
                 )
             }
-            // Skočko: u koliko rundi je kombinacija pogođena (2.c.vi)
+
             else -> {
                 var resenihRundi = 0L
                 state.rounds.forEach { r ->

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Igra Moj broj: pronadi traženi broj koristeći 6 datih brojeva -->
+
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -13,8 +13,6 @@
         android:layout_height="wrap_content"
         android:padding="@dimen/margin_medium">
 
-
-        <!-- Scoreboard: moji bodovi vs protivnik -->
         <include
             android:id="@+id/scoreboardMojBroj"
             layout="@layout/item_scoreboard"
@@ -24,7 +22,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"/>
 
-        <!-- Header: timer i runda -->
         <LinearLayout
             android:id="@+id/llHeaderMojBroj"
             android:layout_width="0dp"
@@ -67,7 +64,6 @@
 
         </LinearLayout>
 
-        <!-- Traženi broj - prikazuje se klikom na STOP 1 -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardTrazeniBreoj"
             android:layout_width="0dp"
@@ -96,7 +92,6 @@
                     android:textStyle="bold"
                     android:letterSpacing="0.1"/>
 
-                <!-- Traženi broj ili dugme STOP -->
                 <FrameLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
@@ -112,7 +107,6 @@
                         android:textStyle="bold"
                         android:visibility="gone"/>
 
-                    <!-- STOP dugme 1 - stop rotirajući broj -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnStopBroj"
                         android:layout_width="wrap_content"
@@ -130,7 +124,6 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Dostupni brojevi - 6 dugmadi, prikazuju se klikom na STOP 2 -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardDostupniBrojevi"
             android:layout_width="0dp"
@@ -163,7 +156,6 @@
                         android:textSize="14sp"
                         android:textStyle="bold"/>
 
-                    <!-- STOP dugme 2 - generiši dostupne brojeve -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnStopDostupni"
                         android:layout_width="wrap_content"
@@ -175,7 +167,6 @@
 
                 </LinearLayout>
 
-                <!-- Grid dostupnih brojeva (2 x 3) -->
                 <GridLayout
                     android:id="@+id/gridDostupniBrojevi"
                     android:layout_width="match_parent"
@@ -184,7 +175,6 @@
                     android:columnCount="3"
                     android:rowCount="2">
 
-                    <!-- Dugmad za brojeve će se dodati dinamički u kodu -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnBroj1"
                         style="@style/Widget.MaterialComponents.Button.OutlinedButton"
@@ -263,7 +253,6 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Operatori -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardOperatori"
             android:layout_width="0dp"
@@ -289,7 +278,6 @@
                     android:textSize="14sp"
                     android:textStyle="bold"/>
 
-                <!-- Red sa operatorima: +, -, *, /, (, ) -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -374,7 +362,6 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Prikaz izraza koji se gradi -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardIzraz"
             android:layout_width="0dp"
@@ -409,7 +396,6 @@
                     android:gravity="center_vertical"
                     android:hint="@string/hint_izraz"/>
 
-                <!-- Brisanje zadnjeg znaka -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnObrisi"
                     style="@style/Widget.MaterialComponents.Button.TextButton"
@@ -423,7 +409,6 @@
 
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Dugmad Provjeri / Reset -->
         <LinearLayout
             android:id="@+id/llDugmadMojBroj"
             android:layout_width="0dp"

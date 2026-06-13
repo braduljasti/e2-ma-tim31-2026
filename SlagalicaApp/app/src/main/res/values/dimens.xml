@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Margine i paddinzi -->
+
     <dimen name="margin_small">8dp</dimen>
     <dimen name="margin_medium">16dp</dimen>
     <dimen name="margin_large">24dp</dimen>
     <dimen name="margin_xlarge">32dp</dimen>
 
-    <!-- Font sizes -->
     <dimen name="text_small">12sp</dimen>
     <dimen name="text_medium">14sp</dimen>
     <dimen name="text_large">16sp</dimen>
@@ -14,13 +13,12 @@
     <dimen name="text_naslov">24sp</dimen>
     <dimen name="text_display">32sp</dimen>
 
-    <!-- Igre -->
     <dimen name="skocko_celija_vel">56dp</dimen>
+    <dimen name="skocko_red_celija_vel">44dp</dimen>
     <dimen name="skocko_znak_vel">48dp</dimen>
     <dimen name="timer_vel">48sp</dimen>
     <dimen name="broj_vel">64sp</dimen>
 
-    <!-- Profil ekran -->
     <dimen name="profil_avatar_size">96dp</dimen>
     <dimen name="profil_avatar_border">3dp</dimen>
     <dimen name="profil_qr_size">160dp</dimen>
@@ -28,10 +26,8 @@
     <dimen name="profil_card_padding">16dp</dimen>
     <dimen name="profil_card_radius">12dp</dimen>
 
-    <!-- Kartica notifikacije -->
     <dimen name="notif_ikona_vel">40dp</dimen>
     <dimen name="notif_card_radius">12dp</dimen>
 
-    <!-- Navigation header visina -->
     <dimen name="nav_header_visina">200dp</dimen>
 </resources>

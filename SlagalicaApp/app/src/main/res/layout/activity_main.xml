@@ -9,7 +9,6 @@
     android:fitsSystemWindows="true"
     tools:openDrawer="start">
 
-    <!-- Glavni sadržaj - activity_main_base uključen kao include -->
     <include
         android:id="@+id/appBarMain"
         layout="@layout/activity_main_base"

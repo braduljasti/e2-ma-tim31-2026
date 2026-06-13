@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Igra Skočko: 6 pokušaja da se pogodi kombinacija 4 od 6 znakova -->
-<!-- Bez ScrollView: ConstraintLayout match_parent, kontrole prikovane na dno -->
+
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -9,7 +8,6 @@
     android:background="@color/background"
     android:padding="@dimen/margin_medium">
 
-    <!-- Scoreboard: moji bodovi vs protivnik -->
     <include
         android:id="@+id/scoreboardSkocko"
         layout="@layout/item_scoreboard"
@@ -19,7 +17,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"/>
 
-    <!-- Header: runda i timer -->
     <LinearLayout
         android:id="@+id/llHeaderSkocko"
         android:layout_width="0dp"
@@ -62,7 +59,6 @@
 
     </LinearLayout>
 
-    <!-- Legenda -->
     <LinearLayout
         android:id="@+id/llLegenda"
         android:layout_width="0dp"
@@ -93,29 +89,35 @@
 
     </LinearLayout>
 
-    <!-- Tabla pokušaja — zauzima prostor između legende i birača znakova -->
-    <LinearLayout
-        android:id="@+id/llTablaPokusaja"
+    <ScrollView
+        android:id="@+id/scrollTablaSkocko"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="8dp"
-        android:orientation="vertical"
-        android:gravity="center_vertical"
+        android:fillViewport="true"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/llLegenda"
         app:layout_constraintBottom_toTopOf="@id/cardZnakovi">
 
-        <include layout="@layout/item_skocko_red" android:id="@+id/redSkocko1"/>
-        <include layout="@layout/item_skocko_red" android:id="@+id/redSkocko2"/>
-        <include layout="@layout/item_skocko_red" android:id="@+id/redSkocko3"/>
-        <include layout="@layout/item_skocko_red" android:id="@+id/redSkocko4"/>
-        <include layout="@layout/item_skocko_red" android:id="@+id/redSkocko5"/>
-        <include layout="@layout/item_skocko_red" android:id="@+id/redSkocko6"/>
+        <LinearLayout
+            android:id="@+id/llTablaPokusaja"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center_vertical">
 
-    </LinearLayout>
+            <include layout="@layout/item_skocko_red" android:id="@+id/redSkocko1"/>
+            <include layout="@layout/item_skocko_red" android:id="@+id/redSkocko2"/>
+            <include layout="@layout/item_skocko_red" android:id="@+id/redSkocko3"/>
+            <include layout="@layout/item_skocko_red" android:id="@+id/redSkocko4"/>
+            <include layout="@layout/item_skocko_red" android:id="@+id/redSkocko5"/>
+            <include layout="@layout/item_skocko_red" android:id="@+id/redSkocko6"/>
 
-    <!-- Dugmad: Provjeri i Briši — prikovani na dno ekrana -->
+        </LinearLayout>
+
+    </ScrollView>
+
     <LinearLayout
         android:id="@+id/llDugmadSkocko"
         android:layout_width="0dp"
@@ -148,7 +150,6 @@
 
     </LinearLayout>
 
-    <!-- Birač znakova — iznad dugmadi -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardZnakovi"
         android:layout_width="0dp"
@@ -174,7 +175,6 @@
                 android:textSize="13sp"
                 android:textStyle="bold"/>
 
-            <!-- Trenutni odabir (4 mjesta) -->
             <LinearLayout
                 android:id="@+id/llTrenutniOdabir"
                 android:layout_width="match_parent"
@@ -221,7 +221,6 @@
 
             </LinearLayout>
 
-            <!-- 6 znakova za odabir -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

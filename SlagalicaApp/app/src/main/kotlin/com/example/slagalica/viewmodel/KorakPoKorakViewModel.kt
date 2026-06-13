@@ -123,7 +123,6 @@ class KorakPoKorakViewModel(
         saveResultIfFinalRound()
     }
 
-    /** Snimanje rezultata u Firebase nakon 2. (poslednje) runde. */
     private fun saveResultIfFinalRound() {
         if ((_round.value ?: 1) < 2) return
         val my = _points.value ?: 0

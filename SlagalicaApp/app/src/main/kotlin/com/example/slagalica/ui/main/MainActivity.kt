@@ -29,9 +29,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        // 11.a - registracija sistemskih notifikacionih kanala (čat, rangiranje, nagrade, ostalo)
+
         com.example.slagalica.data.NotificationChannels.createAll(this)
-        // Jednokratno punjenje baze podacima za igre (ako su kolekcije prazne)
+
         lifecycleScope.launch {
             runCatching { com.example.slagalica.data.GameDataRepository().seedIfEmpty() }
         }

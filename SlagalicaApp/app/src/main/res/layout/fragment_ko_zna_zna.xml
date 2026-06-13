@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Igra Ko zna zna: 5 pitanja, 5s po pitanju, max 50 bodova, min -25 -->
+
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -15,7 +15,6 @@
         android:layout_height="wrap_content"
         android:padding="@dimen/margin_medium">
 
-        <!-- Scoreboard: TI vs PROTIVNIK -->
         <include
             android:id="@+id/scoreboardKzz"
             layout="@layout/item_scoreboard"
@@ -25,7 +24,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Header: redni broj pitanja + max bodovi (levo) i timer (desno) -->
         <LinearLayout
             android:id="@+id/llHeaderKzz"
             android:layout_width="0dp"
@@ -61,7 +59,6 @@
                     android:textSize="13sp" />
             </LinearLayout>
 
-            <!-- Timer u kartici - boja se menja iz Kotlin-a (timer_normalno -> upozorenje -> hitno) -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardTimerKzz"
                 android:layout_width="wrap_content"
@@ -82,7 +79,6 @@
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
 
-        <!-- Progress bar napretka kroz 5 pitanja -->
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/progressPitanja"
             android:layout_width="0dp"
@@ -96,7 +92,6 @@
             app:trackColor="@color/skocko_prazno"
             app:trackCornerRadius="4dp" />
 
-        <!-- Kartica sa tekstom pitanja -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardPitanje"
             android:layout_width="0dp"
@@ -138,7 +133,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- 4 dugmeta sa odgovorima A, B, C, D -->
         <LinearLayout
             android:id="@+id/llOdgovori"
             android:layout_width="0dp"
@@ -209,7 +203,6 @@
                 app:strokeWidth="1dp" />
         </LinearLayout>
 
-        <!-- Dalje dugme: preskace pitanje, ne menja bodove -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDalje"
             style="@style/Widget.MaterialComponents.Button.TextButton"

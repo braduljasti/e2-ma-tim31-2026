@@ -6,15 +6,6 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
 
-/**
- * Firestore sloj za notifikacije (funkcionalni zahtjev 11).
- * Notifikacije se cuvaju po korisniku: users/{uid}/notifications/{notifId}.
- *
- * Podrzava:
- *  - 11.b: istorija svih sistemskih notifikacija (realtime listener)
- *  - 11.c: oznacavanje kao procitano
- *  - 11.d: filtriranje se radi u ViewModel-u nad ucitanom listom
- */
 class NotifikacijeRepository {
 
     private val db = FirebaseProvider.db
@@ -24,10 +15,6 @@ class NotifikacijeRepository {
             .document(FirebaseProvider.currentUid ?: "anon")
             .collection(FirestoreCollections.NOTIFICATIONS)
 
-    /**
-     * Realtime osluskivanje notifikacija sortiranih od najnovije.
-     * Vraca ListenerRegistration koji ViewModel treba da skine u onCleared().
-     */
     fun listen(onChange: (List<AppNotification>) -> Unit): ListenerRegistration {
         return collection()
             .orderBy("timestampMs", Query.Direction.DESCENDING)
@@ -55,19 +42,16 @@ class NotifikacijeRepository {
             }
     }
 
-    /** 11.c - oznaci jednu notifikaciju kao procitanu. */
     suspend fun markAsRead(id: String) {
         collection().document(id).update("read", true).await()
     }
 
-    /** Oznaci sve kao procitane. */
     suspend fun markAllAsRead(ids: List<String>) {
         val batch = db.batch()
         ids.forEach { id -> batch.update(collection().document(id), "read", true) }
         batch.commit().await()
     }
 
-    /** Dodavanje nove notifikacije (npr. iz FCM-a ili sistemskih dogadjaja). */
     suspend fun add(notification: AppNotification) {
         val data = mapOf(
             "title" to notification.title,
@@ -79,10 +63,6 @@ class NotifikacijeRepository {
         collection().add(data).await()
     }
 
-    /**
-     * Seed: ako korisnik nema nijednu notifikaciju, ubaci par primjera
-     * da UI ne bude prazan na prvom logovanju. Vraca true ako je seedovano.
-     */
     suspend fun seedIfEmpty(): Boolean {
         val existing = collection().limit(1).get().await()
         if (!existing.isEmpty) return false

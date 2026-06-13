@@ -14,58 +14,34 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-/**
- * Asocijacije - 2 runde po 2 minute, max 30 bodova po rundi.
- *
- * Bodovanje (po spec-u):
- *  - Resenje kolone: 2 + (4 - otvoreno_polja_u_koloni) = (6 - otvoreno)
- *  - Finalno resenje: 7 + sum_po_NEPOGOĐENIM_kolonama(6 - otvoreno_u_koloni)
- *
- * Mehanika (pojednostavljena za GUI demo - nema strogo turn-based):
- *  - Korisnik igra slobodno 2 minuta
- *  - Klik na polje -> otkrivanje
- *  - Klik na resenje kolone -> dialog za pogadanje
- *  - Klik na finalno -> dialog za pogadanje
- *  - Pogodjeno finalno -> kraj runde (sa bonusom)
- *  - Tajmer ili Dalje -> kraj runde, simulacija protivnika za nepogodjene
- *  - U Rundi 2 protivnik ima head start (1 nasumicno resena kolona)
- */
 class AsocijacijeViewModel : ViewModel() {
 
-    // ============================================================
-    // RUNDE - hardkodovano
-    // ============================================================
     private val runde = listOf(
         AsocijacijeRundaPodaci(
             polja = listOf(
-                listOf("Hrast", "Šuma", "List", "Koren"),         // A → DRVO
-                listOf("Zraci", "Leto", "Žuto", "Ujutru"),        // B → SUNCE
-                listOf("Kutija", "Glava", "Paliti", "Sumporna"),  // C → ŠIBICA
-                listOf("Krv", "Ruža", "Jabuka", "Ferari")         // D → CRVENO
+                listOf("Hrast", "Šuma", "List", "Koren"),
+                listOf("Zraci", "Leto", "Žuto", "Ujutru"),
+                listOf("Kutija", "Glava", "Paliti", "Sumporna"),
+                listOf("Krv", "Ruža", "Jabuka", "Ferari")
             ),
             resenjaKolona = listOf("DRVO", "SUNCE", "ŠIBICA", "CRVENO"),
             finalnoResenje = "VATRA"
         ),
         AsocijacijeRundaPodaci(
             polja = listOf(
-                listOf("Žica", "Akord", "Akustična", "Prsti"),    // A → GITARA
-                listOf("Stih", "Refren", "Melodija", "Ritam"),    // B → PESMA
-                listOf("Bina", "Publika", "Ulaznica", "Ovacije"), // C → KONCERT
-                listOf("Linija", "Pauza", "Čitanje", "Ključ")     // D → NOTA
+                listOf("Žica", "Akord", "Akustična", "Prsti"),
+                listOf("Stih", "Refren", "Melodija", "Ritam"),
+                listOf("Bina", "Publika", "Ulaznica", "Ovacije"),
+                listOf("Linija", "Pauza", "Čitanje", "Ključ")
             ),
             resenjaKolona = listOf("GITARA", "PESMA", "KONCERT", "NOTA"),
             finalnoResenje = "MUZIKA"
         )
     )
 
-    // ============================================================
-    // STATE
-    // ============================================================
-
     private val _trenutnaRunda = MutableLiveData(0)
     val trenutnaRunda: LiveData<Int> = _trenutnaRunda
 
-    /** 4x4 matrica - polja[col][row] */
     private val _tekstoviPolja = MutableLiveData<List<List<String>>>(emptyList())
     val tekstoviPolja: LiveData<List<List<String>>> = _tekstoviPolja
 
@@ -103,10 +79,6 @@ class AsocijacijeViewModel : ViewModel() {
     private val _krajIgre = MutableLiveData<AsocijacijeRezultat?>(null)
     val krajIgre: LiveData<AsocijacijeRezultat?> = _krajIgre
 
-    // ============================================================
-    // INTERNAL
-    // ============================================================
-
     private var timer: CountDownTimer? = null
     private var advanceJob: Job? = null
     private var trenutnaRundaPodaci: AsocijacijeRundaPodaci? = null
@@ -114,10 +86,6 @@ class AsocijacijeViewModel : ViewModel() {
     private var roundEnding = false
     private var mojeResenja = 0
     private var protivnikoveResenja = 0
-
-    // ============================================================
-    // PUBLIC API
-    // ============================================================
 
     fun startGameIfNeeded() {
         if (gameStarted) return
@@ -147,9 +115,6 @@ class AsocijacijeViewModel : ViewModel() {
         _stanjaPolja.value = nova.map { it.toList() }
     }
 
-    /**
-     * Vraca Pair<tacno, osvojeniBodovi>. Fragment koristi za toast feedback.
-     */
     fun onColumnGuessSubmitted(columnIdx: Int, guess: String): Pair<Boolean, Int> {
         if (roundEnding) return false to 0
         val round = trenutnaRundaPodaci ?: return false to 0
@@ -184,7 +149,6 @@ class AsocijacijeViewModel : ViewModel() {
         mojeResenja++
         _stanjeFinalno.value = AsocijacijaCelijaStanje.POGODENO_MOJE
 
-        // Pogodjeno finalno -> kraj runde
         endRound()
         return true to score
     }
@@ -193,10 +157,6 @@ class AsocijacijeViewModel : ViewModel() {
         if (roundEnding) return
         endRound()
     }
-
-    // ============================================================
-    // HELPER FUNKCIJE ZA FRAGMENT (validacije)
-    // ============================================================
 
     fun canGuessColumn(columnIdx: Int): Boolean {
         if (roundEnding) return false
@@ -216,11 +176,6 @@ class AsocijacijeViewModel : ViewModel() {
         return s.sumOf { col -> col.count { it == AsocijacijaCelijaStanje.OTKRIVENO } }
     }
 
-    // ============================================================
-    // BODOVANJE
-    // ============================================================
-
-    /** Specifikacija: 2 + (4 - otvoreno_u_koloni) */
     private fun scoreZaKolonu(columnIdx: Int): Int {
         val opened = countOpenedInColumn(columnIdx)
         return AsocijacijeKonstante.KOLONA_BAZA +
@@ -228,7 +183,6 @@ class AsocijacijeViewModel : ViewModel() {
                 AsocijacijeKonstante.BODOVI_PO_NEOTVORENOM
     }
 
-    /** Specifikacija: 7 + suma_po_NEPOGOĐENIM_kolonama(6 - otvoreno) */
     private fun scoreZaFinalno(): Int {
         var score = AsocijacijeKonstante.FINALNO_BAZA
         val resenja = _stanjaResenjaKolona.value ?: return score
@@ -251,10 +205,6 @@ class AsocijacijeViewModel : ViewModel() {
         return guess.trim().equals(correct.trim(), ignoreCase = true)
     }
 
-    // ============================================================
-    // ROUND LOGIC
-    // ============================================================
-
     private fun loadRound(roundIndex: Int) {
         roundEnding = false
         val round = runde[roundIndex]
@@ -269,11 +219,10 @@ class AsocijacijeViewModel : ViewModel() {
         _preostaloVreme.value = AsocijacijeKonstante.VREME_PO_RUNDI_S
         _timerBojaRes.value = R.color.timer_normalno
 
-        // Runda 2: protivnik resava 1 nasumicnu kolonu unapred
         if (roundIndex == 1) {
             val randomCol = (0..3).random()
             val score = AsocijacijeKonstante.KOLONA_BAZA +
-                    AsocijacijeKonstante.POLJA_PO_KOLONI  // sve neotvoreno = 6
+                    AsocijacijeKonstante.POLJA_PO_KOLONI
             val nova = _stanjaResenjaKolona.value!!.toMutableList()
             nova[randomCol] = AsocijacijaCelijaStanje.POGODENO_PROTIVNIK
             _stanjaResenjaKolona.value = nova
@@ -321,10 +270,6 @@ class AsocijacijeViewModel : ViewModel() {
         }
     }
 
-    /**
-     * Na kraju runde: za svaku nepogodjenu kolonu protivnik ima 35% sansi
-     * da je "resio". Za finalno - 15%. Realisticna verovatnoca.
-     */
     private fun simulirajProtivnika() {
         val resenja = _stanjaResenjaKolona.value ?: return
         val nova = resenja.toMutableList()
@@ -343,7 +288,7 @@ class AsocijacijeViewModel : ViewModel() {
 
         if (_stanjeFinalno.value == AsocijacijaCelijaStanje.ZAKLJUCANO) {
             if ((1..100).random() <= 15) {
-                // Recompute final score sa novim resenjima kolona
+
                 var finalScore = AsocijacijeKonstante.FINALNO_BAZA
                 for (col in 0..3) {
                     if (nova[col] == AsocijacijaCelijaStanje.ZAKLJUCANO) {
@@ -363,7 +308,6 @@ class AsocijacijeViewModel : ViewModel() {
         }
     }
 
-    /** Na kraju runde otkriva sva neotkrivena polja i resenja - da igrac vidi sta je bilo. */
     private fun revealUnsolved() {
         val novaPolja = _stanjaPolja.value!!.map { col ->
             col.map {

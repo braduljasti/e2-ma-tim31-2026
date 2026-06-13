@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Igra Asocijacije: 2 runde po 2min, max 30 bodova po rundi -->
+
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -14,7 +14,6 @@
         android:layout_height="wrap_content"
         android:padding="@dimen/margin_medium">
 
-        <!-- Scoreboard -->
         <include
             android:id="@+id/scoreboardAsoc"
             layout="@layout/item_scoreboard"
@@ -24,7 +23,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Header: runda + timer -->
         <LinearLayout
             android:id="@+id/llHeaderAsoc"
             android:layout_width="0dp"
@@ -80,7 +78,6 @@
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
 
-        <!-- Progress kroz 2 runde -->
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/progressRundeAsoc"
             android:layout_width="0dp"
@@ -94,9 +91,6 @@
             app:trackColor="@color/skocko_prazno"
             app:trackCornerRadius="4dp" />
 
-        <!-- ============================================ -->
-        <!-- IGRALIŠTE - 21 ćelija u 5 sekcija            -->
-        <!-- ============================================ -->
         <LinearLayout
             android:id="@+id/llIgraliste"
             android:layout_width="0dp"
@@ -107,7 +101,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/progressRundeAsoc">
 
-            <!-- TOP: A1-A4 levo, B1-B4 desno -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -136,7 +129,6 @@
                 </LinearLayout>
             </LinearLayout>
 
-            <!-- A i B rešenja kolona -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -158,7 +150,6 @@
                     android:layout_weight="1" />
             </LinearLayout>
 
-            <!-- Finalno rešenje (centrirano, 70% širine) -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -174,7 +165,6 @@
                     android:layout_weight="0.7" />
             </LinearLayout>
 
-            <!-- C i D rešenja kolona -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -196,7 +186,6 @@
                     android:layout_weight="1" />
             </LinearLayout>
 
-            <!-- BOTTOM: C1-C4 levo, D1-D4 desno -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -228,7 +217,6 @@
 
         </LinearLayout>
 
-        <!-- Dalje dugme -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDaljeAsoc"
             style="@style/Widget.MaterialComponents.Button.TextButton"

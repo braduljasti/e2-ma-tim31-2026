@@ -13,7 +13,6 @@
     android:paddingBottom="16dp"
     android:paddingTop="24dp">
 
-    <!-- Avatar korisnika -->
     <ImageView
         android:id="@+id/ivAvatar"
         android:layout_width="64dp"
@@ -23,7 +22,6 @@
         android:padding="4dp"
         android:scaleType="centerCrop"/>
 
-    <!-- Korisničko ime -->
     <TextView
         android:id="@+id/tvKorisnickoImeNav"
         android:layout_width="match_parent"
@@ -35,7 +33,6 @@
         android:textStyle="bold"
         android:textSize="16sp"/>
 
-    <!-- Email -->
     <TextView
         android:id="@+id/tvEmailNav"
         android:layout_width="wrap_content"
@@ -45,7 +42,6 @@
         android:alpha="0.8"
         android:textSize="13sp"/>
 
-    <!-- Tokeni i zvjezdice u jednom redu -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

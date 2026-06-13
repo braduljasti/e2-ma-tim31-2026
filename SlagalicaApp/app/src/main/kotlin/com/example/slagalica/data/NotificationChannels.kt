@@ -6,15 +6,6 @@ import android.content.Context
 import android.os.Build
 import com.example.slagalica.model.NotificationCategory
 
-/**
- * 11.a - posebni kanali za sistemske notifikacije:
- *   i.   ČAT
- *   ii.  RANGIRANJE
- *   iii. NAGRADE
- *   iv.  OSTALO
- *
- * Kanale kreiramo jednom (najbolje u Application/MainActivity onCreate).
- */
 object NotificationChannels {
 
     fun channelId(category: NotificationCategory): String = when (category) {

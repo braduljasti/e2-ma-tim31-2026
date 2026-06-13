@@ -27,11 +27,9 @@ class AsocijacijeFragment : Fragment() {
 
     private val viewModel: AsocijacijeViewModel by viewModels()
 
-    // 4x4 polja kao 2D liste
     private lateinit var poljeKartice: List<List<MaterialCardView>>
     private lateinit var poljeTekstovi: List<List<TextView>>
 
-    // 4 resenja kolona
     private lateinit var resenjeKartice: List<MaterialCardView>
     private lateinit var resenjeTekstovi: List<TextView>
 
@@ -56,10 +54,6 @@ class AsocijacijeFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
-
-    // ============================================================
-    // SETUP
-    // ============================================================
 
     private fun setupBindings() {
         poljeKartice = listOf(
@@ -102,10 +96,6 @@ class AsocijacijeFragment : Fragment() {
         binding.resenjeFinalno.root.setOnClickListener { onFinalnoClick() }
         binding.btnDaljeAsoc.setOnClickListener { viewModel.onSkip() }
     }
-
-    // ============================================================
-    // KLIK NA POGAĐANJE - dialog flow
-    // ============================================================
 
     private fun onResenjeKoloneClick(columnIdx: Int) {
         if (!viewModel.canGuessColumn(columnIdx)) {
@@ -158,22 +148,15 @@ class AsocijacijeFragment : Fragment() {
             .show()
     }
 
-    // ============================================================
-    // OBSERVE VIEWMODEL
-    // ============================================================
-
     private fun observeViewModel() {
         viewModel.trenutnaRunda.observe(viewLifecycleOwner) { renderRunda(it) }
 
-        // Polja - kombinovano (tekst + stanje)
         viewModel.tekstoviPolja.observe(viewLifecycleOwner) { renderPolja() }
         viewModel.stanjaPolja.observe(viewLifecycleOwner) { renderPolja() }
 
-        // Resenja kolona - kombinovano
         viewModel.tekstoviResenjaKolona.observe(viewLifecycleOwner) { renderResenjaKolona() }
         viewModel.stanjaResenjaKolona.observe(viewLifecycleOwner) { renderResenjaKolona() }
 
-        // Finalno - kombinovano
         viewModel.tekstFinalno.observe(viewLifecycleOwner) { renderFinalno() }
         viewModel.stanjeFinalno.observe(viewLifecycleOwner) { renderFinalno() }
 
@@ -193,10 +176,6 @@ class AsocijacijeFragment : Fragment() {
             if (rezultat != null) showEndGameDialog(rezultat)
         }
     }
-
-    // ============================================================
-    // RENDER
-    // ============================================================
 
     private fun renderRunda(index: Int) {
         val ukupno = AsocijacijeKonstante.BROJ_RUNDI
@@ -244,9 +223,6 @@ class AsocijacijeFragment : Fragment() {
         )
     }
 
-    /**
-     * Polje (4x4) - samo ZAKLJUCANO i OTKRIVENO stanja.
-     */
     private fun stilirajPolje(
         kartica: MaterialCardView, tekst: TextView,
         stanje: AsocijacijaCelijaStanje, sadrzaj: String, labelaZakljucano: String
@@ -260,7 +236,7 @@ class AsocijacijeFragment : Fragment() {
                 kartica.isClickable = true
             }
             else -> {
-                // OTKRIVENO (ili POGODENO_*, defenzivno)
+
                 kartica.setCardBackgroundColor(boja(R.color.primary_light))
                 kartica.strokeColor = boja(R.color.primary)
                 tekst.text = sadrzaj
@@ -270,10 +246,6 @@ class AsocijacijeFragment : Fragment() {
         }
     }
 
-    /**
-     * Resenja kolona i finalno - sva 4 stanja.
-     * Razlikujemo POGODENO_MOJE (zeleno), POGODENO_PROTIVNIK (plavo), OTKRIVENO (sivo).
-     */
     private fun stilirajResenje(
         kartica: MaterialCardView, tekst: TextView,
         stanje: AsocijacijaCelijaStanje, sadrzaj: String, labelaZakljucano: String
@@ -287,7 +259,7 @@ class AsocijacijeFragment : Fragment() {
                 kartica.isClickable = true
             }
             AsocijacijaCelijaStanje.OTKRIVENO -> {
-                // Niko nije pogodio - sivkasto
+
                 kartica.setCardBackgroundColor(boja(R.color.text_secondary))
                 kartica.strokeColor = boja(R.color.text_secondary)
                 tekst.text = sadrzaj
@@ -312,10 +284,6 @@ class AsocijacijeFragment : Fragment() {
     }
 
     private fun boja(resId: Int): Int = ContextCompat.getColor(requireContext(), resId)
-
-    // ============================================================
-    // FINALNI DIJALOG
-    // ============================================================
 
     private fun showEndGameDialog(rezultat: AsocijacijeRezultat) {
         val poruka = getString(

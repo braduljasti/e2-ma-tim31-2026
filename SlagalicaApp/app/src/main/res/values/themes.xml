@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Glavna tema aplikacije - Material Design.
-         Namerno "Light" (ne "DayNight"): aplikacija je dizajnirana za svetle
-         boje, pa sistemska tamna tema ne sme da je menja. -->
     <style name="Theme.Slagalica" parent="Theme.MaterialComponents.Light.DarkActionBar">
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryVariant">@color/primary_dark</item>
@@ -14,17 +11,15 @@
         <item name="android:statusBarColor" tools:targetApi="l">@color/primary_dark</item>
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
-        <!-- Sprečava da OEM "Force Dark" (Xiaomi/Huawei...) nasilno zatamni svetlu temu -->
+
         <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
     </style>
 
-    <!-- Tema bez ActionBar-a za aktivnosti sa Toolbar-om -->
     <style name="Theme.Slagalica.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
     </style>
 
-    <!-- Splash tema - fullscreen, AppCompat kompatibilna -->
     <style name="Theme.Slagalica.Splash" parent="Theme.MaterialComponents.Light.NoActionBar">
         <item name="android:windowBackground">@color/primary</item>
         <item name="android:statusBarColor">@color/primary_dark</item>
@@ -33,11 +28,9 @@
         <item name="android:forceDarkAllowed" tools:targetApi="q">false</item>
     </style>
 
-    <!-- AppBar overlay tema -->
     <style name="Theme.Slagalica.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
     <style name="Theme.Slagalica.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
-    <!-- Stil za dugmad u igrama -->
     <style name="Widget.Slagalica.Button.Igra" parent="Widget.MaterialComponents.Button">
         <item name="cornerRadius">12dp</item>
         <item name="android:textAllCaps">false</item>
@@ -46,7 +39,6 @@
         <item name="android:paddingBottom">12dp</item>
     </style>
 
-    <!-- Stil za kartice igara -->
     <style name="Widget.Slagalica.Card.Igra" parent="Widget.MaterialComponents.CardView">
         <item name="cardCornerRadius">16dp</item>
         <item name="cardElevation">4dp</item>

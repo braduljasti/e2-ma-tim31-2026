@@ -2,7 +2,6 @@
 <resources>
     <string name="app_name">Slagalica</string>
 
-    <!-- Auth ekrani -->
     <string name="lbl_email">Email adresa</string>
     <string name="lbl_lozinka">Lozinka</string>
     <string name="lbl_korisnicko_ime">Korisničko ime</string>
@@ -24,7 +23,6 @@
     <string name="err_neispravan_email">Unesite ispravnu email adresu</string>
     <string name="msg_verifikacioni_mejl">Verifikacioni mejl je poslan na vašu adresu</string>
 
-    <!-- Profil ekran -->
     <string name="title_profil">Profil</string>
     <string name="lbl_tokeni">Tokeni</string>
     <string name="lbl_zvezde">Zvezdice</string>
@@ -37,7 +35,6 @@
     <string name="lbl_prosek_bodova">Prosečno bodova po partiji</string>
     <string name="lbl_odigrano_partija">Odigrano partija</string>
 
-    <!-- Akcije -->
     <string name="btn_promeni_avatar">Promeni avatar</string>
     <string name="btn_logout">Odjavi se</string>
     <string name="dlg_logout_title">Odjava</string>
@@ -46,12 +43,10 @@
     <string name="dlg_logout_cancel">Otkaži</string>
     <string name="dlg_avatar_title">Izaberi avatar</string>
 
-    <!-- Format stringovi za procente -->
     <string name="fmt_procenat">%1$.0f%%</string>
     <string name="fmt_pobede">Pobede: %1$.0f%%</string>
     <string name="fmt_porazi">Porazi: %1$.0f%%</string>
 
-    <!-- Navigation Drawer -->
     <string name="nav_header_naslov">Slagalica</string>
     <string name="nav_header_podnaslov">Korisnik</string>
     <string name="nav_igraj">Igraj</string>
@@ -60,12 +55,10 @@
     <string name="navigation_drawer_open">Otvori navigacioni meni</string>
     <string name="navigation_drawer_close">Zatvori navigacioni meni</string>
 
-    <!-- Igre - imena -->
     <string name="game_ko_zna_zna">Ko zna zna</string>
     <string name="game_asocijacije">Asocijacije</string>
     <string name="game_spojnice">Spojnice</string>
 
-    <!-- Metrike po igri (specifikacija 1.c) -->
     <string name="metric_ko_zna_zna">Pogođenih pitanja</string>
     <string name="metric_moj_broj">Pronađen tačan broj</string>
     <string name="metric_korak_po_korak">Pogođen pojam</string>
@@ -73,7 +66,6 @@
     <string name="metric_skocko">Pogođena kombinacija</string>
     <string name="metric_spojnice">Povezanih pojmova</string>
 
-    <!-- Igre - opšte -->
     <string name="lbl_bodovi">Bodovi</string>
     <string name="lbl_vrijeme">Preostalo: %1$s s</string>
     <string name="lbl_runda">Runda %1$d / %2$d</string>
@@ -84,7 +76,6 @@
     <string name="lbl_vas_rezultat">Vaš rezultat: %1$d bodova</string>
     <string name="lbl_cekanje">Čeka se protivnik...</string>
 
-    <!-- Korak po korak -->
     <string name="igra_korak_naslov">Korak po korak</string>
     <string name="igra_korak_opis">Pronađi zadati pojam u maksimalno 7 koraka</string>
     <string name="lbl_korak">Korak %1$d / 7</string>
@@ -93,7 +84,6 @@
     <string name="lbl_trazeni_pojam">Traženi pojam</string>
     <string name="lbl_bodovi_korak">Na ovom koraku možete osvojiti: %1$d bodova</string>
 
-    <!-- Moj broj -->
     <string name="igra_moj_broj_naslov">Moj broj</string>
     <string name="igra_moj_broj_opis">Pomoću datih brojeva dođi do traženog rezultata</string>
     <string name="lbl_trazeni_broj">Traženi broj:</string>
@@ -106,7 +96,6 @@
     <string name="msg_tocno">Tačno! Pronašli ste traženi broj.</string>
     <string name="msg_netocno">Netačno. Vaš rezultat je bliži za %1$d.</string>
 
-    <!-- Skočko -->
     <string name="igra_skocko_naslov">Skočko</string>
     <string name="igra_skocko_opis">Pogodi kombinaciju 4 znaka u 6 pokušaja</string>
     <string name="lbl_pokusaj">Pokušaj %1$d / 6</string>
@@ -116,7 +105,6 @@
     <string name="lbl_odaberi_znakove">Odaberi 4 znaka:</string>
     <string name="lbl_rezultat_provjere">Tačnih: %1$d | Pogrešno: %2$d</string>
 
-    <!-- Notifikacije -->
     <string name="naslov_notifikacije">Notifikacije</string>
     <string name="btn_sve">Sve</string>
     <string name="btn_procitane">Pročitane</string>
@@ -128,7 +116,6 @@
     <string name="kanal_nagrade">Nagrade</string>
     <string name="kanal_ostalo">Ostalo</string>
 
-    <!-- Multiplayer (zajedničko za sve igre) -->
     <string name="mp_cekamo_protivnika">Poslato! Čekamo protivnika…</string>
     <string name="mp_protivnik_na_potezu">⏳ Protivnik je na potezu…</string>
     <string name="mp_nije_tvoj_potez">Nije tvoj potez!</string>
@@ -146,7 +133,6 @@
     <string name="mp_zatvori">Zatvori</string>
     <string name="mp_izaberi_igru">Izaberi igru</string>
 
-    <!-- Ko zna zna igra -->
     <string name="igra_ko_zna_zna_naslov">Ko zna zna</string>
     <string name="kzz_pitanje_format">Pitanje %1$d / %2$d</string>
     <string name="kzz_max_bodova">Možete osvojiti: 50 bodova</string>
@@ -158,7 +144,6 @@
     <string name="btn_pocni_ponovo">Počni ponovo</string>
     <string name="btn_napusti_igru">Napusti igru</string>
 
-    <!-- Spojnice igra -->
     <string name="igra_spojnice_naslov">Spojnice</string>
     <string name="spojnice_runda_format">Runda %1$d / %2$d</string>
     <string name="spojnice_max_bodova">Možete osvojiti: 10 bodova po rundi</string>
@@ -168,7 +153,6 @@
     <string name="spojnice_protivnik_runda">Protivnik je povezao %1$d od preostalih</string>
     <string name="spojnice_kriterijum_label">🎯 KRITERIJUM</string>
 
-    <!-- Asocijacije igra -->
     <string name="igra_asocijacije_naslov">Asocijacije</string>
     <string name="asoc_runda_format">Runda %1$d / %2$d</string>
     <string name="asoc_max_bodova">Možete osvojiti: 30 bodova po rundi</string>
@@ -176,23 +160,19 @@
     <string name="asoc_finalni_rezultat">Tvoji bodovi: %1$d\nProtivnikovi bodovi: %2$d</string>
     <string name="asoc_finalni_detalji">Tvoja rešenja: %1$d • Protivnikova: %2$d</string>
 
-    <!-- Pogadjanje (dialog) -->
     <string name="asoc_pogadjanje_kolone">Pogodi rešenje kolone %1$s</string>
     <string name="asoc_pogadjanje_finalno">Pogodi konačno rešenje</string>
     <string name="asoc_unos_hint">Unesi rešenje…</string>
     <string name="asoc_potvrdi">Potvrdi</string>
     <string name="asoc_otkazi">Otkaži</string>
 
-    <!-- Toast feedback -->
     <string name="asoc_otvori_polje">Otvori bar jedno polje pre nego što pogađaš</string>
     <string name="asoc_netacno">Netačno!</string>
     <string name="asoc_tacno_kolona">Tačno! +%1$d bodova za rešenje kolone</string>
     <string name="asoc_tacno_finalno">Tačno! +%1$d bodova za finalno rešenje</string>
 
-    <!-- Labele u igralistu -->
     <string name="asoc_finalno_zakljucano">FINALNO</string>
 
-    <!-- Regioni -->
     <string-array name="regioni">
         <item>Vojvodina</item>
         <item>Beograd</item>

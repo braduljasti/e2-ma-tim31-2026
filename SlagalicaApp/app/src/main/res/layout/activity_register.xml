@@ -12,7 +12,6 @@
         android:layout_height="wrap_content"
         android:padding="@dimen/margin_large">
 
-        <!-- Naslov -->
         <TextView
             android:id="@+id/tvNaslovRegistracija"
             android:layout_width="0dp"
@@ -40,7 +39,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvNaslovRegistracija"/>
 
-        <!-- Email -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilEmailReg"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -63,7 +61,6 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Korisničko ime -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilKorisnickoIme"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -106,7 +103,6 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Lozinka -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilLozinkaReg"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -130,7 +126,6 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Potvrda lozinke -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilPotvrdiLozinku"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -154,7 +149,6 @@
 
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Poruka greske -->
         <TextView
             android:id="@+id/tvGreskaReg"
             android:layout_width="0dp"
@@ -168,7 +162,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tilPotvrdiLozinku"/>
 
-        <!-- Dugme za registraciju -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnRegistracija"
             android:layout_width="0dp"

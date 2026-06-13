@@ -17,21 +17,13 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-/**
- * Prijem push notifikacija preko Firebase Cloud Messaging (FCM).
- * - prikazuje sistemsku notifikaciju na odgovarajucem kanalu (11.a)
- * - upisuje notifikaciju u Firestore istoriju (11.b)
- *
- * Format poruke (data payload) koji ocekujemo sa servera:
- *   title, body, category (CHAT|RANK|REWARDS|OTHER)
- */
 class SlagalicaMessagingService : FirebaseMessagingService() {
 
     private val notifRepo = NotifikacijeRepository()
 
     override fun onNewToken(token: String) {
         super.onNewToken(token)
-        // FCM token cuvamo uz korisnika da bi server mogao da mu salje poruke
+
         val uid = FirebaseProvider.currentUid ?: return
         FirebaseProvider.db.collection(FirestoreCollections.USERS)
             .document(uid).update("fcmToken", token)
@@ -48,7 +40,6 @@ class SlagalicaMessagingService : FirebaseMessagingService() {
 
         showSystemNotification(title, body, category)
 
-        // 11.b - upis u istoriju notifikacija
         CoroutineScope(Dispatchers.IO).launch {
             runCatching {
                 notifRepo.add(

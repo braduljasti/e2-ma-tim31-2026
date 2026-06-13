@@ -7,10 +7,6 @@ import androidx.lifecycle.viewModelScope
 import com.example.slagalica.data.AuthRepository
 import kotlinx.coroutines.launch
 
-/**
- * ViewModel za registraciju, logovanje i promjenu lozinke.
- * Koristi AuthRepository (Firebase Auth + Firestore) umjesto ranije simulacije.
- */
 class AuthViewModel(
     private val repo: AuthRepository = AuthRepository()
 ) : ViewModel() {
@@ -33,7 +29,6 @@ class AuthViewModel(
     private val _passwordError = MutableLiveData<String?>()
     val passwordError: LiveData<String?> = _passwordError
 
-    /** 1.d - login po mejlu ili korisnickom imenu. */
     fun login(identifier: String, password: String) {
         viewModelScope.launch {
             try {
@@ -47,7 +42,6 @@ class AuthViewModel(
         }
     }
 
-    /** 1.a + 1.b - registracija uz slanje verifikacionog mejla. */
     fun register(email: String, username: String, region: String, password: String) {
         viewModelScope.launch {
             try {
@@ -61,7 +55,6 @@ class AuthViewModel(
         }
     }
 
-    /** 1.e - promjena lozinke (stara + nova dva puta provjerava se u formi). */
     fun changePassword(oldPassword: String, newPassword: String) {
         viewModelScope.launch {
             try {

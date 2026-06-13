@@ -5,7 +5,7 @@ enum class NotificationCategory {
 }
 
 data class AppNotification(
-    val id: String,                 // Firestore document ID
+    val id: String,
     val title: String,
     val content: String,
     val category: NotificationCategory,
@@ -34,13 +34,6 @@ data class AppNotification(
 
 enum class NotificationFilter { ALL, READ, UNREAD }
 
-// ===== FIREBASE: KORISNIK =====
-
-/**
- * Korisnicki nalog kako se cuva u Firestore kolekciji "users/{uid}".
- * Prazan konstruktor je obavezan da bi Firestore mogao da deserializuje dokument
- * preko toObject(FirebaseUser::class.java).
- */
 data class FirebaseUser(
     val uid: String = "",
     val email: String = "",
@@ -48,14 +41,12 @@ data class FirebaseUser(
     val region: String = "",
     val createdAt: Long = 0L,
     val emailVerified: Boolean = false,
-    // Profil (KT2): avatar, tokeni (5 pri registraciji po spec 3.a), zvezde i liga
+
     val avatarId: Int = 1,
     val tokens: Int = 5,
     val stars: Int = 0,
-    val league: Int = 0          // indeks lige: 0 = nulta liga
+    val league: Int = 0
 )
-
-// ===== FIREBASE: REZULTAT IGRE =====
 
 enum class GameType(val displayName: String) {
     SKOCKO("Skočko"),
@@ -66,20 +57,14 @@ enum class GameType(val displayName: String) {
     ASOCIJACIJE("Asocijacije")
 }
 
-/**
- * Jedan odigrani meč u jednoj od igara - cuva se u "users/{uid}/gameResults".
- * Koristi se kasnije za statistiku profila i rang liste.
- */
 data class GameResult(
     val id: String = "",
-    val gameType: String = "",        // GameType.name
+    val gameType: String = "",
     val myPoints: Int = 0,
     val opponentPoints: Int = 0,
     val won: Boolean = false,
     val playedAt: Long = 0L,
-    // Detalji specifični za igru, za statistiku profila (spec 2.c):
-    // KZZ: tacnih/netacnih/bezOdgovora; Spojnice: povezanih/pokusaja;
-    // Asocijacije: resenihFinala/resenihKolona/rundi; Skočko: resenihRundi/rundi
+
     val details: Map<String, Long> = emptyMap()
 )
 
@@ -124,16 +109,8 @@ data class MyNumberData(
     }
 }
 
-
-// ===== PROFIL =====
-
-/**
- * Liga u kojoj se korisnik trenutno nalazi.
- * Po specifikaciji 1.f, treba prikazati naziv i ikonu lige.
- * Emoji koristimo u tekstu, a `iconResId` u ImageView-u.
- */
 enum class Liga(val displayName: String, val emoji: String) {
-    NULTA("Nulta liga", "🌱"),          // spec 6.a: igrač počinje u nultoj ligi
+    NULTA("Nulta liga", "🌱"),
     BRONZANA("Bronzana liga", "🥉"),
     SREBRNA("Srebrna liga", "🥈"),
     ZLATNA("Zlatna liga", "🥇"),
@@ -141,21 +118,15 @@ enum class Liga(val displayName: String, val emoji: String) {
     DIJAMANTSKA("Dijamantska liga", "💠");
 
     companion object {
-        /** Liga iz indeksa sačuvanog u users/{uid}.league (van opsega -> nulta). */
+
         fun fromIndex(index: Int): Liga = values().getOrElse(index) { NULTA }
     }
 }
 
-/**
- * Osnovni podaci o korisniku koji se prikazuju u zaglavlju profila.
- * `qrPayload` je tekst koji se kodira u QR — najčešće je to neki ID
- * koji bi backend prepoznao kao "poziv prijatelja", ali pošto nema
- * backenda, hardkodujemo nešto poput "slagalica://invite/USERNAME".
- */
 data class UserProfile(
     val username: String,
     val email: String,
-    val avatarResId: Int,   // R.drawable.avatar_default itd.
+    val avatarResId: Int,
     val tokens: Int,
     val totalStars: Int,
     val league: Liga,
@@ -163,26 +134,14 @@ data class UserProfile(
     val qrPayload: String
 )
 
-/**
- * Statistika za pojedinačnu igru.
- * - `averagePointsLabel`: tekstualni opseg, npr. "40 - 60 bodova"
- *   (po specifikaciji 1.c.i je "opseg prosečno osvojenih bodova")
- * - `mainMetricLabel` / `mainMetricPercent`: glavna metrika specifična
- *   za igru, npr. za "Ko zna zna" -> "Pogođenih pitanja", procenat 70%.
- * - `gamesPlayed`: broj odigranih partija ove igre.
- */
 data class GameStatistic(
     val gameName: String,
     val averagePointsLabel: String,
     val mainMetricLabel: String,
-    val mainMetricPercent: Float,   // 0f..100f
+    val mainMetricPercent: Float,
     val gamesPlayed: Int
 )
 
-/**
- * Sva statistika igrača na jednom mestu.
- * Drži po jedan GameStatistic za svaku igru + ukupne brojke.
- */
 data class PlayerStats(
     val koZnaZna: GameStatistic,
     val mojBroj: GameStatistic,
@@ -194,22 +153,14 @@ data class PlayerStats(
     val totalWins: Int,
     val totalLosses: Int
 ) {
-    /** Specifikacija 1.c.ix - procenat pobeđenih partija */
+
     val winPercent: Float
         get() = if (totalGamesPlayed > 0) totalWins * 100f / totalGamesPlayed else 0f
 
-    /** Specifikacija 1.c.ix - procenat izgubljenih partija */
     val lossPercent: Float
         get() = if (totalGamesPlayed > 0) totalLosses * 100f / totalGamesPlayed else 0f
 }
 
-
-// ===== KO ZNA ZNA =====
-
-/**
- * Jedno pitanje u igri "Ko zna zna".
- * Po specifikaciji: tacno 4 ponudjena odgovora, jedan je tacan.
- */
 data class KzzPitanje(
     val tekst: String,
     val odgovori: List<String>,
@@ -221,33 +172,20 @@ data class KzzPitanje(
     }
 }
 
-/**
- * Stanje aktuelnog pitanja - kontroliše vizuelnu povratnu informaciju
- * (boju dugmadi i da li su klikabilna).
- */
 enum class KzzStanjePitanja {
-    AKTIVNO,        // tajmer ide, korisnik bira
-    ODGOVORENO,     // korisnik je kliknuo - prikazi zelenu/crvenu boju
-    ISTEKLO         // istekao timer bez odgovora - prikazi tacan u zelenoj
+    AKTIVNO,
+    ODGOVORENO,
+    ISTEKLO
 }
 
-/**
- * Snapshot rezultata jedne odigrane runde - koristi se za finalni dijalog.
- */
 data class KzzRezultat(
     val mojiBodovi: Int,
     val protivnikBodovi: Int,
     val mojiTacni: Int,
     val mojiNetacni: Int,
-    val mojiPromaseni: Int   // istekao timer
+    val mojiPromaseni: Int
 )
 
-/**
- * Odgovor igrača na jedno pitanje u multiplayer meču.
- * `index` je odabrani odgovor (0..3) ili NIJE_ODGOVORIO; `vremeMs` je vrijeme
- * od prikaza pitanja do odgovora - bitno jer "ako oba tačno, bodove nosi brži".
- * U Firestore se čuva kompaktno kao string "index,vremeMs".
- */
 data class KzzOdgovor(val index: Int, val vremeMs: Long) {
     fun encode() = "$index,$vremeMs"
 
@@ -264,28 +202,15 @@ data class KzzOdgovor(val index: Int, val vremeMs: Long) {
     }
 }
 
-/**
- * Konstante za igru - stavljam ih u object da budu lako dostupne
- * iz ViewModel-a, a ne razbacane po kodu.
- */
 object KzzKonstante {
     const val BROJ_PITANJA = 5
     const val VREME_PO_PITANJU_S = 5
     const val BODOVA_ZA_TACAN = 10
     const val BODOVA_ZA_NETACAN = -5
-    const val MAX_BODOVA = BROJ_PITANJA * BODOVA_ZA_TACAN          // 50
-    const val MIN_BODOVA = BROJ_PITANJA * BODOVA_ZA_NETACAN        // -25
+    const val MAX_BODOVA = BROJ_PITANJA * BODOVA_ZA_TACAN
+    const val MIN_BODOVA = BROJ_PITANJA * BODOVA_ZA_NETACAN
 }
 
-// ===== SPOJNICE =====
-
-/**
- * Jedna runda u igri Spojnice.
- * Po specifikaciji: 5 pojmova levo, 5 desno, jedan kriterijum.
- *
- * `tacneVeze` mapira indeks levog pojma na indeks desnog koji mu odgovara.
- * Npr. tacneVeze[0] == 3 znaci da levi[0] ide sa desni[3].
- */
 data class SpojniceRundaPodaci(
     val kriterijum: String,
     val leviPojmovi: List<String>,
@@ -299,21 +224,14 @@ data class SpojniceRundaPodaci(
     }
 }
 
-/**
- * Stanje pojedinacne celije (jedna kartica pojma).
- * Boja kartice u Fragmentu se odredjuje na osnovu ovog stanja.
- */
 enum class SpojniceStanjeCelije {
     POCETNO,
-    SELEKTOVANA,                // levi pojam koji je trenutno u fokusu
-    POVEZANA_MOJA_TACNO,        // korisnik je pogodio - zeleno, trajno
-    POVEZANA_MOJA_NETACNO,      // korisnik je pogresno spojio - crveno, trajno
-    POVEZANA_PROTIVNIKOVA       // protivnik je spojio (sim) - plavo, trajno
+    SELEKTOVANA,
+    POVEZANA_MOJA_TACNO,
+    POVEZANA_MOJA_NETACNO,
+    POVEZANA_PROTIVNIKOVA
 }
 
-/**
- * Snapshot finalnog rezultata - prikazuje se u finalnom dijalogu.
- */
 data class SpojniceRezultat(
     val mojiBodovi: Int,
     val protivnikBodovi: Int,
@@ -326,18 +244,9 @@ object SpojniceKonstante {
     const val VREME_PO_RUNDI_S = 30
     const val POJMOVA_PO_KOLONI = 5
     const val BODOVA_PO_VEZI = 2
-    const val MAX_BODOVA = BROJ_RUNDI * POJMOVA_PO_KOLONI * BODOVA_PO_VEZI  // 20
+    const val MAX_BODOVA = BROJ_RUNDI * POJMOVA_PO_KOLONI * BODOVA_PO_VEZI
 }
 
-// ===== ASOCIJACIJE =====
-
-/**
- * Stanje pojedinacne celije - vazi i za polja i za resenja kolona i za finalno resenje.
- *
- * Polja prelaze samo: ZAKLJUCANO -> OTKRIVENO (kad se kliknu).
- * Resenja prelaze: ZAKLJUCANO -> POGODENO_MOJE/POGODENO_PROTIVNIK ili
- *                  ZAKLJUCANO -> OTKRIVENO (na kraju runde, ako niko nije pogodio).
- */
 enum class AsocijacijaCelijaStanje {
     ZAKLJUCANO,
     OTKRIVENO,
@@ -345,12 +254,6 @@ enum class AsocijacijaCelijaStanje {
     POGODENO_PROTIVNIK
 }
 
-/**
- * Jedna runda u igri Asocijacije.
- *  - polja: 4x4 matrica - polja[kolona][red]
- *  - resenjaKolona: 4 stringa - resenja kolona A, B, C, D (po redosledu)
- *  - finalnoResenje: jedan string - krajnje resenje runde
- */
 data class AsocijacijeRundaPodaci(
     val polja: List<List<String>>,
     val resenjaKolona: List<String>,
@@ -366,19 +269,39 @@ data class AsocijacijeRundaPodaci(
 data class AsocijacijeRezultat(
     val mojiBodovi: Int,
     val protivnikBodovi: Int,
-    val mojeResenja: Int,         // koliko sam pogodio (kolone + finalno)
+    val mojeResenja: Int,
     val protivnikoveResenja: Int
 )
 
 object AsocijacijeKonstante {
     const val BROJ_RUNDI = 2
-    const val VREME_PO_RUNDI_S = 120        // 2 minute
+    const val VREME_PO_RUNDI_S = 120
     const val POLJA_PO_KOLONI = 4
     const val BROJ_KOLONA = 4
 
-    // Bodovanje po spec-u
-    const val FINALNO_BAZA = 7              // 7 bodova bazno za finalno
-    const val KOLONA_BAZA = 2               // 2 boda bazno za resenje kolone
-    const val BODOVI_PO_NEOTVORENOM = 1     // +1 po neotvorenom polju
-    const val BODOVA_NEOTVORENA_KOLONA = 6  // = 2 + 4 (kad finalno gadjas, neotvorena kolona daje 6)
+    const val FINALNO_BAZA = 7
+    const val KOLONA_BAZA = 2
+    const val BODOVI_PO_NEOTVORENOM = 1
+    const val BODOVA_NEOTVORENA_KOLONA = 6
+}
+
+data class KorakPojam(
+    val rijec: String,
+    val tragovi: List<String>
+)
+
+object KorakKonstante {
+    const val BROJ_RUNDI = 2
+    const val MAX_KORAKA = 7
+    const val VRIJEME_PO_KORAKU_S = 10
+    const val BODOVA_PRVI_KORAK = 20
+    const val ODBITAK_PO_KORAKU = 2
+    const val KRADJA = 5
+}
+
+object MojBrojKonstante {
+    const val BROJ_RUNDI = 2
+    const val VRIJEME_S = 60
+    const val BODOVA_TACAN = 10
+    const val BODOVA_BLIZI = 5
 }

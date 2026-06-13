@@ -1,7 +1,7 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
-    // Firebase / Google Services (obrada google-services.json)
+
     id 'com.google.gms.google-services'
 }
 
@@ -25,7 +25,6 @@ android {
         }
     }
 
-    // Izvorni kod je u src/main/kotlin (umjesto podrazumijevanog src/main/java)
     sourceSets {
         main.kotlin.srcDirs += 'src/main/kotlin'
     }
@@ -39,7 +38,6 @@ android {
         jvmTarget = '1.8'
     }
 
-    // ViewBinding - kao na vjezbi GUI II
     buildFeatures {
         viewBinding true
     }
@@ -51,32 +49,25 @@ dependencies {
     implementation 'com.google.android.material:material:1.11.0'
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
 
-    // ===== Firebase =====
-    // BOM upravlja verzijama svih Firebase biblioteka
     implementation platform('com.google.firebase:firebase-bom:33.1.2')
-    implementation 'com.google.firebase:firebase-auth-ktx'          // Registracija i logovanje
-    implementation 'com.google.firebase:firebase-firestore-ktx'     // Baza: korisnici, notifikacije, rezultati igara
-    implementation 'com.google.firebase:firebase-messaging-ktx'     // Push notifikacije (FCM)
-    // Coroutines + Firebase (kotlinx-coroutines-play-services -> .await())
+    implementation 'com.google.firebase:firebase-auth-ktx'
+    implementation 'com.google.firebase:firebase-firestore-ktx'
+    implementation 'com.google.firebase:firebase-messaging-ktx'
+
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3'
 
-    // QR kod generisanje (ZXing core - bez UI dela, samo enkodiranje)
     implementation 'com.google.zxing:core:3.5.3'
 
-    // Navigation Component - kao na vjezbi GUI II
     def nav_version = "2.7.7"
     implementation "androidx.navigation:navigation-fragment-ktx:$nav_version"
     implementation "androidx.navigation:navigation-ui-ktx:$nav_version"
 
-    // ViewModel i LiveData - kao na vjezbi GUI II
     def lifecycle_version = "2.7.0"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version"
     implementation "androidx.lifecycle:lifecycle-livedata-ktx:$lifecycle_version"
 
-    // RecyclerView - za notifikacije
     implementation 'androidx.recyclerview:recyclerview:1.3.2'
 
-    // CardView - za kartice
     implementation 'androidx.cardview:cardview:1.0.0'
 
     testImplementation 'junit:junit:4.13.2'

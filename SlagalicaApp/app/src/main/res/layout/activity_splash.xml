@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     android:background="@color/primary">
 
-    <!-- Logo / naziv igre -->
     <TextView
         android:id="@+id/tvNazivAplikacije"
         android:layout_width="wrap_content"
@@ -36,7 +35,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvNazivAplikacije"/>
 
-    <!-- Loading indikator -->
     <ProgressBar
         android:id="@+id/progressBar"
         style="?android:attr/progressBarStyle"
@@ -49,7 +47,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tvPodnaslov"/>
 
-    <!-- Verzija aplikacije -->
     <TextView
         android:id="@+id/tvVerzija"
         android:layout_width="wrap_content"
