@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Fragment notifikacija - RecyclerView + filter (pročitane/nepročitane) -->
+
 <androidx.coordinatorlayout.widget.CoordinatorLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -7,7 +7,6 @@
     android:layout_height="match_parent"
     android:background="@color/background">
 
-    <!-- Filter chipovi (Sve / Pročitane / Nepročitane) -->
     <com.google.android.material.chip.ChipGroup
         android:id="@+id/chipGroupFilter"
         android:layout_width="match_parent"
@@ -54,7 +53,6 @@
         tools:listitem="@layout/item_notifikacija"
         xmlns:tools="http://schemas.android.com/tools"/>
 
-    <!-- Prazna lista poruka -->
     <LinearLayout
         android:id="@+id/llPraznoStanje"
         android:layout_width="match_parent"

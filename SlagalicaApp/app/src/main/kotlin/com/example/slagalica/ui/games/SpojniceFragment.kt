@@ -71,7 +71,6 @@ class SpojniceFragment : Fragment() {
             binding.cellDesni4.tvSpojnicaCelija
         )
 
-        // Leve kartice nisu klikabilne - ViewModel ih sam upravlja
         leveKartice.forEach { it.isClickable = false }
 
         setupClickListeners()
@@ -85,7 +84,7 @@ class SpojniceFragment : Fragment() {
     }
 
     private fun setupClickListeners() {
-        // SAMO desne kartice imaju listener
+
         desneKartice.forEachIndexed { i, k -> k.setOnClickListener { viewModel.onDesniClick(i) } }
         binding.btnDaljeSpojnice.setOnClickListener { viewModel.onSkip() }
     }
@@ -139,10 +138,6 @@ class SpojniceFragment : Fragment() {
         binding.progressRunde.progress = ((index + 1) * 100) / ukupno
     }
 
-    /**
-     * Stilizovanje kartice na osnovu njenog stanja.
-     * isLevi parametar: levi pojmovi nikad ne mogu biti klikabilni od strane korisnika.
-     */
     private fun stilirajKarticu(
         kartica: MaterialCardView,
         tekst: TextView,
@@ -155,11 +150,11 @@ class SpojniceFragment : Fragment() {
                 kartica.strokeColor = boja(R.color.primary_light)
                 kartica.strokeWidth = dp(1)
                 tekst.setTextColor(boja(R.color.text_primary))
-                // Samo desne POCETNO kartice su klikabilne
+
                 kartica.isClickable = !isLevi
             }
             SpojniceStanjeCelije.SELEKTOVANA -> {
-                // Samo levi pojmovi mogu biti SELEKTOVANA - to je auto-fokus
+
                 kartica.setCardBackgroundColor(boja(R.color.accent))
                 kartica.strokeColor = boja(R.color.accent_dark)
                 kartica.strokeWidth = dp(3)
@@ -192,7 +187,6 @@ class SpojniceFragment : Fragment() {
 
     private fun boja(resId: Int): Int = ContextCompat.getColor(requireContext(), resId)
 
-    /** Konvertuje dp u px za strokeWidth (koji prima px). */
     private fun dp(value: Int): Int =
         (value * resources.displayMetrics.density).toInt()
 

@@ -24,13 +24,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-/**
- * Multiplayer Ko zna zna: oba telefona dobijaju ISTA pitanja (ugrađena u
- * matches/{id} prilikom uparivanja). Igrač lokalno odgovara na 5 pitanja
- * (5s po pitanju); bilježi se i vrijeme odgovora zbog pravila "ako oba
- * tačno odgovore - bodove dobija brži". Na kraju se svi odgovori šalju u
- * Firestore; host (player1) boduje rundu, rezultat stiže kroz MatchState.
- */
 class KzzMpFragment : Fragment() {
 
     private var _binding: FragmentKoZnaZnaBinding? = null
@@ -39,7 +32,6 @@ class KzzMpFragment : Fragment() {
     private lateinit var mp: MultiplayerViewModel
     private lateinit var dugmadOdgovora: List<MaterialButton>
 
-    // Lokalni tok kviza
     private var pitanja: List<KzzPitanje> = emptyList()
     private val mojiOdgovori = mutableListOf<KzzOdgovor>()
     private var trenutnoPitanje = 0
@@ -76,10 +68,6 @@ class KzzMpFragment : Fragment() {
         mp.match.observe(viewLifecycleOwner) { state -> if (state != null) onMatchUpdate(state) }
     }
 
-    // ============================================================
-    // SINHRONIZACIJA SA MEČOM
-    // ============================================================
-
     private fun onMatchUpdate(state: MatchState) {
         binding.scoreboardKzz.tvMojiBodovi.text = state.myScore(mp.uid).toString()
         binding.scoreboardKzz.tvProtivnikBodovi.text = state.opponentScore(mp.uid).toString()
@@ -89,17 +77,12 @@ class KzzMpFragment : Fragment() {
         val round = state.currentRound ?: return
         if (round.gameType != MultiplayerRepository.GAME_KZZ) return
 
-        // Pitanja stižu kroz prvi snapshot meča - kviz se pokreće samo jednom
         if (!quizStarted) {
             quizStarted = true
             pitanja = round.kzzPitanja()
             if (pitanja.isNotEmpty()) loadQuestion(0)
         }
     }
-
-    // ============================================================
-    // LOKALNI TOK KVIZA (5 pitanja x 5 sekundi)
-    // ============================================================
 
     private fun loadQuestion(index: Int) {
         trenutnoPitanje = index
@@ -148,7 +131,6 @@ class KzzMpFragment : Fragment() {
         val vreme = System.currentTimeMillis() - pitanjeStartedAt
         mojiOdgovori.add(KzzOdgovor(index, vreme))
 
-        // Vizuelni feedback: tačan zeleno, moj netačan crveno, ostali prigušeni
         val tacan = pitanja[trenutnoPitanje].tacanIndex
         dugmadOdgovora.forEachIndexed { i, b ->
             when {
@@ -174,7 +156,6 @@ class KzzMpFragment : Fragment() {
         onNoAnswerCommon()
     }
 
-    /** Istekao tajmer ili preskočeno: bez odgovora (0 bodova), otkrij tačan. */
     private fun onNoAnswerCommon() {
         mojiOdgovori.add(KzzOdgovor(KzzOdgovor.NIJE_ODGOVORIO, 0))
         val tacan = pitanja[trenutnoPitanje].tacanIndex
@@ -194,7 +175,6 @@ class KzzMpFragment : Fragment() {
         }
     }
 
-    /** Šalje sve odgovore u Firestore i čeka da protivnik završi svoj kviz. */
     private fun submitAnswers() {
         if (submitted) return
         submitted = true
@@ -205,10 +185,6 @@ class KzzMpFragment : Fragment() {
         dugmadOdgovora.forEach { stilirajPrigusen(it) }
         binding.btnDalje.isEnabled = false
     }
-
-    // ============================================================
-    // STILIZACIJA DUGMADI (kao u KzzFragment)
-    // ============================================================
 
     private fun stilirajPocetno(b: MaterialButton) {
         b.isEnabled = true
@@ -241,10 +217,6 @@ class KzzMpFragment : Fragment() {
     }
 
     private fun boja(resId: Int): Int = ContextCompat.getColor(requireContext(), resId)
-
-    // ============================================================
-    // KRAJ MEČA
-    // ============================================================
 
     private fun showFinal(state: MatchState) {
         if (finalShown) return

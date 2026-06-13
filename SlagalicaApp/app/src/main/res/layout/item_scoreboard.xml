@@ -17,7 +17,6 @@
         android:padding="12dp"
         android:gravity="center_vertical">
 
-        <!-- Moji bodovi -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -52,7 +51,6 @@
 
         </LinearLayout>
 
-        <!-- Separator i VS -->
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -71,7 +69,6 @@
 
         </LinearLayout>
 
-        <!-- Bodovi protivnika -->
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"

@@ -14,23 +14,8 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-/**
- * ViewModel za igru "Ko zna zna".
- *
- * Vodi 5 pitanja, tajmer od 5s po pitanju, bodovanje, i simulaciju
- * protivnika koji moze biti brzi/sporiji ili netacan.
- *
- * Bodovanje (specifikacija):
- *   +10  za tacan odgovor
- *   -5   za netacan
- *    0   za istekao timer ili preskoceno pitanje
- *   Ako oba igraca tacno odgovore, bodove dobija brzi.
- */
 class KzzViewModel : ViewModel() {
 
-    // ============================================================
-    // PITANJA - hardkodovano (5 pitanja, 4 odgovora svako)
-    // ============================================================
     private val pitanja = listOf(
         KzzPitanje(
             tekst = "Koji je glavni grad Australije?",
@@ -59,10 +44,6 @@ class KzzViewModel : ViewModel() {
         )
     )
 
-    // ============================================================
-    // STATE - LiveData za Fragment
-    // ============================================================
-
     private val _trenutniIndex = MutableLiveData(0)
     val trenutniIndex: LiveData<Int> = _trenutniIndex
 
@@ -81,21 +62,14 @@ class KzzViewModel : ViewModel() {
     private val _preostaloVreme = MutableLiveData(KzzKonstante.VREME_PO_PITANJU_S)
     val preostaloVreme: LiveData<Int> = _preostaloVreme
 
-    /** Color resource za pozadinu timera (timer_normalno -> upozorenje -> hitno) */
     private val _timerBojaRes = MutableLiveData(R.color.timer_normalno)
     val timerBojaRes: LiveData<Int> = _timerBojaRes
 
-    /** Indeks koji je korisnik kliknuo (-1 ako nije). Za vizuelni feedback. */
     private val _odabranIndex = MutableLiveData(-1)
     val odabranIndex: LiveData<Int> = _odabranIndex
 
-    /** Kraj igre - != null prikazuje finalni dijalog */
     private val _krajIgre = MutableLiveData<KzzRezultat?>(null)
     val krajIgre: LiveData<KzzRezultat?> = _krajIgre
-
-    // ============================================================
-    // INTERNAL STATE
-    // ============================================================
 
     private var timer: CountDownTimer? = null
     private var pitanjeStartedAt: Long = 0L
@@ -107,14 +81,6 @@ class KzzViewModel : ViewModel() {
     private var brojNetacnih = 0
     private var brojPromasenih = 0
 
-    // ============================================================
-    // PUBLIC API
-    // ============================================================
-
-    /**
-     * Poziva se iz Fragmenta u onViewCreated. Flag sprecava da se igra
-     * resetuje kad se ViewModel reattach-uje (npr. posle rotacije).
-     */
     fun startGameIfNeeded() {
         if (gameStarted) return
         gameStarted = true
@@ -153,14 +119,9 @@ class KzzViewModel : ViewModel() {
         timer?.cancel()
         brojPromasenih++
 
-        // Protivnik nezavisno odgovara - ne menja se status korisnika
         resolveProtivnik(korisnikBrziTacan = false)
-        scheduleNext(0L)  // bez feedback delay-a
+        scheduleNext(0L)
     }
-
-    // ============================================================
-    // INTERNAL LOGIC
-    // ============================================================
 
     private fun loadQuestion(index: Int) {
         _trenutniIndex.value = index
@@ -180,7 +141,7 @@ class KzzViewModel : ViewModel() {
         val ukupno = KzzKonstante.VREME_PO_PITANJU_S * 1000L
         timer = object : CountDownTimer(ukupno, 200L) {
             override fun onTick(millisUntilFinished: Long) {
-                // Ceiling: kad je 4900ms preostalo, prikazi "5", a ne "4"
+
                 val sekundi = ((millisUntilFinished + 999L) / 1000L).toInt()
                 _preostaloVreme.value = sekundi
                 _timerBojaRes.value = bojaZaSekundi(sekundi)
@@ -209,9 +170,9 @@ class KzzViewModel : ViewModel() {
     }
 
     private fun resolveRound(korisnikTacan: Boolean, korisnikVreme: Long) {
-        // Bodovi korisnika
+
         if (korisnikTacan) {
-            // +10 osim ako je protivnik bio brzi i tacan
+
             val protivnikBrziTacan = trenutniProtivnik.odgovorio &&
                     trenutniProtivnik.tacan &&
                     trenutniProtivnik.vreme < korisnikVreme
@@ -224,7 +185,6 @@ class KzzViewModel : ViewModel() {
             brojNetacnih++
         }
 
-        // Protivnik
         val korisnikBrziTacan = korisnikTacan && korisnikVreme < trenutniProtivnik.vreme
         resolveProtivnik(korisnikBrziTacan)
     }
@@ -241,8 +201,8 @@ class KzzViewModel : ViewModel() {
     }
 
     private fun generisiProtivnika(): ProtivnikRound {
-        val odgovorio = (1..10).random() <= 8           // 80% sansi da odgovori
-        val tacan = odgovorio && (1..10).random() <= 7  // 70% sansi tacan (ako je odgovorio)
+        val odgovorio = (1..10).random() <= 8
+        val tacan = odgovorio && (1..10).random() <= 7
         val vreme = if (odgovorio) (1500..5000).random().toLong() else Long.MAX_VALUE
         return ProtivnikRound(odgovorio, tacan, vreme)
     }
@@ -288,14 +248,10 @@ class KzzViewModel : ViewModel() {
         cleanup()
     }
 
-    /**
-     * Simulacija jedne runde za protivnika - generise se na pocetku svakog pitanja.
-     * Posto nemamo backend ni drugi uredjaj, izmisljamo "kakav bi bio" protivnik.
-     */
     private data class ProtivnikRound(
         val odgovorio: Boolean,
         val tacan: Boolean,
-        val vreme: Long  // ms od pocetka pitanja, MAX_VALUE = nije odgovorio
+        val vreme: Long
     )
 
     companion object {

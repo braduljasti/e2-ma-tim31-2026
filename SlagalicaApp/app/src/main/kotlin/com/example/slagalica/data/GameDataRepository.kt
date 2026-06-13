@@ -1,33 +1,15 @@
 package com.example.slagalica.data
 
 import com.example.slagalica.model.AsocijacijeRundaPodaci
+import com.example.slagalica.model.KorakPojam
 import com.example.slagalica.model.KzzPitanje
 import com.example.slagalica.model.SpojniceRundaPodaci
 import kotlinx.coroutines.tasks.await
 
-/**
- * Podaci za igre Ko zna zna, Spojnice i Asocijacije iz Firestore baze.
- *
- * Struktura kolekcija:
- *   kzzQuestions/{id}      -> { tekst, odgovori: [4 stringa], tacanIndex }
- *   spojniceRunde/{id}     -> { kriterijum, levi: [5], desni: [5], veze: {"0": 1, ...} }
- *   asocijacijeRunde/{id}  -> { kolone: {A:[4], B:[4], C:[4], D:[4]}, resenjaKolona: [4], finalnoResenje }
- *
- * Napomena: Firestore ne podržava niz nizova, pa se 4x4 polja asocijacija
- * čuvaju kao mapa kolona (A-D), a veze spojnica kao mapa sa string ključevima.
- *
- * Podaci se inicijalno unose kroz seedIfEmpty() (poziva se pri pokretanju
- * aplikacije) - po specifikaciji je dovoljno par primera po igri.
- */
 class GameDataRepository {
 
     private val db = FirebaseProvider.db
 
-    // ============================================================
-    // ČITANJE - nasumičan izbor za jednu partiju
-    // ============================================================
-
-    /** Vraća [broj] nasumičnih pitanja za Ko zna zna. */
     suspend fun nasumicnaKzzPitanja(broj: Int): List<KzzPitanje> {
         val sva = db.collection(FirestoreCollections.KZZ_QUESTIONS).get().await()
             .documents.mapNotNull { d ->
@@ -43,7 +25,6 @@ class GameDataRepository {
         return sva.shuffled().take(broj)
     }
 
-    /** Vraća [broj] nasumičnih rundi za Spojnice. */
     suspend fun nasumicneSpojnice(broj: Int): List<SpojniceRundaPodaci> {
         val sve = db.collection(FirestoreCollections.SPOJNICE_RUNDE).get().await()
             .documents.mapNotNull { d ->
@@ -62,7 +43,6 @@ class GameDataRepository {
         return sve.shuffled().take(broj)
     }
 
-    /** Vraća [broj] nasumičnih rundi za Asocijacije. */
     suspend fun nasumicneAsocijacije(broj: Int): List<AsocijacijeRundaPodaci> {
         val sve = db.collection(FirestoreCollections.ASOCIJACIJE_RUNDE).get().await()
             .documents.mapNotNull { d ->
@@ -81,15 +61,22 @@ class GameDataRepository {
         return sve.shuffled().take(broj)
     }
 
-    // ============================================================
-    // SEED - jednokratno punjenje baze početnim podacima
-    // ============================================================
+    suspend fun nasumicniKorakPojmovi(broj: Int): List<KorakPojam> {
+        val svi = runCatching {
+            db.collection(FirestoreCollections.KORAK_POJMOVI).get().await()
+                .documents.mapNotNull { d ->
+                    runCatching {
+                        KorakPojam(
+                            rijec = d.getString("rijec")!!,
+                            tragovi = (d.get("tragovi") as List<*>).map { it as String }
+                        )
+                    }.getOrNull()
+                }
+        }.getOrDefault(emptyList())
+        val izvor = if (svi.size >= broj) svi else seedKorak
+        return izvor.shuffled().take(broj)
+    }
 
-    /**
-     * Ako je neka od kolekcija prazna, puni je početnim podacima.
-     * Idempotentno: postojeće kolekcije se ne diraju, pa je bezbedno
-     * zvati pri svakom pokretanju aplikacije (1 read po kolekciji).
-     */
     suspend fun seedIfEmpty() {
         seedCollection(FirestoreCollections.KZZ_QUESTIONS, seedKzz.map { p ->
             mapOf("tekst" to p.tekst, "odgovori" to p.odgovori, "tacanIndex" to p.tacanIndex)
@@ -112,19 +99,18 @@ class GameDataRepository {
                 "finalnoResenje" to r.finalnoResenje
             )
         })
+        seedCollection(FirestoreCollections.KORAK_POJMOVI, seedKorak.map { p ->
+            mapOf("rijec" to p.rijec, "tragovi" to p.tragovi)
+        })
     }
 
     private suspend fun seedCollection(name: String, docs: List<Map<String, Any>>) {
         val col = db.collection(name)
-        if (!col.limit(1).get().await().isEmpty) return   // već popunjena
+        if (!col.limit(1).get().await().isEmpty) return
         val batch = db.batch()
         docs.forEach { batch.set(col.document(), it) }
         batch.commit().await()
     }
-
-    // ============================================================
-    // POČETNI PODACI
-    // ============================================================
 
     private val seedKzz = listOf(
         KzzPitanje("Koji je glavni grad Australije?",
@@ -174,6 +160,25 @@ class GameDataRepository {
             desniPojmovi = listOf("Funta", "Dinar", "Jen", "Franak", "Dolar"),
             tacneVeze = mapOf(0 to 2, 1 to 3, 2 to 0, 3 to 4, 4 to 1)
         )
+    )
+
+    private val seedKorak = listOf(
+        KorakPojam("TESLA", listOf(
+            "Rođen 1856. godine", "Srpskog porijekla", "Radio u kompaniji Edison",
+            "Izmislio izmjeničnu struju", "Naučnik i izumitelj", "Ime mu je Nikola",
+            "Tesla Motors nosi njegovo ime")),
+        KorakPojam("BEOGRAD", listOf(
+            "Na ušću dvije rijeke", "Sadrži čuvenu tvrđavu", "Kalemegdan",
+            "Sava i Dunav", "Preko 1,5 miliona stanovnika", "U centralnoj Srbiji",
+            "Glavni grad Srbije")),
+        KorakPojam("SUNCE", listOf(
+            "Nalazi se u centru", "Ogromna užarena lopta", "Veoma je vruće",
+            "Sastoji se od gasa", "Daje svjetlost", "Izlazi na istoku",
+            "Zvijezda našeg sistema")),
+        KorakPojam("KNJIGA", listOf(
+            "Ima je u svakoj kući", "Pravi se od drveta", "Sastoji se od stranica",
+            "Ima korice", "Može biti debela ili tanka", "Čita se",
+            "U biblioteci ih ima mnogo"))
     )
 
     private val seedAsocijacije = listOf(

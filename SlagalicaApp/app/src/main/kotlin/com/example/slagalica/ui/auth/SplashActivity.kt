@@ -19,7 +19,7 @@ class SplashActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         Handler(Looper.getMainLooper()).postDelayed({
-            // Ako postoji aktivna sesija i mejl je potvrđen, idemo direktno u aplikaciju
+
             val user = com.example.slagalica.data.FirebaseProvider.auth.currentUser
             val target = if (user != null && user.isEmailVerified) {
                 Intent(this, com.example.slagalica.ui.main.MainActivity::class.java)

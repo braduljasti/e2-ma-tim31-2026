@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Igra Spojnice: 2 runde po 30s, max 20 bodova ukupno -->
+
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -14,7 +14,6 @@
         android:layout_height="wrap_content"
         android:padding="@dimen/margin_medium">
 
-        <!-- Scoreboard: TI vs PROTIVNIK -->
         <include
             android:id="@+id/scoreboardSpojnice"
             layout="@layout/item_scoreboard"
@@ -24,7 +23,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Header: redni broj runde + max bodovi i timer -->
         <LinearLayout
             android:id="@+id/llHeaderSpojnice"
             android:layout_width="0dp"
@@ -80,7 +78,6 @@
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
 
-        <!-- Progress bar napretka kroz 2 runde -->
         <com.google.android.material.progressindicator.LinearProgressIndicator
             android:id="@+id/progressRunde"
             android:layout_width="0dp"
@@ -94,7 +91,6 @@
             app:trackColor="@color/skocko_prazno"
             app:trackCornerRadius="4dp" />
 
-        <!-- Kartica sa kriterijumom za ovu rundu -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardKriterijum"
             android:layout_width="0dp"
@@ -136,7 +132,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Dvije kolone od 5 celija -->
         <LinearLayout
             android:id="@+id/llKolone"
             android:layout_width="0dp"
@@ -147,7 +142,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/cardKriterijum">
 
-            <!-- Leva kolona: 5 celija -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -161,7 +155,6 @@
                 <include android:id="@+id/cellLevi4" layout="@layout/item_spojnica_celija" />
             </LinearLayout>
 
-            <!-- Desna kolona: 5 celija -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -176,7 +169,6 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Dalje dugme: preskoci ostatak vremena u rundi -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btnDaljeSpojnice"
             style="@style/Widget.MaterialComponents.Button.TextButton"

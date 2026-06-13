@@ -130,10 +130,6 @@ class SkockoViewModel(
         saveResultIfFinalRound()
     }
 
-    /**
-     * Po zavrsetku 2. (poslednje) runde, snima rezultat meca u Firebase.
-     * Za neregistrovanog igraca repo ovo tiho preskace.
-     */
     private fun saveResultIfFinalRound() {
         if ((_round.value ?: 1) < 2) return
         val my = _points.value ?: 0

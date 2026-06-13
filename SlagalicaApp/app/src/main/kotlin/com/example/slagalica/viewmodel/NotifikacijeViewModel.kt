@@ -10,11 +10,6 @@ import com.example.slagalica.model.NotificationFilter
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.launch
 
-/**
- * Notifikacije se ucitavaju iz Firestore baze u realnom vremenu (zahtjev 11.b).
- * - 11.c: oznacavanje kao procitano upisuje se u bazu
- * - 11.d: filtriranje na sve/procitane/neprocitane radi se lokalno nad ucitanom listom
- */
 class NotifikacijeViewModel(
     private val repo: NotifikacijeRepository = NotifikacijeRepository()
 ) : ViewModel() {
@@ -28,7 +23,7 @@ class NotifikacijeViewModel(
     private var listener: ListenerRegistration? = null
 
     init {
-        // Ako korisnik nema notifikacija, ubacujemo par primjera, pa pocinjemo da osluskujemo
+
         viewModelScope.launch {
             runCatching { repo.seedIfEmpty() }
             startListening()

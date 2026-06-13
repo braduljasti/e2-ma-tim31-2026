@@ -14,9 +14,6 @@
         android:orientation="vertical"
         android:padding="@dimen/profil_section_spacing">
 
-        <!-- ============================================== -->
-        <!-- ZAGLAVLJE: avatar + osnovni podaci + QR kod    -->
-        <!-- ============================================== -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -29,7 +26,6 @@
                 android:layout_height="wrap_content"
                 android:padding="@dimen/profil_card_padding">
 
-                <!-- Avatar sa okvirom -->
                 <ImageView
                     android:id="@+id/iv_avatar"
                     android:layout_width="@dimen/profil_avatar_size"
@@ -41,7 +37,6 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
 
-                <!-- Korisničko ime -->
                 <TextView
                     android:id="@+id/tv_korisnicko_ime"
                     android:layout_width="0dp"
@@ -55,7 +50,6 @@
                     app:layout_constraintTop_toTopOf="@id/iv_avatar"
                     tools:text="igrac_123" />
 
-                <!-- Email -->
                 <TextView
                     android:id="@+id/tv_email"
                     android:layout_width="0dp"
@@ -69,7 +63,6 @@
                     app:layout_constraintTop_toBottomOf="@id/tv_korisnicko_ime"
                     tools:text="igrac@example.com" />
 
-                <!-- Region -->
                 <TextView
                     android:id="@+id/tv_region"
                     android:layout_width="0dp"
@@ -82,7 +75,6 @@
                     app:layout_constraintTop_toBottomOf="@id/tv_email"
                     tools:text="🌍 Vojvodina" />
 
-                <!-- Dugme za promenu avatara -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btn_promeni_avatar"
                     style="@style/Widget.Material3.Button.OutlinedButton"
@@ -94,7 +86,6 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/iv_avatar" />
 
-                <!-- Razdvajač -->
                 <View
                     android:id="@+id/divider_1"
                     android:layout_width="match_parent"
@@ -103,7 +94,6 @@
                     android:background="#E0E0E0"
                     app:layout_constraintTop_toBottomOf="@id/btn_promeni_avatar" />
 
-                <!-- Tokeni / Zvezde / Liga - tri kolone -->
                 <TextView
                     android:id="@+id/tv_tokeni"
                     android:layout_width="0dp"
@@ -143,7 +133,6 @@
                     app:layout_constraintTop_toBottomOf="@id/divider_1"
                     tools:text="🥇 Zlatna" />
 
-                <!-- QR kod label -->
                 <TextView
                     android:id="@+id/lbl_qr"
                     android:layout_width="wrap_content"
@@ -156,7 +145,6 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/tv_tokeni" />
 
-                <!-- QR kod slika -->
                 <ImageView
                     android:id="@+id/iv_qr_kod"
                     android:layout_width="@dimen/profil_qr_size"
@@ -172,9 +160,6 @@
             </androidx.constraintlayout.widget.ConstraintLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- ============================================== -->
-        <!-- STATISTIKA                                      -->
-        <!-- ============================================== -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -188,7 +173,6 @@
                 android:orientation="vertical"
                 android:padding="@dimen/profil_card_padding">
 
-                <!-- Naslov sekcije -->
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -198,7 +182,6 @@
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
-                <!-- Ukupno odigranih partija -->
                 <TextView
                     android:id="@+id/tv_ukupno_partija"
                     android:layout_width="match_parent"
@@ -206,7 +189,6 @@
                     android:textSize="14sp"
                     tools:text="Ukupno partija: 142" />
 
-                <!-- Pobede sa progres barom -->
                 <TextView
                     android:id="@+id/tv_pobede_label"
                     android:layout_width="match_parent"
@@ -224,7 +206,6 @@
                     app:trackThickness="6dp"
                     tools:progress="65" />
 
-                <!-- Porazi sa progres barom -->
                 <TextView
                     android:id="@+id/tv_porazi_label"
                     android:layout_width="match_parent"
@@ -242,7 +223,6 @@
                     app:trackThickness="6dp"
                     tools:progress="35" />
 
-                <!-- Razdvajač pre statistike po igrama -->
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
@@ -250,7 +230,6 @@
                     android:layout_marginBottom="16dp"
                     android:background="#E0E0E0" />
 
-                <!-- 6 statistika po igri (svaka iz item_game_statistika.xml) -->
                 <include
                     android:id="@+id/stat_ko_zna_zna"
                     layout="@layout/item_game_statistika" />
@@ -278,9 +257,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- ============================================== -->
-        <!-- LOGOUT DUGME                                    -->
-        <!-- ============================================== -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_logout"
             android:layout_width="match_parent"

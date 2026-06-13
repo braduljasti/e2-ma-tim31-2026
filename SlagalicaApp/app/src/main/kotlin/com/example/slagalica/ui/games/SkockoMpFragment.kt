@@ -18,11 +18,6 @@ import com.example.slagalica.viewmodel.MultiplayerViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 
-/**
- * Multiplayer Skočko: oba telefona igraju istu (dijeljenu) kombinaciju iz meča.
- * Igrač lokalno pravi pokušaje i, kad završi rundu, šalje ih u Firestore.
- * Bodovanje radi host; rezultat i skor stižu nazad kroz MatchState.
- */
 class SkockoMpFragment : Fragment() {
 
     private var _binding: FragmentSkockoBinding? = null
@@ -62,7 +57,6 @@ class SkockoMpFragment : Fragment() {
         val round = state.currentRound ?: return
         if (round.gameType != "Skocko") return
 
-        // Nova runda -> resetuj lokalnu tablu
         if (state.currentRoundIndex != playedRoundIndex) {
             playedRoundIndex = state.currentRoundIndex
             startLocalRound(state)
@@ -128,7 +122,6 @@ class SkockoMpFragment : Fragment() {
         else attemptCount++
     }
 
-    /** Šalje sve pokušaje u Firestore i čeka protivnika. */
     private fun submitRound() {
         if (submittedThisRound) return
         submittedThisRound = true
@@ -137,8 +130,6 @@ class SkockoMpFragment : Fragment() {
         mp.submitSkocko(myGuesses.toList())
         Snackbar.make(binding.root, "Poslato! Čekamo protivnika…", Snackbar.LENGTH_SHORT).show()
     }
-
-    // ===== UI helpers =====
 
     private fun initRows() {
         val inflater = LayoutInflater.from(requireContext())

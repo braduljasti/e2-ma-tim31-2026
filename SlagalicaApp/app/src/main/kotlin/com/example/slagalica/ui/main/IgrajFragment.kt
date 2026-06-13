@@ -20,7 +20,7 @@ class IgrajFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var viewModel: IgrajViewModel
-    private lateinit var mpViewModel: MultiplayerViewModel   // dijeljen na nivou Activity-ja
+    private lateinit var mpViewModel: MultiplayerViewModel
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentIgrajBinding.inflate(inflater, container, false)
@@ -45,24 +45,22 @@ class IgrajFragment : Fragment() {
         }
     }
 
-    /**
-     * Privremeni izbor igre - za KT2 svaka igra mora raditi pojedinačno.
-     * Kasnije će partija automatski ređati svih 6 igara po specifikaciji.
-     */
     private fun showGamePicker() {
-        val nazivi = arrayOf("Ko zna zna", "Spojnice", "Asocijacije", "Skočko")
+        val nazivi = arrayOf("Ko zna zna", "Spojnice", "Asocijacije", "Skočko", "Korak po korak", "Moj broj")
         val tipovi = arrayOf(
             MultiplayerRepository.GAME_KZZ,
             MultiplayerRepository.GAME_SPOJNICE,
             MultiplayerRepository.GAME_ASOCIJACIJE,
-            MultiplayerRepository.GAME_SKOCKO
+            MultiplayerRepository.GAME_SKOCKO,
+            MultiplayerRepository.GAME_KORAK,
+            MultiplayerRepository.GAME_MOJ_BROJ
         )
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.mp_izaberi_igru)
             .setItems(nazivi) { _, which ->
                 binding.cardIgraj.visibility = View.GONE
                 binding.cardCekanje.visibility = View.VISIBLE
-                mpViewModel.startMatchmaking(tipovi[which])   // matchmaking preko Firestore-a
+                mpViewModel.startMatchmaking(tipovi[which])
             }
             .show()
     }
@@ -72,7 +70,6 @@ class IgrajFragment : Fragment() {
         viewModel.stars.observe(viewLifecycleOwner) { binding.tvZvjezdiceMain.text = it.toString() }
         viewModel.league.observe(viewLifecycleOwner) { binding.tvLigaMain.text = it }
 
-        // Kad se nađe protivnik -> idemo na ekran igre koja je tražena
         mpViewModel.matchFound.observe(viewLifecycleOwner) { matchId ->
             if (matchId != null) {
                 mpViewModel.consumeMatchFound()
@@ -82,6 +79,8 @@ class IgrajFragment : Fragment() {
                     MultiplayerRepository.GAME_KZZ -> R.id.nav_kzz_mp
                     MultiplayerRepository.GAME_SPOJNICE -> R.id.nav_spojnice_mp
                     MultiplayerRepository.GAME_ASOCIJACIJE -> R.id.nav_asocijacije_mp
+                    MultiplayerRepository.GAME_KORAK -> R.id.nav_korak_mp
+                    MultiplayerRepository.GAME_MOJ_BROJ -> R.id.nav_moj_broj_mp
                     else -> R.id.nav_skocko_mp
                 }
                 findNavController().navigate(odrediste)

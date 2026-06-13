@@ -20,20 +20,6 @@ import com.example.slagalica.viewmodel.MultiplayerViewModel
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
-/**
- * Multiplayer Spojnice: runda ima DVIJE faze po specifikaciji -
- * starter povezuje svih 5 pojmova (30s), a zatim protivnik dobija šansu
- * da poveže one koje starter NIJE tačno povezao (30s).
- *
- * Faze se prepoznaju iz stanja meča u Firestore-u:
- *  - ja sam starter i nisam poslao   -> igram svih 5
- *  - ja sam starter i poslao sam     -> čekam protivnika
- *  - nisam starter, starter nije poslao -> čekam da starter odigra
- *  - nisam starter, starter poslao   -> njegove tačne veze su plave,
- *                                       ja igram preostale pojmove
- * Kad oba pošalju, host boduje rundu i meč ide dalje (runda 2: starter je
- * drugi igrač). Na kraju obje runde - finalni rezultat.
- */
 class SpojniceMpFragment : Fragment() {
 
     private var _binding: FragmentSpojniceBinding? = null
@@ -45,7 +31,6 @@ class SpojniceMpFragment : Fragment() {
     private lateinit var desneKartice: List<MaterialCardView>
     private lateinit var desniTekstovi: List<TextView>
 
-    // Lokalno stanje tekuće runde
     private var playedRoundIndex = -1
     private var runda: SpojniceRundaPodaci? = null
     private var amStarter = false
@@ -96,12 +81,8 @@ class SpojniceMpFragment : Fragment() {
         mp.match.observe(viewLifecycleOwner) { state -> if (state != null) onMatchUpdate(state) }
     }
 
-    // ============================================================
-    // SINHRONIZACIJA SA MEČOM
-    // ============================================================
-
     private fun onMatchUpdate(state: MatchState) {
-        // Tekući skor = zbir bodova iz već bodovanih rundi
+
         val isP1 = state.isPlayer1(mp.uid)
         val resolvedRounds = state.rounds.filter { it.resolved }
         binding.scoreboardSpojnice.tvMojiBodovi.text =
@@ -121,7 +102,6 @@ class SpojniceMpFragment : Fragment() {
         refreshPhase(state)
     }
 
-    /** Nova runda: reset lokalne table i prikaz podataka runde. */
     private fun startLocalRound(state: MatchState) {
         val round = state.currentRound ?: return
         runda = round.spojniceRunda() ?: return
@@ -144,10 +124,9 @@ class SpojniceMpFragment : Fragment() {
         renderStanja()
     }
 
-    /** Određuje šta igrač trenutno radi na osnovu poteza upisanih u meč. */
     private fun refreshPhase(state: MatchState) {
         if (submitted) {
-            // Poslao sam svoje - gledam protivnika uživo dok ne završi
+
             renderProtivnikUzivo(state)
             return
         }
@@ -159,22 +138,21 @@ class SpojniceMpFragment : Fragment() {
         val starterSub = if (round.starterId == state.player1Id) round.p1Sub else round.p2Sub
 
         if (mySub != null) {
-            // npr. posle rotacije ekrana - moj potez je već u bazi
+
             submitted = true
             showWaiting(getString(R.string.mp_cekamo_protivnika))
             return
         }
 
         if (amStarter) {
-            // Starter igra odmah, svih 5 pojmova
+
             startMyPhase(playable = (0 until 5).toList())
         } else if (starterSub == null) {
-            // Protivnik (starter) još igra - čekamo i gledamo njegove poteze uživo
+
             showWaiting(getString(R.string.mp_protivnik_na_potezu))
             renderProtivnikUzivo(state)
         } else {
-            // Starter je završio: njegove tačne veze su plave (zauzete),
-            // a mi igramo pojmove koje nije tačno povezao
+
             val starterTacne = round.spojniceParovi(starterSub)
                 .filter { r.tacneVeze[it.first] == it.second }
             for ((levi, desni) in starterTacne) {
@@ -184,17 +162,13 @@ class SpojniceMpFragment : Fragment() {
             renderStanja()
             val preostali = (0 until 5).filter { leveStanja[it] == SpojniceStanjeCelije.POCETNO }
             if (preostali.isEmpty()) {
-                // Starter je povezao svih 5 - nemamo šta da igramo
+
                 submitMoje()
             } else {
                 startMyPhase(preostali)
             }
         }
     }
-
-    // ============================================================
-    // MOJA FAZA (30 sekundi)
-    // ============================================================
 
     private fun startMyPhase(playable: List<Int>) {
         mojaFazaAktivna = true
@@ -204,7 +178,6 @@ class SpojniceMpFragment : Fragment() {
         startTimer()
     }
 
-    /** Levi pojmovi se auto-selektuju redom (ista mehanika kao u single-player verziji). */
     private fun selektujSledeciLevi() {
         val sledeci = playableLefts.firstOrNull { leveStanja[it] == SpojniceStanjeCelije.POCETNO }
         if (sledeci == null) {
@@ -224,7 +197,7 @@ class SpojniceMpFragment : Fragment() {
         val levi = aktivanLevi
         val tacno = r.tacneVeze[levi] == index
         mojiPokusaji.add(levi to index)
-        mp.spojniceLivePotez(levi to index)   // protivnik prati moju igru uživo
+        mp.spojniceLivePotez(levi to index)
 
         val novoStanje = if (tacno) SpojniceStanjeCelije.POVEZANA_MOJA_TACNO
         else SpojniceStanjeCelije.POVEZANA_MOJA_NETACNO
@@ -234,14 +207,12 @@ class SpojniceMpFragment : Fragment() {
         selektujSledeciLevi()
     }
 
-    /** Šalje moje pokušaje u Firestore (kraj faze: sve odigrano, tajmer ili Dalje). */
     private fun submitMoje() {
         if (submitted) return
         submitted = true
         mojaFazaAktivna = false
         timer?.cancel()
 
-        // Preostala selekcija se vraća u početno stanje
         for (i in leveStanja.indices) {
             if (leveStanja[i] == SpojniceStanjeCelije.SELEKTOVANA) {
                 leveStanja[i] = SpojniceStanjeCelije.POCETNO
@@ -281,10 +252,6 @@ class SpojniceMpFragment : Fragment() {
         binding.cardTimerSpojnice.setCardBackgroundColor(boja(R.color.timer_normalno))
     }
 
-    // ============================================================
-    // RENDER (stilizacija kao u SpojniceFragment)
-    // ============================================================
-
     private fun renderStanja(
         leve: List<SpojniceStanjeCelije> = leveStanja,
         desne: List<SpojniceStanjeCelije> = desnaStanja
@@ -293,12 +260,6 @@ class SpojniceMpFragment : Fragment() {
         desne.forEachIndexed { i, s -> stilirajKarticu(desneKartice[i], desniTekstovi[i], s, isLevi = false) }
     }
 
-    /**
-     * Dok čekam svoj red, protivnikove poteze crtam UŽIVO preko svoje table:
-     * tačna veza plavo, netačna crveno. Ovo je čisto vizuelni sloj - lokalno
-     * stanje (leveStanja/desnaStanja) se ne dira, da bi moja faza koja slijedi
-     * krenula od ispravne table.
-     */
     private fun renderProtivnikUzivo(state: MatchState) {
         val round = state.currentRound ?: return
         val r = runda ?: return
@@ -367,10 +328,6 @@ class SpojniceMpFragment : Fragment() {
     private fun boja(resId: Int): Int = ContextCompat.getColor(requireContext(), resId)
 
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
-
-    // ============================================================
-    // KRAJ MEČA
-    // ============================================================
 
     private fun showFinal(state: MatchState) {
         if (finalShown) return

@@ -26,7 +26,6 @@ class KzzFragment : Fragment() {
 
     private val viewModel: KzzViewModel by viewModels()
 
-    /** Lista 4 dugmeta - olaksava iteraciju i stiliranje */
     private lateinit var dugmadOdgovora: List<MaterialButton>
 
     override fun onCreateView(
@@ -57,10 +56,6 @@ class KzzFragment : Fragment() {
         super.onDestroyView()
         _binding = null
     }
-
-    // ============================================================
-    // SETUP
-    // ============================================================
 
     private fun setupClickListeners() {
         dugmadOdgovora.forEachIndexed { index, button ->
@@ -93,7 +88,7 @@ class KzzFragment : Fragment() {
                 ContextCompat.getColor(requireContext(), colorRes)
             )
         }
-        // Kad se promeni odabran indeks, ponovo prikaži stanje (da bi se obojilo dugme)
+
         viewModel.odabranIndex.observe(viewLifecycleOwner) {
             renderStanje(viewModel.stanje.value ?: KzzStanjePitanja.AKTIVNO)
         }
@@ -101,10 +96,6 @@ class KzzFragment : Fragment() {
             if (rezultat != null) showEndGameDialog(rezultat)
         }
     }
-
-    // ============================================================
-    // RENDER
-    // ============================================================
 
     private fun renderPitanje(pitanje: KzzPitanje) {
         binding.tvTekstPitanja.text = pitanje.tekst
@@ -150,10 +141,6 @@ class KzzFragment : Fragment() {
         }
     }
 
-    // ============================================================
-    // STILIZACIJA DUGMADI - 4 stanja
-    // ============================================================
-
     private fun stilirajPocetno(b: MaterialButton) {
         b.isEnabled = true
         b.backgroundTintList = null
@@ -186,10 +173,6 @@ class KzzFragment : Fragment() {
 
     private fun boja(resId: Int): Int = ContextCompat.getColor(requireContext(), resId)
 
-    // ============================================================
-    // FINALNI DIJALOG
-    // ============================================================
-
     private fun showEndGameDialog(rezultat: KzzRezultat) {
         val poruka = getString(
             R.string.kzz_finalni_rezultat,
@@ -205,7 +188,7 @@ class KzzFragment : Fragment() {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(R.string.kzz_kraj_igre)
             .setMessage(poruka)
-            .setCancelable(false)  // korisnik MORA da odabere - tap outside ne zatvara
+            .setCancelable(false)
             .setPositiveButton(R.string.btn_pocni_ponovo) { _, _ ->
                 viewModel.restart()
             }

@@ -57,7 +57,7 @@ class LoginActivity : AppCompatActivity() {
 
     private fun validateInput(email: String, password: String): Boolean {
         var valid = true
-        // 1.d - dozvoljen je mejl ILI korisnicko ime, pa ne forsiramo email format
+
         if (email.isEmpty()) {
             binding.tilEmail.error = getString(R.string.err_prazno_polje); valid = false
         } else {
