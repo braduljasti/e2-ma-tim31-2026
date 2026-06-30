@@ -133,6 +133,19 @@
     <string name="mp_zatvori">Zatvori</string>
     <string name="mp_izaberi_igru">Izaberi igru</string>
 
+    <!-- Prijatelji (spec 7) -->
+    <string name="nav_prijatelji">Prijatelji</string>
+    <string name="hint_pretraga_prijatelja">Pretraži po korisničkom imenu</string>
+    <string name="btn_dodaj_prijatelja">Dodaj</string>
+    <string name="btn_ukloni_prijatelja">Ukloni</string>
+    <string name="btn_skeniraj_qr">Skeniraj QR kod</string>
+    <string name="lbl_avatar_prijatelj">Avatar prijatelja</string>
+    <string name="lbl_nema_prijatelja">Još nemaš prijatelja.\nPretraži igrače ili skeniraj QR kod.</string>
+    <string name="lbl_nema_rezultata">Nema rezultata za tu pretragu</string>
+    <string name="qr_skeniraj_prompt">Skenirajte QR kod prijatelja</string>
+    <string name="msg_prijatelj_dodat">Prijatelj dodat!</string>
+    <string name="err_qr_nevalidan">QR kod nije važeći poziv za prijatelja</string>
+
     <string name="igra_ko_zna_zna_naslov">Ko zna zna</string>
     <string name="kzz_pitanje_format">Pitanje %1$d / %2$d</string>
     <string name="kzz_max_bodova">Možete osvojiti: 50 bodova</string>

@@ -59,6 +59,15 @@ data class FirebaseUser(
 )
 
 /**
+ * Stavka u listi prijatelja / rezultatu pretrage. `jePrijatelj` određuje da li
+ * dugme na kartici prikazuje "Dodaj" (false) ili "Ukloni" (true).
+ */
+data class PrijateljItem(
+    val user: FirebaseUser,
+    val jePrijatelj: Boolean
+)
+
+/**
  * Ishod obrade rezultata partije (applyMatchResult) - vraća se pozivaocu
  * da prikaže dijalog/notifikaciju (npr. "+13 zvezda, prešao si u Srebrnu ligu").
  */

@@ -24,4 +24,6 @@ object FirestoreCollections {
     const val SPOJNICE_RUNDE = "spojniceRunde"
     const val ASOCIJACIJE_RUNDE = "asocijacijeRunde"
     const val KORAK_POJMOVI = "korakPojmovi"
+
+    const val FRIENDS = "friends"             // podkolekcija unutar users/{uid}/friends
 }
