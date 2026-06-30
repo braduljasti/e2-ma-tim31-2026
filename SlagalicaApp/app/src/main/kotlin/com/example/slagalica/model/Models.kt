@@ -44,9 +44,35 @@ data class FirebaseUser(
 
     val avatarId: Int = 1,
     val tokens: Int = 5,
-    val stars: Int = 0,
-    val league: Int = 0
+    val stars: Int = 0,          // trenutni balans zvezda (osnova za ligu, može da pada)
+    val league: Int = 0,         // indeks lige (0 = nulta)
+
+    // Zvezde osvojene u tekućem ciklusu (rang lista / regioni). Resetuje ih reconcile
+    // na promjeni ciklusa - ta logika dolazi uz funkcionalnosti 4/5/6.
+    val starsWeekly: Int = 0,
+    val starsMonthly: Int = 0,
+
+    // Kumulativno OSVOJENE zvezde (samo rastu) i koliko je tokena već dodijeljeno iz njih.
+    // Po spec 3.d.iii: svakih 50 osvojenih zvezda donosi 1 token.
+    val lifetimeStars: Int = 0,
+    val tokensFromStars: Int = 0
 )
+
+/**
+ * Ishod obrade rezultata partije (applyMatchResult) - vraća se pozivaocu
+ * da prikaže dijalog/notifikaciju (npr. "+13 zvezda, prešao si u Srebrnu ligu").
+ */
+data class MatchRewardOutcome(
+    val deltaStars: Int,        // promjena balansa (može biti negativna)
+    val newStars: Int,          // novi ukupan balans
+    val tokensAwarded: Int,     // koliko tokena dodijeljeno (pragovi od 50 zvezda)
+    val oldLeague: Int,
+    val newLeague: Int
+) {
+    val leagueChanged: Boolean get() = oldLeague != newLeague
+    val promoted: Boolean get() = newLeague > oldLeague        // napredovao
+    val relegated: Boolean get() = newLeague < oldLeague       // ispao
+}
 
 enum class GameType(val displayName: String) {
     SKOCKO("Skočko"),
