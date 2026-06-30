@@ -35,6 +35,17 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         lifecycleScope.launch {
             runCatching { com.example.slagalica.data.GameDataRepository().seedIfEmpty() }
         }
+        // Lazy reconcile: dnevni tokeni + reset ciklusa zvezda (spec 3.a/6.b)
+        lifecycleScope.launch {
+            val outcome = runCatching {
+                com.example.slagalica.data.ProgressionRepository().reconcileOnStart()
+            }.getOrNull()
+            if (outcome != null && outcome.tokensAdded > 0) {
+                Snackbar.make(binding.root,
+                    getString(R.string.msg_dnevni_tokeni, outcome.tokensAdded),
+                    Snackbar.LENGTH_LONG).show()
+            }
+        }
         setupToolbar()
         setupNavigation()
     }
@@ -78,6 +89,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             R.id.nav_igraj -> navController.navigate(R.id.nav_igraj)
             R.id.nav_notifikacije -> navController.navigate(R.id.nav_notifikacije)
             R.id.nav_prijatelji -> navController.navigate(R.id.nav_prijatelji)
+            R.id.nav_lige -> navController.navigate(R.id.nav_lige)
             R.id.nav_korak_po_korak -> navController.navigate(R.id.nav_korak_po_korak)
             R.id.nav_ko_zna_zna -> navController.navigate(R.id.kzzFragment)
             R.id.nav_spojnice -> navController.navigate(R.id.spojniceFragment)

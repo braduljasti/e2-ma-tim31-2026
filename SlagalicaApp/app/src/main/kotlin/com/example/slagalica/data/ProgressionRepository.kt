@@ -1,6 +1,7 @@
 package com.example.slagalica.data
 
 import com.example.slagalica.model.MatchRewardOutcome
+import com.example.slagalica.model.ReconcileOutcome
 import kotlinx.coroutines.tasks.await
 import kotlin.math.max
 
@@ -71,6 +72,65 @@ class ProgressionRepository {
                 oldLeague = oldLeague,
                 newLeague = newLeague
             )
+        }.await()
+    }
+
+    /**
+     * Lazy reconcile - obrada vremenskih događaja pri pokretanju aplikacije,
+     * bez servera (spec 3.a dnevni tokeni, 6.b benefit lige, reset ciklusa zvezda).
+     * Idempotentno: ako nije prošao dan ni ciklus, ništa ne mijenja.
+     *
+     * NAPOMENA: kazna 30% (6.e) i nagrade za plasman zavise od rang liste
+     * (stavka 4, kolegina) - dodaju se kad ona bude postojala.
+     */
+    suspend fun reconcileOnStart(): ReconcileOutcome? {
+        val uid = FirebaseProvider.currentUid ?: return null
+        val ref = db.collection(FirestoreCollections.USERS).document(uid)
+
+        return db.runTransaction { tx ->
+            val snap = tx.get(ref)
+            val tokens = (snap.getLong("tokens") ?: 0L).toInt()
+            val league = (snap.getLong("league") ?: 0L).toInt()
+            val lastDailyGrant = snap.getLong("lastDailyGrant") ?: 0L
+            val lastWeekly = snap.getString("lastCycleWeekly") ?: ""
+            val lastMonthly = snap.getString("lastCycleMonthly") ?: ""
+
+            val updates = hashMapOf<String, Any>()
+
+            // === Dnevni tokeni (5 + nivo lige, po danu) ===
+            var tokensAdded = 0
+            if (lastDailyGrant == 0L) {
+                // Prvi put: ne dajemo retroaktivno (registracija je već dala 5), samo zapamtimo dan.
+                updates["lastDailyGrant"] = System.currentTimeMillis()
+            } else {
+                val dana = Cycles.danaOd(lastDailyGrant)
+                if (dana > 0) {
+                    tokensAdded = (dana * LeagueManager.tokeniPoDanu(league)).toInt()
+                    updates["tokens"] = tokens + tokensAdded
+                    updates["lastDailyGrant"] = System.currentTimeMillis()
+                }
+            }
+
+            // === Reset zvezda po ciklusu ===
+            val weeklyId = Cycles.weekly()
+            val monthlyId = Cycles.monthly()
+            val weeklyReset = lastWeekly != weeklyId
+            val monthlyReset = lastMonthly != monthlyId
+            if (weeklyReset) {
+                updates["starsWeekly"] = 0
+                updates["lastCycleWeekly"] = weeklyId
+            }
+            if (monthlyReset) {
+                updates["starsMonthly"] = 0
+                updates["lastCycleMonthly"] = monthlyId
+            }
+
+            if (updates.isNotEmpty()) tx.update(ref, updates)
+
+            // weeklyReset/monthlyReset su true i pri prvoj inicijalizaciji praznih polja -
+            // za prikaz korisniku računa se samo dodjela tokena.
+            ReconcileOutcome(tokensAdded, weeklyReset && lastWeekly.isNotEmpty(),
+                monthlyReset && lastMonthly.isNotEmpty())
         }.await()
     }
 }

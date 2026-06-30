@@ -16,6 +16,16 @@ object LeagueManager {
 
     fun ligaIndexZa(stars: Int): Int = PRAGOVI.count { stars >= it }
 
+    /** Ukupan broj zvezda potreban za ulazak u datu ligu (liga 0 = 0). */
+    fun pragLige(ligaIndex: Int): Int = if (ligaIndex <= 0) 0 else PRAGOVI.getOrElse(ligaIndex - 1) { PRAGOVI.last() }
+
+    // ===== Benefiti lige (spec 6.b) =====
+
+    const val DNEVNI_TOKENI_BAZA = 5     // 5 tokena svaki dan (spec 3.a)
+
+    /** Tokeni koje igrač dobija svaki dan: baza + 1 po nivou lige (spec 6.b). */
+    fun tokeniPoDanu(ligaIndex: Int): Int = DNEVNI_TOKENI_BAZA + ligaIndex
+
     // ===== Bodovanje zvezda po partiji (spec 3.d) =====
 
     const val STARS_WIN = 10

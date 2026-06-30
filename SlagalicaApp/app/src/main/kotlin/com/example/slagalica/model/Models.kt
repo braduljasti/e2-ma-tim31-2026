@@ -55,8 +55,40 @@ data class FirebaseUser(
     // Kumulativno OSVOJENE zvezde (samo rastu) i koliko je tokena već dodijeljeno iz njih.
     // Po spec 3.d.iii: svakih 50 osvojenih zvezda donosi 1 token.
     val lifetimeStars: Int = 0,
-    val tokensFromStars: Int = 0
+    val tokensFromStars: Int = 0,
+
+    // Lazy reconcile (obrada pri pokretanju app-a, bez servera):
+    // datum zadnje dnevne dodjele tokena i zadnji viđeni ciklus (za reset zvezda).
+    val lastDailyGrant: Long = 0L,
+    val lastCycleWeekly: String = "",
+    val lastCycleMonthly: String = ""
 )
+
+/** Ishod lazy reconcile-a (dnevni tokeni + reset ciklusa) za eventualni prikaz korisniku. */
+data class ReconcileOutcome(
+    val tokensAdded: Int,
+    val weeklyReset: Boolean,
+    val monthlyReset: Boolean
+)
+
+/** Jedan red u pregledu liga (spec 6) - liga, prag zvezda, dnevni tokeni, da li je trenutna. */
+data class LigaRed(
+    val liga: Liga,
+    val prag: Int,
+    val tokeniDan: Int,
+    val jeTrenutna: Boolean
+)
+
+/** Pregled napredovanja kroz lige za ekran "Lige". */
+data class LigaPregled(
+    val trenutnaLiga: Liga,
+    val stars: Int,
+    val sledeciPrag: Int?,        // null ako je igrač u najvišoj ligi
+    val progressPercent: Int,     // napredak ka sljedećoj ligi (0..100)
+    val redovi: List<LigaRed>
+) {
+    val doSledece: Int get() = ((sledeciPrag ?: stars) - stars).coerceAtLeast(0)
+}
 
 /**
  * Stavka u listi prijatelja / rezultatu pretrage. `jePrijatelj` određuje da li

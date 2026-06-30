@@ -24,6 +24,12 @@
         tools:layout="@layout/fragment_prijatelji"/>
 
     <fragment
+        android:id="@+id/nav_lige"
+        android:name="com.example.slagalica.ui.lige.LigeFragment"
+        android:label="@string/nav_lige"
+        tools:layout="@layout/fragment_lige"/>
+
+    <fragment
         android:id="@+id/nav_korak_po_korak"
         android:name="com.example.slagalica.ui.games.KorakPoKorakFragment"
         android:label="@string/igra_korak_naslov"

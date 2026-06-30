@@ -146,6 +146,15 @@
     <string name="msg_prijatelj_dodat">Prijatelj dodat!</string>
     <string name="err_qr_nevalidan">QR kod nije važeći poziv za prijatelja</string>
 
+    <!-- Lige (spec 6) -->
+    <string name="nav_lige">Lige</string>
+    <string name="lbl_trenutna_liga">Trenutna</string>
+    <string name="lbl_max_liga">Najviša liga — bravo! 🏆</string>
+    <string name="fmt_liga_prag">Od %1$d zvezda • +%2$d tokena/dan</string>
+    <string name="fmt_zvezde">⭐ %1$d zvezda</string>
+    <string name="fmt_do_sledece">Još %1$d zvezda do sljedeće lige</string>
+    <string name="msg_dnevni_tokeni">Dnevna nagrada: +%1$d tokena 🪙</string>
+
     <string name="igra_ko_zna_zna_naslov">Ko zna zna</string>
     <string name="kzz_pitanje_format">Pitanje %1$d / %2$d</string>
     <string name="kzz_max_bodova">Možete osvojiti: 50 bodova</string>
