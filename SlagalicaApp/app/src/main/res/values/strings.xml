@@ -155,6 +155,13 @@
     <string name="fmt_do_sledece">Još %1$d zvezda do sljedeće lige</string>
     <string name="msg_dnevni_tokeni">Dnevna nagrada: +%1$d tokena 🪙</string>
 
+    <!-- Regioni (spec 5) -->
+    <string name="nav_regioni">Regioni</string>
+    <string name="lbl_rang_po_regionima">Mjesečna rang lista po regionima</string>
+    <string name="fmt_broj_igraca">%1$d igrača</string>
+    <string name="fmt_region_zvezde">⭐ %1$d</string>
+    <string name="lbl_ja_marker">%1$s (ti)</string>
+
     <string name="igra_ko_zna_zna_naslov">Ko zna zna</string>
     <string name="kzz_pitanje_format">Pitanje %1$d / %2$d</string>
     <string name="kzz_max_bodova">Možete osvojiti: 50 bodova</string>

@@ -71,6 +71,24 @@ data class ReconcileOutcome(
     val monthlyReset: Boolean
 )
 
+/** Tačka jednog igrača na mapi regiona (spec 5.a). */
+data class IgracTacka(
+    val username: String,
+    val regionNaziv: String,
+    val lat: Double,
+    val lng: Double,
+    val jaSam: Boolean
+)
+
+/** Red mjesečne rang liste po regionima (spec 5.b) - zbir zvezda igrača regiona u ciklusu. */
+data class RegionRangRed(
+    val regionNaziv: String,
+    val emoji: String,
+    val ukupnoZvezda: Int,
+    val brojIgraca: Int,
+    val mojRegion: Boolean
+)
+
 /** Jedan red u pregledu liga (spec 6) - liga, prag zvezda, dnevni tokeni, da li je trenutna. */
 data class LigaRed(
     val liga: Liga,

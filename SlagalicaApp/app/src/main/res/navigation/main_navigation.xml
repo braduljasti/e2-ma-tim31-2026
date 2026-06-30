@@ -30,6 +30,12 @@
         tools:layout="@layout/fragment_lige"/>
 
     <fragment
+        android:id="@+id/nav_regioni"
+        android:name="com.example.slagalica.ui.regioni.RegioniFragment"
+        android:label="@string/nav_regioni"
+        tools:layout="@layout/fragment_regioni"/>
+
+    <fragment
         android:id="@+id/nav_korak_po_korak"
         android:name="com.example.slagalica.ui.games.KorakPoKorakFragment"
         android:label="@string/igra_korak_naslov"

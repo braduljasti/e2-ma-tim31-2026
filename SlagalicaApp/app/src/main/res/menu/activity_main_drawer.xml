@@ -23,6 +23,11 @@
             android:icon="@android:drawable/btn_star_big_on"
             android:title="@string/nav_lige"/>
 
+        <item
+            android:id="@+id/nav_regioni"
+            android:icon="@android:drawable/ic_menu_mapmode"
+            android:title="@string/nav_regioni"/>
+
     </group>
 
     <item android:title="Igre">

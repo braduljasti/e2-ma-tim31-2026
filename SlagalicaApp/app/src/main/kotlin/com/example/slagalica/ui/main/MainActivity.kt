@@ -90,6 +90,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             R.id.nav_notifikacije -> navController.navigate(R.id.nav_notifikacije)
             R.id.nav_prijatelji -> navController.navigate(R.id.nav_prijatelji)
             R.id.nav_lige -> navController.navigate(R.id.nav_lige)
+            R.id.nav_regioni -> navController.navigate(R.id.nav_regioni)
             R.id.nav_korak_po_korak -> navController.navigate(R.id.nav_korak_po_korak)
             R.id.nav_ko_zna_zna -> navController.navigate(R.id.kzzFragment)
             R.id.nav_spojnice -> navController.navigate(R.id.spojniceFragment)
