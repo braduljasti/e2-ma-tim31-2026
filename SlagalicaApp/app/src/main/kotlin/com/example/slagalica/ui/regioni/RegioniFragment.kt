@@ -13,7 +13,9 @@ import com.example.slagalica.adapter.RegionRangAdapter
 import com.example.slagalica.data.Regioni
 import com.example.slagalica.databinding.FragmentRegioniBinding
 import com.example.slagalica.model.IgracTacka
+import com.example.slagalica.model.RegionStatistika
 import com.example.slagalica.viewmodel.RegioniViewModel
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.osmdroid.config.Configuration
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory
 import org.osmdroid.util.GeoPoint
@@ -52,6 +54,22 @@ class RegioniFragment : Fragment() {
         viewModel = ViewModelProvider(this)[RegioniViewModel::class.java]
         viewModel.tacke.observe(viewLifecycleOwner) { prikaziTacke(it) }
         viewModel.rang.observe(viewLifecycleOwner) { adapter.submitList(it) }
+        viewModel.statistika.observe(viewLifecycleOwner) { stat ->
+            if (stat != null) { prikaziStatistiku(stat); viewModel.consumeStatistika() }
+        }
+    }
+
+    /** Dijalog statistike regiona (spec 5.d): registrovani, aktivni, broj 1./2./3. mjesta. */
+    private fun prikaziStatistiku(s: RegionStatistika) {
+        val poruka = getString(
+            R.string.fmt_region_statistika,
+            s.registrovani, s.aktivni, s.prvaMjesta, s.drugaMjesta, s.trecaMjesta
+        )
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("${s.emoji} ${s.naziv}")
+            .setMessage(poruka)
+            .setPositiveButton(R.string.mp_zatvori, null)
+            .show()
     }
 
     private fun setupMap() {
@@ -62,7 +80,7 @@ class RegioniFragment : Fragment() {
     }
 
     private fun setupRang() {
-        adapter = RegionRangAdapter()
+        adapter = RegionRangAdapter { naziv -> viewModel.ucitajStatistiku(naziv) }
         binding.rvRegionRang.apply {
             layoutManager = LinearLayoutManager(requireContext())
             adapter = this@RegioniFragment.adapter

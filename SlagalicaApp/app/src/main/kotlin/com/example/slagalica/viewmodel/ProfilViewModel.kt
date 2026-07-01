@@ -6,7 +6,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.slagalica.R
 import com.example.slagalica.data.AuthRepository
+import com.example.slagalica.data.Cycles
 import com.example.slagalica.data.ProfilRepository
+import com.example.slagalica.data.RegionStandingsRepository
 import com.example.slagalica.model.GameResult
 import com.example.slagalica.model.GameStatistic
 import com.example.slagalica.model.GameType
@@ -18,7 +20,8 @@ import kotlin.math.roundToInt
 
 class ProfilViewModel(
     private val profilRepo: ProfilRepository = ProfilRepository(),
-    private val authRepo: AuthRepository = AuthRepository()
+    private val authRepo: AuthRepository = AuthRepository(),
+    private val standingsRepo: RegionStandingsRepository = RegionStandingsRepository()
 ) : ViewModel() {
 
     private val _userProfile = MutableLiveData<UserProfile>()
@@ -26,6 +29,10 @@ class ProfilViewModel(
 
     private val _playerStats = MutableLiveData<PlayerStats>()
     val playerStats: LiveData<PlayerStats> = _playerStats
+
+    // Boja okvira avatara po plasmanu regiona u prošlom ciklusu (spec 5.e); null = default.
+    private val _okvirBoja = MutableLiveData<Int?>(null)
+    val okvirBoja: LiveData<Int?> = _okvirBoja
 
     val availableAvatars = listOf(
         R.drawable.avatar_1,
@@ -53,6 +60,18 @@ class ProfilViewModel(
 
                 qrPayload = "slagalica://invite/${user.uid}"
             )
+            odrediOkvir(user.region)
+        }
+    }
+
+    /** Spec 5.e: ako je region igrača u prošlom ciklusu bio 1./2./3., okvir je zlatni/srebrni/bronzani. */
+    private suspend fun odrediOkvir(region: String) {
+        val poredak = runCatching { standingsRepo.poredakZa(Cycles.prethodniMjesec()) }.getOrNull()
+        _okvirBoja.value = when (poredak?.indexOf(region)) {
+            0 -> R.color.medalja_zlato
+            1 -> R.color.medalja_srebro
+            2 -> R.color.medalja_bronza
+            else -> null
         }
     }
 

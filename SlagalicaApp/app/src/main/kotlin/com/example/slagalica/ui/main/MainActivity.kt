@@ -45,9 +45,19 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     getString(R.string.msg_dnevni_tokeni, outcome.tokensAdded),
                     Snackbar.LENGTH_LONG).show()
             }
+            // Arhiviraj plasman regiona prošlog ciklusa (spec 5.d/5.e), lijeno i idempotentno
+            runCatching { com.example.slagalica.data.RegionRepository().arhivirajProsliCiklusAkoTreba() }
         }
         setupToolbar()
         setupNavigation()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        // Ažuriraj prisustvo (za "aktivni igrači" u statistici regiona, spec 5.d)
+        lifecycleScope.launch {
+            runCatching { com.example.slagalica.data.PresenceRepository().azuriraj() }
+        }
     }
 
     private fun setupToolbar() {

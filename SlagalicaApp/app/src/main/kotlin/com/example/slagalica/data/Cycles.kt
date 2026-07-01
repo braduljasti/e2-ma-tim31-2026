@@ -29,6 +29,9 @@ object Cycles {
         return "%04d-W%02d".format(godina, sedmica)
     }
 
+    /** Mjesečni ciklus prethodnog mjeseca (npr. za arhiviranje plasmana). */
+    fun prethodniMjesec(date: LocalDate = danas()): String = monthly(date.minusMonths(1))
+
     /** Broj punih dana između timestamp-a (ms) i danas; 0 ako je isti dan ili u budućnosti. */
     fun danaOd(timestampMs: Long): Long {
         if (timestampMs <= 0L) return 0L

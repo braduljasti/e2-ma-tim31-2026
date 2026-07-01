@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.slagalica.data.RegionRepository
 import com.example.slagalica.model.IgracTacka
 import com.example.slagalica.model.RegionRangRed
+import com.example.slagalica.model.RegionStatistika
 import kotlinx.coroutines.launch
 
 /**
@@ -23,7 +24,19 @@ class RegioniViewModel(
     private val _rang = MutableLiveData<List<RegionRangRed>>(emptyList())
     val rang: LiveData<List<RegionRangRed>> = _rang
 
+    // Statistika regiona na klik (spec 5.d); null dok se ne odabere / poslije prikaza.
+    private val _statistika = MutableLiveData<RegionStatistika?>()
+    val statistika: LiveData<RegionStatistika?> = _statistika
+
     init { osvjezi() }
+
+    fun ucitajStatistiku(naziv: String) {
+        viewModelScope.launch {
+            _statistika.value = runCatching { repo.statistikaRegiona(naziv) }.getOrNull()
+        }
+    }
+
+    fun consumeStatistika() { _statistika.value = null }
 
     fun osvjezi() {
         viewModelScope.launch {

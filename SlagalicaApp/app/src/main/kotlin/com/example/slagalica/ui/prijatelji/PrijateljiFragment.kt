@@ -87,7 +87,8 @@ class PrijateljiFragment : Fragment() {
             setDesiredBarcodeFormats(ScanOptions.QR_CODE)
             setPrompt(getString(R.string.qr_skeniraj_prompt))
             setBeepEnabled(false)
-            setOrientationLocked(false)
+            setOrientationLocked(true)
+            setCaptureActivity(PortraitCaptureActivity::class.java)   // uspravna kamera
         }
         qrSkener.launch(opcije)
     }

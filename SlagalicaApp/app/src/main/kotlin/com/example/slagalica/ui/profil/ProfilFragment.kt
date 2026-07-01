@@ -58,6 +58,14 @@ class ProfilFragment : Fragment() {
         viewModel.playerStats.observe(viewLifecycleOwner) { stats ->
             renderStats(stats)
         }
+        // Spec 5.e - boja okvira avatara po plasmanu regiona u prošlom ciklusu
+        viewModel.okvirBoja.observe(viewLifecycleOwner) { colorRes ->
+            binding.ivAvatar.backgroundTintList = colorRes?.let {
+                android.content.res.ColorStateList.valueOf(
+                    androidx.core.content.ContextCompat.getColor(requireContext(), it)
+                )
+            }
+        }
     }
 
     private fun renderProfile(profile: UserProfile) {

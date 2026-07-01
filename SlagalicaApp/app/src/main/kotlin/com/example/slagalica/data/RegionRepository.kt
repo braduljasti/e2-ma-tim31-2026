@@ -3,6 +3,7 @@ package com.example.slagalica.data
 import com.example.slagalica.model.FirebaseUser
 import com.example.slagalica.model.IgracTacka
 import com.example.slagalica.model.RegionRangRed
+import com.example.slagalica.model.RegionStatistika
 import kotlinx.coroutines.tasks.await
 
 /**
@@ -13,6 +14,7 @@ import kotlinx.coroutines.tasks.await
 class RegionRepository {
 
     private val db = FirebaseProvider.db
+    private val standingsRepo = RegionStandingsRepository()
 
     /** Učitava sve korisnike jednom; iz njih se izvode i tačke i rang lista. */
     private suspend fun sviKorisnici(): List<FirebaseUser> =
@@ -52,5 +54,36 @@ class RegionRepository {
                 mojRegion = info.naziv == mojRegion
             )
         }.sortedByDescending { it.ukupnoZvezda }
+    }
+
+    /** Statistika jednog regiona na klik (spec 5.d): registrovani, aktivni, broj mjesta. */
+    suspend fun statistikaRegiona(naziv: String): RegionStatistika {
+        val info = Regioni.zaNaziv(naziv)
+        val sada = System.currentTimeMillis()
+        val uRegionu = sviKorisnici().filter { it.region == naziv }
+        val aktivni = uRegionu.count { sada - it.lastSeen < PresenceRepository.AKTIVAN_PRAG_MS }
+        val mjesta = runCatching { standingsRepo.brojMjestaPoRegionu()[naziv] }.getOrNull()
+        return RegionStatistika(
+            naziv = naziv,
+            emoji = info?.emoji ?: "🌍",
+            registrovani = uRegionu.size,
+            aktivni = aktivni,
+            prvaMjesta = mjesta?.first ?: 0,
+            drugaMjesta = mjesta?.second ?: 0,
+            trecaMjesta = mjesta?.third ?: 0
+        )
+    }
+
+    /** Trenutni poredak regiona (po zvezdama ciklusa) - za arhiviranje ciklusa. */
+    private suspend fun trenutniPoredak(): List<String> =
+        rangPoRegionima().map { it.regionNaziv }
+
+    /**
+     * Lijeno arhiviranje: ako plasman prošlog mjeseca još nije snimljen, snimi
+     * trenutni poredak pod prošli ciklus (idempotentno). Zove se pri pokretanju.
+     */
+    suspend fun arhivirajProsliCiklusAkoTreba() {
+        val prosli = Cycles.prethodniMjesec()
+        standingsRepo.arhivirajAkoTreba(prosli, trenutniPoredak())
     }
 }

@@ -40,6 +40,14 @@
             android:name=".ui.main.MainActivity"
             android:exported="false" />
 
+        <!-- QR skener u portret orijentaciji (spec 7.b) -->
+        <activity
+            android:name=".ui.prijatelji.PortraitCaptureActivity"
+            android:screenOrientation="portrait"
+            android:stateNotNeeded="true"
+            android:theme="@style/zxing_CaptureTheme"
+            android:exported="false" />
+
         <service
             android:name=".data.SlagalicaMessagingService"
             android:exported="false">

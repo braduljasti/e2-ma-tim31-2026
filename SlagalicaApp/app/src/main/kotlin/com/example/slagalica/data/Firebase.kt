@@ -25,5 +25,6 @@ object FirestoreCollections {
     const val ASOCIJACIJE_RUNDE = "asocijacijeRunde"
     const val KORAK_POJMOVI = "korakPojmovi"
 
-    const val FRIENDS = "friends"             // podkolekcija unutar users/{uid}/friends
+    const val FRIENDSHIPS = "friendships"     // top-level: jedan dokument = obostrano prijateljstvo
+    const val REGION_STANDINGS = "regionStandings"  // istorija plasmana regiona po ciklusu
 }

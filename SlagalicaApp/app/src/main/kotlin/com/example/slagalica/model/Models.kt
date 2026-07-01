@@ -61,7 +61,21 @@ data class FirebaseUser(
     // datum zadnje dnevne dodjele tokena i zadnji viđeni ciklus (za reset zvezda).
     val lastDailyGrant: Long = 0L,
     val lastCycleWeekly: String = "",
-    val lastCycleMonthly: String = ""
+    val lastCycleMonthly: String = "",
+
+    // Prisustvo (za "aktivni igrači" u statistici regiona i online status prijatelja).
+    val lastSeen: Long = 0L
+)
+
+/** Statistika jednog regiona na klik (spec 5.d). */
+data class RegionStatistika(
+    val naziv: String,
+    val emoji: String,
+    val registrovani: Int,
+    val aktivni: Int,
+    val prvaMjesta: Int,
+    val drugaMjesta: Int,
+    val trecaMjesta: Int
 )
 
 /** Ishod lazy reconcile-a (dnevni tokeni + reset ciklusa) za eventualni prikaz korisniku. */

@@ -9,8 +9,10 @@ import com.example.slagalica.R
 import com.example.slagalica.databinding.ItemRegionRangBinding
 import com.example.slagalica.model.RegionRangRed
 
-/** Mjesečna rang lista po regionima; region ulogovanog igrača je istaknut. */
-class RegionRangAdapter : ListAdapter<RegionRangRed, RegionRangAdapter.RegionViewHolder>(DiffCallback()) {
+/** Mjesečna rang lista po regionima; region ulogovanog igrača je istaknut. Klik → statistika. */
+class RegionRangAdapter(
+    private val onKlik: (String) -> Unit
+) : ListAdapter<RegionRangRed, RegionRangAdapter.RegionViewHolder>(DiffCallback()) {
 
     inner class RegionViewHolder(
         private val binding: ItemRegionRangBinding
@@ -26,6 +28,7 @@ class RegionRangAdapter : ListAdapter<RegionRangRed, RegionRangAdapter.RegionVie
 
             binding.cardRegion.strokeWidth = if (red.mojRegion) dp(ctx, 2) else 0
             binding.cardRegion.setStrokeColor(ctx.getColorStateList(R.color.primary))
+            binding.cardRegion.setOnClickListener { onKlik(red.regionNaziv) }
         }
 
         private fun dp(ctx: android.content.Context, value: Int): Int =

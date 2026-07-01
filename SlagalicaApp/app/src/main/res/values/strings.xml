@@ -161,6 +161,7 @@
     <string name="fmt_broj_igraca">%1$d igrača</string>
     <string name="fmt_region_zvezde">⭐ %1$d</string>
     <string name="lbl_ja_marker">%1$s (ti)</string>
+    <string name="fmt_region_statistika">Registrovanih igrača: %1$d\nAktivnih sada: %2$d\n\n🥇 Prvih mjesta: %3$d\n🥈 Drugih mjesta: %4$d\n🥉 Trećih mjesta: %5$d</string>
 
     <string name="igra_ko_zna_zna_naslov">Ko zna zna</string>
     <string name="kzz_pitanje_format">Pitanje %1$d / %2$d</string>
