@@ -38,20 +38,41 @@ class ProfilRepository {
 
     /**
      * Troši jedan token za započinjanje partije (spec 3.a/3.b: "1 token - 1 partija").
-     * Vraća true ako je uspješno (imao je bar 1 token). Dnevna dodjela tokena (5 + bonus lige)
-     * i njihovo praćenje su u [ProgressionRepository.reconcileOnStart] (kolegin dio, spec 6.b).
+     * Dnevna dodjela tokena (5 + bonus lige) i njihovo praćenje su u
+     * [ProgressionRepository.reconcileOnStart] (kolegin dio, spec 6.b).
+     *
+     * Ishod razlikuje "nema tokena" (Nedovoljno) od tehničke greške (Greska) - da bi UI mogao
+     * da prikaže tačan uzrok umjesto uvijek iste (potencijalno pogrešne) poruke "nemate tokena".
      */
-    suspend fun potrosiToken(uid: String? = FirebaseProvider.currentUid): Boolean {
-        if (uid == null) return false
+    sealed class TokenRezultat {
+        object Uspjeh : TokenRezultat()
+        object Nedovoljno : TokenRezultat()
+        data class Greska(val poruka: String) : TokenRezultat()
+    }
+
+    suspend fun potrosiToken(uid: String? = FirebaseProvider.currentUid): TokenRezultat {
+        if (uid.isNullOrBlank()) return TokenRezultat.Greska("Niste prijavljeni (nema aktivnog korisnika).")
         val ref = userDoc(uid)
-        return runCatching {
-            db.runTransaction { tx ->
+        return try {
+            val uspjeh = db.runTransaction { tx ->
                 val snap = tx.get(ref)
                 val tokeni = (snap.getLong("tokens") ?: 0L).toInt()
                 if (tokeni <= 0) return@runTransaction false
                 tx.update(ref, "tokens", tokeni - 1)
                 true
             }.await()
-        }.getOrDefault(false)
+            if (uspjeh) TokenRezultat.Uspjeh else TokenRezultat.Nedovoljno
+        } catch (e: Exception) {
+            TokenRezultat.Greska(e.message ?: e.javaClass.simpleName)
+        }
+    }
+
+    /** Vraća 1 token - koristi se kad korisnik otkaže traženje protivnika nakon što je token već potrošen. */
+    suspend fun vratiToken(uid: String? = FirebaseProvider.currentUid) {
+        if (uid == null) return
+        runCatching {
+            db.collection(FirestoreCollections.USERS).document(uid)
+                .update("tokens", com.google.firebase.firestore.FieldValue.increment(1)).await()
+        }
     }
 }

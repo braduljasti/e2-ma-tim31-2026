@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.slagalica.R
 import com.example.slagalica.adapter.RangListaAdapter
 import com.example.slagalica.databinding.FragmentRangListaBinding
 import com.example.slagalica.model.RangCiklus
@@ -33,6 +34,9 @@ class RangListaFragment : Fragment() {
         adapter = RangListaAdapter { viewModel.uid }
         binding.rvRangLista.layoutManager = LinearLayoutManager(requireContext())
         binding.rvRangLista.adapter = adapter
+
+        binding.tabRangCiklus.addTab(binding.tabRangCiklus.newTab().setText(getString(R.string.tab_nedeljno)))
+        binding.tabRangCiklus.addTab(binding.tabRangCiklus.newTab().setText(getString(R.string.tab_mesecno)))
 
         binding.tabRangCiklus.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab) {

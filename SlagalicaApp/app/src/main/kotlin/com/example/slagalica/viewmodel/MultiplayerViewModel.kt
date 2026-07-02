@@ -56,15 +56,26 @@ class MultiplayerViewModel(
     var requestedGameType: String = MultiplayerRepository.GAME_SKOCKO
         private set
 
+    /** True dok se čeka protivnik za partiju ZA KOJU JE VEĆ POTROŠEN token - ako se traženje
+     * otkaže prije nego što se pronađe protivnik, token treba vratiti (vidi cancelMatchmaking). */
+    private var partijaTokenCekaRefundIfCancelled = false
+
     /** Pravi meč (partija od 6 igara) - troši 1 token. Koristi se za glavno dugme "Igraj!". */
     fun startPartijaMatchmaking() {
         viewModelScope.launch {
-            val imaTokena = runCatching { profilRepo.potrosiToken(uid) }.getOrDefault(false)
-            if (!imaTokena) {
-                _error.postValue("Nemate dovoljno tokena za partiju. Sačekajte dnevnu dodjelu ili osvojite tokene na rang listi!")
-                return@launch
+            when (val rezultat = runCatching { profilRepo.potrosiToken(uid) }
+                .getOrElse { ProfilRepository.TokenRezultat.Greska(it.message ?: it.javaClass.simpleName) }) {
+                is ProfilRepository.TokenRezultat.Uspjeh -> {
+                    partijaTokenCekaRefundIfCancelled = true
+                    startMatchmaking(MultiplayerRepository.GAME_PARTIJA)
+                }
+                is ProfilRepository.TokenRezultat.Nedovoljno -> {
+                    _error.postValue("Nemate dovoljno tokena za partiju. Sačekajte dnevnu dodjelu ili osvojite tokene na rang listi!")
+                }
+                is ProfilRepository.TokenRezultat.Greska -> {
+                    _error.postValue("Greška pri trošenju tokena: ${rezultat.poruka}")
+                }
             }
-            startMatchmaking(MultiplayerRepository.GAME_PARTIJA)
         }
     }
 
@@ -203,6 +214,7 @@ class MultiplayerViewModel(
 
     private fun onMatched(matchId: String) {
         ticketListener?.remove(); ticketListener = null
+        partijaTokenCekaRefundIfCancelled = false
         lastMatchId = matchId
         _searching.postValue(false)
         _matchFound.postValue(matchId)
@@ -213,7 +225,12 @@ class MultiplayerViewModel(
     fun cancelMatchmaking() {
         ticketListener?.remove(); ticketListener = null
         _searching.value = false
-        viewModelScope.launch { repo.cancelMatchmaking(uid) }
+        val vratiToken = partijaTokenCekaRefundIfCancelled
+        partijaTokenCekaRefundIfCancelled = false
+        viewModelScope.launch {
+            repo.cancelMatchmaking(uid)
+            if (vratiToken) runCatching { profilRepo.vratiToken(uid) }
+        }
     }
 
     fun consumeMatchFound() { _matchFound.value = null }

@@ -15,17 +15,7 @@
         app:tabSelectedTextColor="@color/primary"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <com.google.android.material.tabs.TabItem
-            android:id="@+id/tabNedeljno"
-            android:text="@string/tab_nedeljno"/>
-
-        <com.google.android.material.tabs.TabItem
-            android:id="@+id/tabMesecno"
-            android:text="@string/tab_mesecno"/>
-
-    </com.google.android.material.tabs.TabLayout>
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <TextView
         android:id="@+id/tvRangOpsegDatuma"

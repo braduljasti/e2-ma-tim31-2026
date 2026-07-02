@@ -123,18 +123,22 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }.start()
     }
 
-    /** Puni zaglavlje drawer-a pravim podacima (ime, mejl, avatar) - uživo iz users/{uid}. */
+    /** Puni zaglavlje drawer-a pravim podacima (ime, mejl, avatar, tokeni, zvezde) - uživo iz users/{uid}. */
     private fun setupNavHeader() {
         val header = binding.navView.getHeaderView(0)
         val tvIme = header.findViewById<android.widget.TextView>(R.id.tvKorisnickoImeNav)
         val tvEmail = header.findViewById<android.widget.TextView>(R.id.tvEmailNav)
         val ivAvatar = header.findViewById<android.widget.ImageView>(R.id.ivAvatar)
+        val tvTokeni = header.findViewById<android.widget.TextView>(R.id.tvTokeniNav)
+        val tvZvijezde = header.findViewById<android.widget.TextView>(R.id.tvZvjezdiceNav)
 
         headerListener = com.example.slagalica.data.ProfilRepository().slusajKorisnika { user ->
             if (user == null) return@slusajKorisnika
             runOnUiThread {
-                tvIme.text = user.username
+                tvIme.text = user.username.ifBlank { "Korisnik" }
                 tvEmail.text = user.email
+                tvTokeni?.text = "🪙 ${user.tokens} tokena"
+                tvZvijezde?.text = "⭐ ${user.stars} zvjezdica"
                 ivAvatar.setImageResource(when (user.avatarId) {
                     2 -> R.drawable.avatar_2
                     3 -> R.drawable.avatar_3
