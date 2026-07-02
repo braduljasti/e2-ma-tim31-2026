@@ -12,7 +12,8 @@ data class MatchState(
     val rounds: List<RoundState>,
     val player1Score: Int,
     val player2Score: Int,
-    val winnerId: String?
+    val winnerId: String?,
+    val leftUids: List<String> = emptyList()
 ) {
     val finished: Boolean get() = status == "finished"
     val currentRound: RoundState? get() = rounds.getOrNull(currentRoundIndex)
@@ -21,6 +22,13 @@ data class MatchState(
     fun opponentName(uid: String) = if (isPlayer1(uid)) player2Name else player1Name
     fun myScore(uid: String) = if (isPlayer1(uid)) player1Score else player2Score
     fun opponentScore(uid: String) = if (isPlayer1(uid)) player2Score else player1Score
+    fun opponentId(uid: String) = if (isPlayer1(uid)) player2Id else player1Id
+    fun iLeft(uid: String) = uid in leftUids
+    fun opponentLeft(uid: String) = opponentId(uid) in leftUids
+
+    /** Živi (trenutni) zbir bodova - sumira sve runde bez obzira da li je meč kompletno završen. */
+    fun liveScore(uid: String): Int =
+        rounds.sumOf { if (isPlayer1(uid)) it.p1Points else it.p2Points }
 }
 
 data class RoundState(

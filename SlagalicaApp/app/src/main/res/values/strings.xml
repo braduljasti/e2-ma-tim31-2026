@@ -52,6 +52,14 @@
     <string name="nav_igraj">Igraj</string>
     <string name="nav_notifikacije">Notifikacije</string>
     <string name="nav_odjava">Odjava</string>
+    <string name="nav_partija">Partija</string>
+    <string name="nav_cet">Čet</string>
+    <string name="nav_rang_lista">Rang lista</string>
+    <string name="tab_nedeljno">Nedeljno</string>
+    <string name="tab_mesecno">Mesečno</string>
+    <string name="hint_poruka_cet">Napišite poruku…</string>
+    <string name="lbl_prazan_cet">Još uvijek nema poruka u vašem regionu. Budite prvi!</string>
+    <string name="lbl_prazna_rang_lista">Niko iz ovog ciklusa još nije odigrao partiju.</string>
     <string name="navigation_drawer_open">Otvori navigacioni meni</string>
     <string name="navigation_drawer_close">Zatvori navigacioni meni</string>
 

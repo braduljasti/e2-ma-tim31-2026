@@ -9,8 +9,10 @@ import com.example.slagalica.data.FirebaseProvider
 import com.example.slagalica.data.GameLogic
 import com.example.slagalica.data.GameResultRepository
 import com.example.slagalica.data.MultiplayerRepository
+import com.example.slagalica.data.ProfilRepository
 import com.example.slagalica.model.GameType
 import com.example.slagalica.model.KzzOdgovor
+import com.example.slagalica.model.MatchRewardOutcome
 import com.example.slagalica.model.MatchState
 import com.google.firebase.firestore.ListenerRegistration
 import kotlinx.coroutines.launch
@@ -18,7 +20,8 @@ import kotlinx.coroutines.launch
 class MultiplayerViewModel(
     private val repo: MultiplayerRepository = MultiplayerRepository(),
     private val authRepo: AuthRepository = AuthRepository(),
-    private val resultsRepo: GameResultRepository = GameResultRepository()
+    private val resultsRepo: GameResultRepository = GameResultRepository(),
+    private val profilRepo: ProfilRepository = ProfilRepository()
 ) : ViewModel() {
 
     val uid: String get() = FirebaseProvider.currentUid ?: ""
@@ -32,13 +35,44 @@ class MultiplayerViewModel(
     private val _match = MutableLiveData<MatchState?>()
     val match: LiveData<MatchState?> = _match
 
+    private val _error = MutableLiveData<String?>()
+    val error: LiveData<String?> = _error
+
+    /** Popunjava se kada je ishod partije (zvezde/tokeni/liga) obračunat - vidi ProgressionRepository. */
+    private val _rewardOutcome = MutableLiveData<MatchRewardOutcome?>()
+    val rewardOutcome: LiveData<MatchRewardOutcome?> = _rewardOutcome
+
     private var ticketListener: ListenerRegistration? = null
     private var matchListener: ListenerRegistration? = null
     private var resultSaved = false
+    private var rewardApplied = false
     private var lastMatchId: String? = null
 
     var requestedGameType: String = MultiplayerRepository.GAME_SKOCKO
         private set
+
+    /** Pravi meč (partija od 6 igara) - troši 1 token. Koristi se za glavno dugme "Igraj!". */
+    fun startPartijaMatchmaking() {
+        viewModelScope.launch {
+            val imaTokena = runCatching { profilRepo.potrosiToken(uid) }.getOrDefault(false)
+            if (!imaTokena) {
+                _error.postValue("Nemate dovoljno tokena za partiju. Sačekajte dnevnu dodjelu ili osvojite tokene na rang listi!")
+                return@launch
+            }
+            startMatchmaking(MultiplayerRepository.GAME_PARTIJA)
+        }
+    }
+
+    fun consumeError() { _error.value = null }
+    fun consumeRewardOutcome() { _rewardOutcome.value = null }
+
+    /** Napušta se trenutna partija - protivnik se odmah proglašava pobednikom, bez čekanja. */
+    fun forfeitMatch() {
+        val state = _match.value ?: return
+        viewModelScope.launch {
+            runCatching { repo.leaveMatch(state.id, uid) }
+        }
+    }
 
     fun startMatchmaking(gameType: String) {
         requestedGameType = gameType
@@ -78,6 +112,7 @@ class MultiplayerViewModel(
     fun bindMatch(matchId: String) {
         matchListener?.remove()
         resultSaved = false
+        rewardApplied = false
         matchListener = repo.listenMatch(matchId) { state ->
             _match.postValue(state)
 
@@ -91,6 +126,19 @@ class MultiplayerViewModel(
                 resultSaved = true
                 saveMyResult(state)
             }
+            if (state.finished && !rewardApplied) {
+                rewardApplied = true
+                applyReward(state)
+            }
+        }
+    }
+
+    private fun applyReward(state: MatchState) {
+        // Trening (pojedinačna igra) se ne boduje zvezdama/tokenima/ligom - samo prava partija.
+        if (state.gameType != MultiplayerRepository.GAME_PARTIJA) return
+        viewModelScope.launch {
+            val outcome = runCatching { repo.primeniNagraduAkoTreba(state.id, uid) }.getOrNull()
+            if (outcome != null) _rewardOutcome.postValue(outcome)
         }
     }
 
@@ -170,30 +218,50 @@ class MultiplayerViewModel(
     }
 
     private fun saveMyResult(state: MatchState) {
-        val type = when (state.gameType) {
-            MultiplayerRepository.GAME_KZZ -> GameType.KO_ZNA_ZNA
-            MultiplayerRepository.GAME_SPOJNICE -> GameType.SPOJNICE
-            MultiplayerRepository.GAME_ASOCIJACIJE -> GameType.ASOCIJACIJE
-            MultiplayerRepository.GAME_KORAK -> GameType.KORAK_PO_KORAK
-            MultiplayerRepository.GAME_MOJ_BROJ -> GameType.MOJ_BROJ
-            else -> GameType.SKOCKO
+        if (state.gameType == MultiplayerRepository.GAME_PARTIJA) {
+            saveMyResultsPartija(state)
+            return
         }
+        val type = gameTypeToEnum(state.gameType)
         val my = state.myScore(uid)
         val opp = state.opponentScore(uid)
-        val details = buildDetails(state)
+        val details = buildDetails(state.gameType, state.rounds, state.isPlayer1(uid))
         viewModelScope.launch {
             runCatching { resultsRepo.saveResult(type, my, opp, details) }
         }
     }
 
-    private fun buildDetails(state: MatchState): Map<String, Long> {
+    /** Partija = svih 6 igara odjednom; sačuvaj po jedan GameResult za svaku odigranu pod-igru
+     * (tako i dalje rade postojeći ekrani statistike u Profilu, po igri). */
+    private fun saveMyResultsPartija(state: MatchState) {
         val isP1 = state.isPlayer1(uid)
+        val poGrupama = state.rounds.groupBy { it.gameType }
+        viewModelScope.launch {
+            poGrupama.forEach { (gameType, runde) ->
+                val my = runde.sumOf { if (isP1) it.p1Points else it.p2Points }
+                val opp = runde.sumOf { if (isP1) it.p2Points else it.p1Points }
+                val details = buildDetails(gameType, runde, isP1)
+                runCatching { resultsRepo.saveResult(gameTypeToEnum(gameType), my, opp, details) }
+            }
+        }
+    }
+
+    private fun gameTypeToEnum(gameType: String): GameType = when (gameType) {
+        MultiplayerRepository.GAME_KZZ -> GameType.KO_ZNA_ZNA
+        MultiplayerRepository.GAME_SPOJNICE -> GameType.SPOJNICE
+        MultiplayerRepository.GAME_ASOCIJACIJE -> GameType.ASOCIJACIJE
+        MultiplayerRepository.GAME_KORAK -> GameType.KORAK_PO_KORAK
+        MultiplayerRepository.GAME_MOJ_BROJ -> GameType.MOJ_BROJ
+        else -> GameType.SKOCKO
+    }
+
+    private fun buildDetails(gameType: String, rounds: List<com.example.slagalica.model.RoundState>, isP1: Boolean): Map<String, Long> {
         fun mojSub(r: com.example.slagalica.model.RoundState) = if (isP1) r.p1Sub else r.p2Sub
 
-        return when (state.gameType) {
+        return when (gameType) {
 
             MultiplayerRepository.GAME_KZZ -> {
-                val round = state.rounds.firstOrNull() ?: return emptyMap()
+                val round = rounds.firstOrNull() ?: return emptyMap()
                 val tacniIndeksi = round.kzzPitanja().map { it.tacanIndex }
                 val moji = round.kzzOdgovori(mojSub(round))
                 var tacnih = 0L; var netacnih = 0L; var bezOdgovora = 0L
@@ -210,7 +278,7 @@ class MultiplayerViewModel(
 
             MultiplayerRepository.GAME_SPOJNICE -> {
                 var povezanih = 0L; var pokusaja = 0L
-                state.rounds.forEach { r ->
+                rounds.forEach { r ->
                     val veze = r.spojniceRunda()?.tacneVeze ?: return@forEach
                     val moji = r.spojniceParovi(mojSub(r))
                     pokusaja += moji.size
@@ -221,25 +289,25 @@ class MultiplayerViewModel(
 
             MultiplayerRepository.GAME_ASOCIJACIJE -> {
                 var resenihFinala = 0L; var resenihKolona = 0L
-                state.rounds.forEach { r ->
+                rounds.forEach { r ->
                     if (r.asocResenoFinalnoUid() == uid) resenihFinala++
                     resenihKolona += r.asocReseneKolone().values.count { it == uid }
                 }
                 mapOf(
                     "resenihFinala" to resenihFinala,
                     "resenihKolona" to resenihKolona,
-                    "rundi" to state.rounds.size.toLong()
+                    "rundi" to rounds.size.toLong()
                 )
             }
 
             else -> {
                 var resenihRundi = 0L
-                state.rounds.forEach { r ->
+                rounds.forEach { r ->
                     val secret = r.skockoSecret()
                     val moji = r.skockoGuesses(mojSub(r))
                     if (moji.any { GameLogic.evaluateSkocko(secret, it).first == 4 }) resenihRundi++
                 }
-                mapOf("resenihRundi" to resenihRundi, "rundi" to state.rounds.size.toLong())
+                mapOf("resenihRundi" to resenihRundi, "rundi" to rounds.size.toLong())
             }
         }
     }

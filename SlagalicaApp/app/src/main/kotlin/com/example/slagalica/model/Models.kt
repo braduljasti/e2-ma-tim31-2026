@@ -64,7 +64,30 @@ data class FirebaseUser(
     val lastCycleMonthly: String = "",
 
     // Prisustvo (za "aktivni igrači" u statistici regiona i online status prijatelja).
-    val lastSeen: Long = 0L
+    val lastSeen: Long = 0L,
+
+    // Rang lista (spec 4) - ciklusi ("W-2026-W27", "M-2026-07") za koje je već isplaćena
+    // nagrada za plasman, da ista nagrada ne bi bila isplaćena više puta.
+    val rewardedCycles: List<String> = emptyList()
+)
+
+/** Poruka u regionalnom četu (spec 8). */
+data class ChatMessage(
+    val id: String = "",
+    val senderUid: String = "",
+    val senderName: String = "",
+    val text: String = "",
+    val timestampMs: Long = 0L
+)
+
+enum class RangCiklus { NEDELJNI, MESECNI }
+
+/** Red na globalnoj rang listi (spec 4) - izveden direktno iz users.starsWeekly/starsMonthly. */
+data class RangListaStavka(
+    val uid: String,
+    val username: String,
+    val league: Int,
+    val stars: Int
 )
 
 /** Statistika jednog regiona na klik (spec 5.d). */

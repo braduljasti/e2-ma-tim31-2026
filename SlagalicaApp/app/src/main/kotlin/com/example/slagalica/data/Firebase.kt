@@ -27,4 +27,7 @@ object FirestoreCollections {
 
     const val FRIENDSHIPS = "friendships"     // top-level: jedan dokument = obostrano prijateljstvo
     const val REGION_STANDINGS = "regionStandings"  // istorija plasmana regiona po ciklusu
+
+    const val CHATS = "chats"                 // top-level: chats/{region}/poruke/{id} (spec 8)
+    const val CHAT_MESSAGES = "poruke"
 }

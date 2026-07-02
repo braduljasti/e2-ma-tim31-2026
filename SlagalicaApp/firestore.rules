@@ -59,5 +59,11 @@ service cloud.firestore {
       allow read: if signedIn();
       allow write: if signedIn();
     }
+
+    // Čet po regionima (spec 8) - svi prijavljeni čitaju, svako piše samo poruke sa svojim uid-om.
+    match /chats/{region}/poruke/{msgId} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.senderUid == request.auth.uid;
+    }
   }
 }

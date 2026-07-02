@@ -108,6 +108,24 @@
         tools:layout="@layout/fragment_moj_broj"/>
 
     <fragment
+        android:id="@+id/nav_partija_mp"
+        android:name="com.example.slagalica.ui.main.PartijaMpFragment"
+        android:label="@string/nav_partija"
+        tools:layout="@layout/fragment_partija_mp"/>
+
+    <fragment
+        android:id="@+id/nav_chat"
+        android:name="com.example.slagalica.ui.chat.ChatFragment"
+        android:label="@string/nav_cet"
+        tools:layout="@layout/fragment_chat"/>
+
+    <fragment
+        android:id="@+id/nav_rang_lista"
+        android:name="com.example.slagalica.ui.ranglista.RangListaFragment"
+        android:label="@string/nav_rang_lista"
+        tools:layout="@layout/fragment_rang_lista"/>
+
+    <fragment
         android:id="@+id/profilFragment"
         android:name="com.example.slagalica.ui.profil.ProfilFragment"
         android:label="@string/title_profil"

@@ -37,6 +37,14 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
         // Lazy reconcile: dnevni tokeni + reset ciklusa zvezda (spec 3.a/6.b)
         lifecycleScope.launch {
+            // VAŽNO: moja provjera plasmana/kazne (spec 4.c/6.e) mora ići PRIJE
+            // reconcileOnStart-a, jer on resetuje starsWeekly/starsMonthly na 0 čim
+            // detektuje promjenu ciklusa - inače bismo izgubili priliku da vidimo plasman.
+            runCatching {
+                com.example.slagalica.data.FirebaseProvider.currentUid?.let { uid ->
+                    com.example.slagalica.data.RangListaRepository().pripremiZavrsetakCiklusaAkoTreba(uid)
+                }
+            }
             val outcome = runCatching {
                 com.example.slagalica.data.ProgressionRepository().reconcileOnStart()
             }.getOrNull()
@@ -70,7 +78,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         navController = navHostFragment.navController
 
         appBarConfiguration = AppBarConfiguration(
-            setOf(R.id.nav_igraj, R.id.nav_notifikacije),
+            setOf(R.id.nav_igraj, R.id.nav_notifikacije, R.id.nav_rang_lista, R.id.nav_chat),
             binding.drawerLayout
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
@@ -101,6 +109,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             R.id.nav_prijatelji -> navController.navigate(R.id.nav_prijatelji)
             R.id.nav_lige -> navController.navigate(R.id.nav_lige)
             R.id.nav_regioni -> navController.navigate(R.id.nav_regioni)
+            R.id.nav_rang_lista -> navController.navigate(R.id.nav_rang_lista)
+            R.id.nav_chat -> navController.navigate(R.id.nav_chat)
             R.id.nav_korak_po_korak -> navController.navigate(R.id.nav_korak_po_korak)
             R.id.nav_ko_zna_zna -> navController.navigate(R.id.kzzFragment)
             R.id.nav_spojnice -> navController.navigate(R.id.spojniceFragment)

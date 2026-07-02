@@ -28,6 +28,22 @@ class MultiplayerRepository {
         const val GAME_ASOCIJACIJE = "Asocijacije"
         const val GAME_KORAK = "Korak"
         const val GAME_MOJ_BROJ = "MojBroj"
+
+        /** Prava "partija" iz specifikacije - svih 6 igara odigranih jedna za drugom. */
+        const val GAME_PARTIJA = "Partija"
+
+        /** Redosled igara unutar jedne partije, tačno kao u specifikaciji (odeljak "Igre"). */
+        val REDOSLED_PARTIJE = listOf(GAME_KZZ, GAME_SPOJNICE, GAME_ASOCIJACIJE, GAME_SKOCKO, GAME_KORAK, GAME_MOJ_BROJ)
+
+        fun nazivIgre(gameType: String): String = when (gameType) {
+            GAME_KZZ -> "Ko zna zna"
+            GAME_SPOJNICE -> "Spojnice"
+            GAME_ASOCIJACIJE -> "Asocijacije"
+            GAME_SKOCKO -> "Skočko"
+            GAME_KORAK -> "Korak po korak"
+            GAME_MOJ_BROJ -> "Moj broj"
+            else -> gameType
+        }
     }
 
     suspend fun tryJoin(myUid: String, myName: String, gameType: String): String? {
@@ -81,71 +97,89 @@ class MultiplayerRepository {
 
     private suspend fun buildRounds(gameType: String, p1: String, p2: String): List<Map<String, Any?>> =
         when (gameType) {
-
-            GAME_KZZ -> {
-                val pitanja = gameData.nasumicnaKzzPitanja(KzzKonstante.BROJ_PITANJA)
-                listOf(roundMap(GAME_KZZ, 1, p1, mapOf(
-                    "pitanja" to pitanja.map {
-                        mapOf("tekst" to it.tekst, "odgovori" to it.odgovori, "tacanIndex" to it.tacanIndex)
-                    }
-                )))
-            }
-
-            GAME_SPOJNICE -> {
-                val runde = gameData.nasumicneSpojnice(SpojniceKonstante.BROJ_RUNDI)
-                runde.mapIndexed { i, r ->
-                    roundMap(GAME_SPOJNICE, i + 1, if (i == 0) p1 else p2, mapOf(
-                        "kriterijum" to r.kriterijum,
-                        "levi" to r.leviPojmovi,
-                        "desni" to r.desniPojmovi,
-                        "veze" to r.tacneVeze.entries.associate { e -> e.key.toString() to e.value }
-                    ))
+            GAME_KZZ -> buildKzzRounds(p1)
+            GAME_SPOJNICE -> buildSpojniceRounds(p1, p2)
+            GAME_ASOCIJACIJE -> buildAsocijacijeRounds(p1, p2)
+            GAME_KORAK -> buildKorakRounds(p1, p2)
+            GAME_MOJ_BROJ -> buildMojBrojRounds(p1, p2)
+            GAME_PARTIJA -> REDOSLED_PARTIJE.flatMap { igra ->
+                when (igra) {
+                    GAME_KZZ -> buildKzzRounds(p1)
+                    GAME_SPOJNICE -> buildSpojniceRounds(p1, p2)
+                    GAME_ASOCIJACIJE -> buildAsocijacijeRounds(p1, p2)
+                    GAME_KORAK -> buildKorakRounds(p1, p2)
+                    GAME_MOJ_BROJ -> buildMojBrojRounds(p1, p2)
+                    else -> buildSkockoRounds(p1, p2)
                 }
             }
+            else -> buildSkockoRounds(p1, p2)
+        }
 
-            GAME_ASOCIJACIJE -> {
-                val runde = gameData.nasumicneAsocijacije(AsocijacijeKonstante.BROJ_RUNDI)
-                runde.mapIndexed { i, r ->
-                    val starter = if (i == 0) p1 else p2
-                    roundMap(GAME_ASOCIJACIJE, i + 1, starter, mapOf(
-                        "kolone" to mapOf(
-                            "A" to r.polja[0], "B" to r.polja[1],
-                            "C" to r.polja[2], "D" to r.polja[3]
-                        ),
-                        "resenjaKolona" to r.resenjaKolona,
-                        "finalnoResenje" to r.finalnoResenje
-                    )) + mapOf(
-                        "turnUid" to starter,
-                        "mozeDaPogadja" to false,
-                        "otvorena" to emptyList<String>(),
-                        "reseneKolone" to emptyMap<String, String>(),
-                        "resenoFinalnoUid" to null,
-                        "zavrsena" to false
-                    )
-                }
+    private suspend fun buildKzzRounds(p1: String): List<Map<String, Any?>> {
+        val pitanja = gameData.nasumicnaKzzPitanja(KzzKonstante.BROJ_PITANJA)
+        return listOf(roundMap(GAME_KZZ, 1, p1, mapOf(
+            "pitanja" to pitanja.map {
+                mapOf("tekst" to it.tekst, "odgovori" to it.odgovori, "tacanIndex" to it.tacanIndex)
             }
+        )))
+    }
 
-            GAME_KORAK -> {
-                val pojmovi = gameData.nasumicniKorakPojmovi(KorakKonstante.BROJ_RUNDI)
-                pojmovi.mapIndexed { i, p ->
-                    roundMap(GAME_KORAK, i + 1, if (i == 0) p1 else p2, mapOf(
-                        "word" to p.rijec,
-                        "hints" to p.tragovi
-                    ))
-                }
-            }
+    private suspend fun buildSpojniceRounds(p1: String, p2: String): List<Map<String, Any?>> {
+        val runde = gameData.nasumicneSpojnice(SpojniceKonstante.BROJ_RUNDI)
+        return runde.mapIndexed { i, r ->
+            roundMap(GAME_SPOJNICE, i + 1, if (i == 0) p1 else p2, mapOf(
+                "kriterijum" to r.kriterijum,
+                "levi" to r.leviPojmovi,
+                "desni" to r.desniPojmovi,
+                "veze" to r.tacneVeze.entries.associate { e -> e.key.toString() to e.value }
+            ))
+        }
+    }
 
-            GAME_MOJ_BROJ -> (1..MojBrojKonstante.BROJ_RUNDI).map { r ->
-                roundMap(GAME_MOJ_BROJ, r, if (r == 1) p1 else p2, mapOf(
-                    "target" to GameLogic.newMojBrojTarget(),
-                    "numbers" to GameLogic.newMojBrojNumbers()
-                ))
-            }
+    private suspend fun buildAsocijacijeRounds(p1: String, p2: String): List<Map<String, Any?>> {
+        val runde = gameData.nasumicneAsocijacije(AsocijacijeKonstante.BROJ_RUNDI)
+        return runde.mapIndexed { i, r ->
+            val starter = if (i == 0) p1 else p2
+            roundMap(GAME_ASOCIJACIJE, i + 1, starter, mapOf(
+                "kolone" to mapOf(
+                    "A" to r.polja[0], "B" to r.polja[1],
+                    "C" to r.polja[2], "D" to r.polja[3]
+                ),
+                "resenjaKolona" to r.resenjaKolona,
+                "finalnoResenje" to r.finalnoResenje
+            )) + mapOf(
+                "turnUid" to starter,
+                "mozeDaPogadja" to false,
+                "otvorena" to emptyList<String>(),
+                "reseneKolone" to emptyMap<String, String>(),
+                "resenoFinalnoUid" to null,
+                "zavrsena" to false
+            )
+        }
+    }
 
-            else -> (1..2).map { r ->
-                roundMap(GAME_SKOCKO, r, if (r == 1) p1 else p2,
-                    mapOf("secret" to GameLogic.newSkockoSecret()))
-            }
+    private suspend fun buildKorakRounds(p1: String, p2: String): List<Map<String, Any?>> {
+        val pojmovi = gameData.nasumicniKorakPojmovi(KorakKonstante.BROJ_RUNDI)
+        return pojmovi.mapIndexed { i, p ->
+            roundMap(GAME_KORAK, i + 1, if (i == 0) p1 else p2, mapOf(
+                "word" to p.rijec,
+                "hints" to p.tragovi
+            ))
+        }
+    }
+
+    private fun buildMojBrojRounds(p1: String, p2: String): List<Map<String, Any?>> =
+        (1..MojBrojKonstante.BROJ_RUNDI).map { r ->
+            roundMap(GAME_MOJ_BROJ, r, if (r == 1) p1 else p2, mapOf(
+                "target" to GameLogic.newMojBrojTarget(),
+                "numbers" to GameLogic.newMojBrojNumbers()
+            ))
+        }
+
+    private fun buildSkockoRounds(p1: String, p2: String): List<Map<String, Any?>> =
+        (1..2).map { r ->
+            roundMap(GAME_SKOCKO, r, if (r == 1) p1 else p2,
+                mapOf("secret" to GameLogic.newSkockoSecret()))
         }
 
     private fun roundMap(
@@ -218,7 +252,8 @@ class MultiplayerRepository {
             rounds = rounds,
             player1Score = (d["player1Score"] as? Number)?.toInt() ?: 0,
             player2Score = (d["player2Score"] as? Number)?.toInt() ?: 0,
-            winnerId = d["winnerId"] as? String
+            winnerId = d["winnerId"] as? String,
+            leftUids = strList(d["leftUids"])
         )
     }
 
@@ -287,17 +322,25 @@ class MultiplayerRepository {
             val round = rounds.getOrNull(idx) ?: return@runTransaction null
 
             val resolved = round["resolved"] as? Boolean ?: false
-            val p1Sub = round["p1Sub"] as? Map<*, *>
-            val p2Sub = round["p2Sub"] as? Map<*, *>
-            if (resolved || p1Sub == null || p2Sub == null) return@runTransaction null
+            val leftUids = strList(snap.get("leftUids"))
+            val player1Id = snap.getString("player1Id")
+            val player2Id = snap.getString("player2Id")
+            var p1Sub = round["p1Sub"] as? Map<*, *>
+            var p2Sub = round["p2Sub"] as? Map<*, *>
+            if (resolved) return@runTransaction null
+            // Ako je jedan igrač napustio partiju, ne čekamo njegov potez - tretiramo ga kao prazan
+            // (0 bodova), da bi preostali igrač mogao odmah da nastavi.
+            if (p1Sub == null && player1Id in leftUids) p1Sub = emptyMap<String, Any?>()
+            if (p2Sub == null && player2Id in leftUids) p2Sub = emptyMap<String, Any?>()
+            if (p1Sub == null || p2Sub == null) return@runTransaction null
 
             val gameType = round["gameType"] as? String ?: GAME_SKOCKO
             val (p1Pts, p2Pts) = when (gameType) {
                 GAME_KZZ -> resolveKzzRound(round, p1Sub, p2Sub)
-                GAME_SPOJNICE -> resolveSpojniceRound(snap.getString("player1Id"), round, p1Sub, p2Sub)
-                GAME_KORAK -> resolveKorakRound(snap.getString("player1Id"), round, p1Sub, p2Sub)
-                GAME_MOJ_BROJ -> resolveMojBrojRound(snap.getString("player1Id"), round, p1Sub, p2Sub)
-                else -> resolveSkockoRound(snap.getString("player1Id"), round, p1Sub, p2Sub)
+                GAME_SPOJNICE -> resolveSpojniceRound(player1Id, round, p1Sub, p2Sub)
+                GAME_KORAK -> resolveKorakRound(player1Id, round, p1Sub, p2Sub)
+                GAME_MOJ_BROJ -> resolveMojBrojRound(player1Id, round, p1Sub, p2Sub)
+                else -> resolveSkockoRound(player1Id, round, p1Sub, p2Sub)
             }
 
             round["p1Points"] = p1Pts
@@ -307,12 +350,14 @@ class MultiplayerRepository {
             val newIndex = idx + 1
             val updates = hashMapOf<String, Any?>("rounds" to rounds, "currentRoundIndex" to newIndex)
 
-            if (newIndex >= rounds.size) {
+            if (newIndex >= rounds.size || leftUids.isNotEmpty()) {
                 val p1Total = rounds.sumOf { (it["p1Points"] as? Number)?.toInt() ?: 0 }
                 val p2Total = rounds.sumOf { (it["p2Points"] as? Number)?.toInt() ?: 0 }
                 val winner = when {
-                    p1Total > p2Total -> snap.getString("player1Id")
-                    p2Total > p1Total -> snap.getString("player2Id")
+                    leftUids.contains(player1Id) -> player2Id
+                    leftUids.contains(player2Id) -> player1Id
+                    p1Total > p2Total -> player1Id
+                    p2Total > p1Total -> player2Id
                     else -> null
                 }
                 updates["player1Score"] = p1Total
@@ -323,6 +368,83 @@ class MultiplayerRepository {
             tx.update(ref, updates)
             null
         }.await()
+    }
+
+    /**
+     * Igrač napušta partiju - odmah gubi partiju bez zvezdi, a protivnik se odmah proglašava
+     * pobednikom (bez čekanja da istekne preostalo vreme), čime je vreme čekanja svedeno na
+     * minimum. Rezultat se zamrzava na trenutnom zbiru poena po odigranim rundama.
+     */
+    suspend fun leaveMatch(matchId: String, myUid: String) {
+        val ref = matches.document(matchId)
+        db.runTransaction<Void?> { tx ->
+            val snap = tx.get(ref)
+            if (snap.getString("status") == "finished") return@runTransaction null
+            val player1Id = snap.getString("player1Id")
+            val player2Id = snap.getString("player2Id")
+            val otherId = if (myUid == player1Id) player2Id else player1Id
+
+            @Suppress("UNCHECKED_CAST")
+            val rounds = (snap.get("rounds") as? List<Map<String, Any?>>) ?: emptyList()
+            val p1Total = rounds.sumOf { (it["p1Points"] as? Number)?.toInt() ?: 0 }
+            val p2Total = rounds.sumOf { (it["p2Points"] as? Number)?.toInt() ?: 0 }
+
+            tx.update(
+                ref,
+                mapOf(
+                    "status" to "finished",
+                    "winnerId" to otherId,
+                    "leftUids" to FieldValue.arrayUnion(myUid),
+                    "player1Score" to p1Total,
+                    "player2Score" to p2Total
+                )
+            )
+            null
+        }.await()
+    }
+
+    /**
+     * Dodeljuje zvezdice/tokene/ligu za završenu partiju delegiranjem na
+     * [ProgressionRepository.applyMatchResult] (kolegin dio - spec 3.d + 6). Poziva ga SVAKI
+     * klijent za svoj sopstveni nalog. Idempotentnost (da se nagrada ne primeni dvaput) je
+     * obezbeđena poljima p1RewardApplied/p2RewardApplied na samom meču, koje ova funkcija
+     * postavlja NAKON uspešne primene nagrade (da se nagrada ne izgubi ako aplikacija padne
+     * usred obrade - u najgorem slučaju bi se retko mogla primeniti dvaput, što je prihvatljivo
+     * za ovaj projekat).
+     *
+     * Vraća [MatchRewardOutcome] (za prikaz dijaloga o zvezdama/tokenima/promeni lige), ili null
+     * ako se partija ne boduje (trening, nije još završena, ili je nagrada već primenjena).
+     */
+    suspend fun primeniNagraduAkoTreba(matchId: String, myUid: String): com.example.slagalica.model.MatchRewardOutcome? {
+        val ref = matches.document(matchId)
+        val snap = runCatching { ref.get().await() }.getOrNull() ?: return null
+        if (snap.getString("status") != "finished") return null
+
+        val player1Id = snap.getString("player1Id")
+        val isP1 = myUid == player1Id
+        val flagKey = if (isP1) "p1RewardApplied" else "p2RewardApplied"
+        if (snap.getBoolean(flagKey) == true) return null
+
+        val leftUids = strList(snap.get("leftUids"))
+        if (myUid in leftUids) {
+            // Napustio je partiju - ne dobija zvezde (spec 3.f), samo obeleži da je "obrađeno".
+            runCatching { ref.update(flagKey, true).await() }
+            return null
+        }
+
+        val winnerId = snap.getString("winnerId")
+        val myScore = (if (isP1) snap.getLong("player1Score") else snap.getLong("player2Score"))?.toInt() ?: 0
+        val oppScore = (if (isP1) snap.getLong("player2Score") else snap.getLong("player1Score"))?.toInt() ?: 0
+        // Nerešeno (winnerId == null) tretiramo kao "pobjeda" za oba igrača - dosledno konvenciji
+        // koja se već koristi u GameResultRepository (won = myPoints >= opponentPoints).
+        val won = if (winnerId != null) winnerId == myUid else myScore >= oppScore
+
+        val outcome = runCatching {
+            ProgressionRepository().applyMatchResult(won = won, totalPoints = myScore)
+        }.getOrNull() ?: return null
+
+        runCatching { ref.update(flagKey, true).await() }
+        return outcome
     }
 
     private fun resolveSkockoRound(

@@ -199,6 +199,24 @@
                     app:backgroundTint="@color/accent"
                     app:cornerRadius="16dp"/>
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:text="1 partija = 1 token · 6 igara zaredom"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="11sp"/>
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnVezbaj"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:text="Vežbaj pojedinačnu igru (bez tokena)"
+                    android:textSize="12sp"
+                    android:textColor="@color/primary"/>
+
             </LinearLayout>
 
         </com.google.android.material.card.MaterialCardView>

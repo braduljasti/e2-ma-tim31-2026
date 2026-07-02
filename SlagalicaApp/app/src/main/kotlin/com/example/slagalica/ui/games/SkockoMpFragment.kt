@@ -52,7 +52,7 @@ class SkockoMpFragment : Fragment() {
         binding.scoreboardSkocko.tvMojiBodovi.text = state.myScore(mp.uid).toString()
         binding.scoreboardSkocko.tvProtivnikBodovi.text = state.opponentScore(mp.uid).toString()
 
-        if (state.finished) { showFinal(state); return }
+        if (state.finished) { if (parentFragment !is com.example.slagalica.ui.main.PartijaMpFragment) showFinal(state); return }
 
         val round = state.currentRound ?: return
         if (round.gameType != "Skocko") return
