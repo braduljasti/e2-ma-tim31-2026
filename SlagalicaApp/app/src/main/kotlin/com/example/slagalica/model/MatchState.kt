@@ -13,7 +13,10 @@ data class MatchState(
     val player1Score: Int,
     val player2Score: Int,
     val winnerId: String?,
-    val leftUids: List<String> = emptyList()
+    val leftUids: List<String> = emptyList(),
+    // Prijateljska partija (spec 3.e): ne troši tokene, ne donosi/oduzima zvezde
+    // i ne ulazi u statistiku.
+    val friendly: Boolean = false
 ) {
     val finished: Boolean get() = status == "finished"
     val currentRound: RoundState? get() = rounds.getOrNull(currentRoundIndex)

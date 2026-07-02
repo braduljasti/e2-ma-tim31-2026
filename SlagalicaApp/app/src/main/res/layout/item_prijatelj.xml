@@ -68,6 +68,21 @@
         </LinearLayout>
 
         <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPozoviPrijatelja"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minWidth="0dp"
+            android:textSize="12sp"
+            android:textAllCaps="false"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:layout_marginEnd="6dp"
+            app:backgroundTint="@color/accent"
+            android:textColor="@color/primary_dark"
+            android:visibility="gone"
+            android:text="@string/btn_pozovi_partiju"/>
+
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnAkcijaPrijatelj"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="wrap_content"

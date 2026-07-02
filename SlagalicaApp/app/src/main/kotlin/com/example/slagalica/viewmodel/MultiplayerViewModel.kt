@@ -9,19 +9,24 @@ import com.example.slagalica.data.FirebaseProvider
 import com.example.slagalica.data.GameLogic
 import com.example.slagalica.data.GameResultRepository
 import com.example.slagalica.data.MultiplayerRepository
+import com.example.slagalica.data.PozivnicaRepository
 import com.example.slagalica.data.ProfilRepository
 import com.example.slagalica.model.GameType
 import com.example.slagalica.model.KzzOdgovor
 import com.example.slagalica.model.MatchRewardOutcome
 import com.example.slagalica.model.MatchState
+import com.example.slagalica.model.PozivNaPartiju
 import com.google.firebase.firestore.ListenerRegistration
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class MultiplayerViewModel(
     private val repo: MultiplayerRepository = MultiplayerRepository(),
     private val authRepo: AuthRepository = AuthRepository(),
     private val resultsRepo: GameResultRepository = GameResultRepository(),
-    private val profilRepo: ProfilRepository = ProfilRepository()
+    private val profilRepo: ProfilRepository = ProfilRepository(),
+    private val pozivnice: PozivnicaRepository = PozivnicaRepository()
 ) : ViewModel() {
 
     val uid: String get() = FirebaseProvider.currentUid ?: ""
@@ -65,6 +70,110 @@ class MultiplayerViewModel(
 
     fun consumeError() { _error.value = null }
     fun consumeRewardOutcome() { _rewardOutcome.value = null }
+
+    // ===== POZIVI PRIJATELJA NA PARTIJU (spec 7.c-e) =====
+
+    /** Status MOG poslatog poziva - za dijalog "čeka se odgovor" kod pošiljaoca. */
+    private val _poslatiPoziv = MutableLiveData<PozivNaPartiju?>()
+    val poslatiPoziv: LiveData<PozivNaPartiju?> = _poslatiPoziv
+
+    /** Dolazni poziv - MainActivity prikazuje dijalog sa 10s odbrojavanjem. */
+    private val _dolazniPoziv = MutableLiveData<PozivNaPartiju?>()
+    val dolazniPoziv: LiveData<PozivNaPartiju?> = _dolazniPoziv
+
+    /** Prijateljska partija spremna (matchId) - MainActivity navigira na partiju. */
+    private val _prijateljskaSpremna = MutableLiveData<String?>()
+    val prijateljskaSpremna: LiveData<String?> = _prijateljskaSpremna
+
+    private var poslatiListener: ListenerRegistration? = null
+    private var dolazniListener: ListenerRegistration? = null
+    private var pozivTimeoutJob: Job? = null
+    private var obradjeniPozivi = mutableSetOf<String>()
+
+    /** Šalje poziv prijatelju i čeka odgovor (10s + rezerva, pa se sam otkazuje - spec 7.d/7.e). */
+    fun posaljiPozivPrijatelju(friendUid: String) {
+        viewModelScope.launch {
+            val myName = currentUsername()
+            val inviteId = runCatching { pozivnice.posalji(uid, myName, friendUid) }.getOrNull()
+            if (inviteId == null) {
+                _error.postValue("Slanje poziva nije uspjelo.")
+                return@launch
+            }
+            poslatiListener?.remove()
+            poslatiListener = pozivnice.slusajPoziv(inviteId) { poziv ->
+                _poslatiPoziv.postValue(poziv)
+                if (poziv?.status == PozivNaPartiju.ACCEPTED && poziv.matchId != null) {
+                    zaustaviPracenjePoslatog()
+                    udjiUPrijateljsku(poziv.matchId)
+                }
+            }
+            // Ako prijatelj uopšte ne odgovori (app mu nije otvoren), otkaži sam
+            pozivTimeoutJob?.cancel()
+            pozivTimeoutJob = viewModelScope.launch {
+                delay(POZIV_TIMEOUT_MS)
+                val trenutni = _poslatiPoziv.value
+                if (trenutni?.id == inviteId && trenutni.status == PozivNaPartiju.PENDING) {
+                    runCatching { pozivnice.otkazi(inviteId) }
+                    _poslatiPoziv.postValue(trenutni.copy(status = PozivNaPartiju.DECLINED))
+                    zaustaviPracenjePoslatog()
+                }
+            }
+        }
+    }
+
+    /** Pošiljalac ručno prekida poziv (spec 7.e). */
+    fun otkaziPoslatiPoziv() {
+        val poziv = _poslatiPoziv.value ?: return
+        viewModelScope.launch { runCatching { pozivnice.otkazi(poziv.id) } }
+        zaustaviPracenjePoslatog()
+        _poslatiPoziv.value = null
+    }
+
+    fun consumePoslatiPoziv() { _poslatiPoziv.value = null }
+
+    private fun zaustaviPracenjePoslatog() {
+        poslatiListener?.remove(); poslatiListener = null
+        pozivTimeoutJob?.cancel(); pozivTimeoutJob = null
+    }
+
+    /** Pokreće globalno slušanje dolaznih poziva - zove MainActivity jednom. */
+    fun slusajDolaznePozive() {
+        if (dolazniListener != null || uid.isBlank()) return
+        dolazniListener = pozivnice.slusajDolazne(uid) { poziv ->
+            if (poziv.id !in obradjeniPozivi) {
+                obradjeniPozivi.add(poziv.id)
+                _dolazniPoziv.postValue(poziv)
+            }
+        }
+    }
+
+    /** Primalac prihvata poziv: kreira prijateljsku partiju i ulazi u nju. */
+    fun prihvatiPoziv(poziv: PozivNaPartiju) {
+        _dolazniPoziv.value = null
+        viewModelScope.launch {
+            val myName = currentUsername()
+            val matchId = runCatching { pozivnice.prihvati(poziv, uid, myName) }.getOrNull()
+            if (matchId == null) {
+                _error.postValue("Ulazak u partiju nije uspio.")
+            } else {
+                udjiUPrijateljsku(matchId)
+            }
+        }
+    }
+
+    /** Primalac odbija poziv (ručno ili automatski poslije 10s - spec 7.d). */
+    fun odbijPoziv(poziv: PozivNaPartiju) {
+        _dolazniPoziv.value = null
+        viewModelScope.launch { runCatching { pozivnice.odbij(poziv.id) } }
+    }
+
+    fun consumePrijateljskaSpremna() { _prijateljskaSpremna.value = null }
+
+    private fun udjiUPrijateljsku(matchId: String) {
+        requestedGameType = MultiplayerRepository.GAME_PARTIJA
+        lastMatchId = matchId
+        _prijateljskaSpremna.postValue(matchId)
+    }
 
     /** Napušta se trenutna partija - protivnik se odmah proglašava pobednikom, bez čekanja. */
     fun forfeitMatch() {
@@ -135,7 +244,8 @@ class MultiplayerViewModel(
 
     private fun applyReward(state: MatchState) {
         // Trening (pojedinačna igra) se ne boduje zvezdama/tokenima/ligom - samo prava partija.
-        if (state.gameType != MultiplayerRepository.GAME_PARTIJA) return
+        // Prijateljska partija se takođe ne boduje (spec 3.e).
+        if (state.gameType != MultiplayerRepository.GAME_PARTIJA || state.friendly) return
         viewModelScope.launch {
             val outcome = runCatching { repo.primeniNagraduAkoTreba(state.id, uid) }.getOrNull()
             if (outcome != null) _rewardOutcome.postValue(outcome)
@@ -218,6 +328,8 @@ class MultiplayerViewModel(
     }
 
     private fun saveMyResult(state: MatchState) {
+        // Prijateljske partije ne ulaze u statistiku (spec 3.e)
+        if (state.friendly) return
         if (state.gameType == MultiplayerRepository.GAME_PARTIJA) {
             saveMyResultsPartija(state)
             return
@@ -326,5 +438,12 @@ class MultiplayerViewModel(
         super.onCleared()
         ticketListener?.remove()
         matchListener?.remove()
+        poslatiListener?.remove()
+        dolazniListener?.remove()
+    }
+
+    companion object {
+        /** Koliko pošiljalac čeka odgovor prije nego što se poziv sam otkaže. */
+        private const val POZIV_TIMEOUT_MS = 13_000L
     }
 }

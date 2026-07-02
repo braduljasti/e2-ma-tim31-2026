@@ -24,6 +24,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private lateinit var binding: ActivityMainBinding
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var navController: NavController
+    private var headerListener: com.google.firebase.firestore.ListenerRegistration? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,6 +59,95 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }
         setupToolbar()
         setupNavigation()
+        setupNavHeader()
+        setupPoziviNaPartiju()
+    }
+
+    /**
+     * Globalni prijem poziva na prijateljsku partiju (spec 7.d): ma gdje korisnik
+     * bio u aplikaciji, iskače dijalog sa 10s odbrojavanjem; bez reakcije se
+     * automatski odbija. Prihvatanje vodi oba igrača u prijateljsku partiju.
+     */
+    private fun setupPoziviNaPartiju() {
+        val mp = androidx.lifecycle.ViewModelProvider(this)[com.example.slagalica.viewmodel.MultiplayerViewModel::class.java]
+        mp.slusajDolaznePozive()
+
+        mp.dolazniPoziv.observe(this) { poziv ->
+            if (poziv != null) prikaziDolazniPoziv(mp, poziv)
+        }
+        // Prijateljska partija spremna (i za pošiljaoca i za primaoca) -> ulazak u meč
+        mp.prijateljskaSpremna.observe(this) { matchId ->
+            if (matchId != null) {
+                mp.consumePrijateljskaSpremna()
+                navController.navigate(R.id.nav_partija_mp)
+            }
+        }
+    }
+
+    private fun prikaziDolazniPoziv(
+        mp: com.example.slagalica.viewmodel.MultiplayerViewModel,
+        poziv: com.example.slagalica.model.PozivNaPartiju
+    ) {
+        var odgovoreno = false
+        val dialog = com.google.android.material.dialog.MaterialAlertDialogBuilder(this)
+            .setTitle(getString(R.string.poziv_naslov, poziv.fromName))
+            .setMessage(getString(R.string.poziv_poruka, 10))
+            .setPositiveButton(R.string.poziv_prihvati) { _, _ ->
+                odgovoreno = true
+                mp.prihvatiPoziv(poziv)
+            }
+            .setNegativeButton(R.string.poziv_odbij) { _, _ ->
+                odgovoreno = true
+                mp.odbijPoziv(poziv)
+            }
+            .setCancelable(false)
+            .create()
+        dialog.show()
+
+        // 10 sekundi za odgovor, pa automatsko odbijanje (spec 7.d)
+        object : android.os.CountDownTimer(10_000L, 1_000L) {
+            override fun onTick(ms: Long) {
+                if (dialog.isShowing) {
+                    dialog.setMessage(getString(R.string.poziv_poruka, (ms / 1000).toInt() + 1))
+                } else {
+                    cancel()
+                }
+            }
+
+            override fun onFinish() {
+                if (dialog.isShowing && !odgovoreno) {
+                    dialog.dismiss()
+                    mp.odbijPoziv(poziv)
+                }
+            }
+        }.start()
+    }
+
+    /** Puni zaglavlje drawer-a pravim podacima (ime, mejl, avatar) - uživo iz users/{uid}. */
+    private fun setupNavHeader() {
+        val header = binding.navView.getHeaderView(0)
+        val tvIme = header.findViewById<android.widget.TextView>(R.id.tvKorisnickoImeNav)
+        val tvEmail = header.findViewById<android.widget.TextView>(R.id.tvEmailNav)
+        val ivAvatar = header.findViewById<android.widget.ImageView>(R.id.ivAvatar)
+
+        headerListener = com.example.slagalica.data.ProfilRepository().slusajKorisnika { user ->
+            if (user == null) return@slusajKorisnika
+            runOnUiThread {
+                tvIme.text = user.username
+                tvEmail.text = user.email
+                ivAvatar.setImageResource(when (user.avatarId) {
+                    2 -> R.drawable.avatar_2
+                    3 -> R.drawable.avatar_3
+                    4 -> R.drawable.avatar_4
+                    else -> R.drawable.avatar_1
+                })
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        headerListener?.remove()
     }
 
     override fun onResume() {

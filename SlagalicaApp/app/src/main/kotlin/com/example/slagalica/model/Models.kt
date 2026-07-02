@@ -155,6 +155,27 @@ data class PrijateljItem(
 )
 
 /**
+ * Poziv prijatelju na prijateljsku partiju (spec 7.c-e).
+ * Statusi: pending -> accepted (uz matchId) | declined | cancelled.
+ */
+data class PozivNaPartiju(
+    val id: String = "",
+    val fromUid: String = "",
+    val fromName: String = "",
+    val toUid: String = "",
+    val status: String = "pending",
+    val matchId: String? = null,
+    val createdAt: Long = 0L
+) {
+    companion object {
+        const val PENDING = "pending"
+        const val ACCEPTED = "accepted"
+        const val DECLINED = "declined"
+        const val CANCELLED = "cancelled"
+    }
+}
+
+/**
  * Ishod obrade rezultata partije (applyMatchResult) - vraća se pozivaocu
  * da prikaže dijalog/notifikaciju (npr. "+13 zvezda, prešao si u Srebrnu ligu").
  */

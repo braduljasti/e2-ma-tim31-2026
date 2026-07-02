@@ -75,7 +75,12 @@ class IgrajFragment : Fragment() {
     private fun observeChanges() {
         viewModel.tokens.observe(viewLifecycleOwner) { binding.tvTokeniMain.text = it.toString() }
         viewModel.stars.observe(viewLifecycleOwner) { binding.tvZvjezdiceMain.text = it.toString() }
-        viewModel.league.observe(viewLifecycleOwner) { binding.tvLigaMain.text = it }
+        viewModel.league.observe(viewLifecycleOwner) { liga ->
+            binding.tvLigaIkonaMain.text = liga.emoji
+            binding.tvLigaMain.text = liga.displayName
+        }
+        // Klik na ligu vodi na ekran napredovanja kroz lige (isti kao iz menija)
+        binding.llLigaMain.setOnClickListener { findNavController().navigate(R.id.nav_lige) }
 
         mpViewModel.error.observe(viewLifecycleOwner) { msg ->
             if (msg != null) {

@@ -253,8 +253,22 @@ class MultiplayerRepository {
             player1Score = (d["player1Score"] as? Number)?.toInt() ?: 0,
             player2Score = (d["player2Score"] as? Number)?.toInt() ?: 0,
             winnerId = d["winnerId"] as? String,
-            leftUids = strList(d["leftUids"])
+            leftUids = strList(d["leftUids"]),
+            friendly = d["friendly"] == true
         )
+    }
+
+    /**
+     * Direktno kreira PRIJATELJSKU partiju između dva poznata igrača (bez matchmaking-a).
+     * Poziva je onaj koji PRIHVATI poziv (spec 7.d). Prijateljska partija ne troši tokene,
+     * ne donosi zvezde i ne ulazi u statistiku (spec 3.e) - vidi flag `friendly`.
+     */
+    suspend fun createFriendlyPartija(p1: String, p1Name: String, p2: String, p2Name: String): String {
+        val matchId = matches.document().id
+        val rounds = buildRounds(GAME_PARTIJA, p1, p2)
+        val data = buildMatchData(p1, p1Name, p2, p2Name, GAME_PARTIJA, rounds) + mapOf("friendly" to true)
+        matches.document(matchId).set(data).await()
+        return matchId
     }
 
     suspend fun submitSkocko(matchId: String, isP1: Boolean, guesses: List<List<Int>>) =
@@ -419,6 +433,8 @@ class MultiplayerRepository {
         val ref = matches.document(matchId)
         val snap = runCatching { ref.get().await() }.getOrNull() ?: return null
         if (snap.getString("status") != "finished") return null
+        // Prijateljska partija se ne boduje zvezdama/tokenima (spec 3.e)
+        if (snap.getBoolean("friendly") == true) return null
 
         val player1Id = snap.getString("player1Id")
         val isP1 = myUid == player1Id

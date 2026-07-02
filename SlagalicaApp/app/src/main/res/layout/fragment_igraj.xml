@@ -107,16 +107,21 @@
                     android:background="#33FFFFFF"/>
 
                 <LinearLayout
+                    android:id="@+id/llLigaMain"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:orientation="vertical"
-                    android:gravity="center">
+                    android:gravity="center"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:background="?attr/selectableItemBackground">
 
                     <TextView
+                        android:id="@+id/tvLigaIkonaMain"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="🏆"
+                        android:text="🌱"
                         android:textSize="24sp"/>
 
                     <TextView

@@ -65,5 +65,15 @@ service cloud.firestore {
       allow read: if signedIn();
       allow create: if signedIn() && request.resource.data.senderUid == request.auth.uid;
     }
+
+    // Pozivi na prijateljsku partiju (spec 7.c-e): vide ih i mijenjaju samo
+    // pošiljalac i primalac; kreirati može samo pošiljalac u svoje ime.
+    match /matchInvites/{inviteId} {
+      allow read: if signedIn() &&
+        (request.auth.uid == resource.data.fromUid || request.auth.uid == resource.data.toUid);
+      allow create: if signedIn() && request.auth.uid == request.resource.data.fromUid;
+      allow update: if signedIn() &&
+        (request.auth.uid == resource.data.fromUid || request.auth.uid == resource.data.toUid);
+    }
   }
 }

@@ -17,8 +17,9 @@ class IgrajViewModel(
     private val _stars = MutableLiveData(0)
     val stars: LiveData<Int> = _stars
 
-    private val _league = MutableLiveData("Nulta liga")
-    val league: LiveData<String> = _league
+    // Cijeli Liga enum (naziv + ikonica) - Fragment prikazuje i emoji i ime
+    private val _league = MutableLiveData(Liga.NULTA)
+    val league: LiveData<Liga> = _league
 
     private var listener: ListenerRegistration? = null
 
@@ -29,7 +30,7 @@ class IgrajViewModel(
             if (user == null) return@slusajKorisnika
             _tokens.postValue(user.tokens)
             _stars.postValue(user.stars)
-            _league.postValue(Liga.fromIndex(user.league).displayName)
+            _league.postValue(Liga.fromIndex(user.league))
         }
     }
 

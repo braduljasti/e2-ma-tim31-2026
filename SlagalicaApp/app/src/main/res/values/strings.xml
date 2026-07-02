@@ -154,6 +154,16 @@
     <string name="msg_prijatelj_dodat">Prijatelj dodat!</string>
     <string name="err_qr_nevalidan">QR kod nije važeći poziv za prijatelja</string>
 
+    <!-- Pozivi na prijateljsku partiju (spec 7.c-e) -->
+    <string name="btn_pozovi_partiju">⚔️ Pozovi</string>
+    <string name="poziv_poslat_naslov">Poziv poslat</string>
+    <string name="poziv_poslat_poruka">Čeka se odgovor prijatelja…</string>
+    <string name="poziv_odbijen">Prijatelj nije prihvatio poziv.</string>
+    <string name="poziv_naslov">⚔️ %1$s te poziva na partiju!</string>
+    <string name="poziv_poruka">Prijateljska partija (bez tokena i zvezda).\nAutomatsko odbijanje za %1$d s…</string>
+    <string name="poziv_prihvati">Prihvati</string>
+    <string name="poziv_odbij">Odbij</string>
+
     <!-- Lige (spec 6) -->
     <string name="nav_lige">Lige</string>
     <string name="lbl_trenutna_liga">Trenutna</string>

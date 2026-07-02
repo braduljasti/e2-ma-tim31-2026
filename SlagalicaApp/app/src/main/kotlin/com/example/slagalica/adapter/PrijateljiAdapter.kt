@@ -16,7 +16,8 @@ import com.example.slagalica.model.PrijateljItem
  */
 class PrijateljiAdapter(
     private val onDodaj: (String) -> Unit,
-    private val onUkloni: (String) -> Unit
+    private val onUkloni: (String) -> Unit,
+    private val onPozovi: (String) -> Unit
 ) : ListAdapter<PrijateljItem, PrijateljiAdapter.PrijateljViewHolder>(DiffCallback()) {
 
     inner class PrijateljViewHolder(
@@ -35,9 +36,13 @@ class PrijateljiAdapter(
             if (item.jePrijatelj) {
                 binding.btnAkcijaPrijatelj.setText(R.string.btn_ukloni_prijatelja)
                 binding.btnAkcijaPrijatelj.setOnClickListener { onUkloni(user.uid) }
+                // Poziv na prijateljsku partiju (spec 7.c) - samo za prijatelje
+                binding.btnPozoviPrijatelja.visibility = android.view.View.VISIBLE
+                binding.btnPozoviPrijatelja.setOnClickListener { onPozovi(user.uid) }
             } else {
                 binding.btnAkcijaPrijatelj.setText(R.string.btn_dodaj_prijatelja)
                 binding.btnAkcijaPrijatelj.setOnClickListener { onDodaj(user.uid) }
+                binding.btnPozoviPrijatelja.visibility = android.view.View.GONE
             }
         }
 

@@ -30,4 +30,6 @@ object FirestoreCollections {
 
     const val CHATS = "chats"                 // top-level: chats/{region}/poruke/{id} (spec 8)
     const val CHAT_MESSAGES = "poruke"
+
+    const val MATCH_INVITES = "matchInvites"  // pozivi prijatelja na partiju (spec 7.c-e)
 }
