@@ -72,7 +72,7 @@ class KzzMpFragment : Fragment() {
         binding.scoreboardKzz.tvMojiBodovi.text = state.myScore(mp.uid).toString()
         binding.scoreboardKzz.tvProtivnikBodovi.text = state.opponentScore(mp.uid).toString()
 
-        if (state.finished) { showFinal(state); return }
+        if (state.finished) { if (parentFragment !is com.example.slagalica.ui.main.PartijaMpFragment) showFinal(state); return }
 
         val round = state.currentRound ?: return
         if (round.gameType != MultiplayerRepository.GAME_KZZ) return
@@ -188,7 +188,7 @@ class KzzMpFragment : Fragment() {
 
     private fun stilirajPocetno(b: MaterialButton) {
         b.isEnabled = true
-        b.backgroundTintList = null
+        b.backgroundTintList = ColorStateList.valueOf(boja(R.color.surface))
         b.setTextColor(boja(R.color.text_primary))
         b.strokeColor = ColorStateList.valueOf(boja(R.color.primary_light))
     }
@@ -211,7 +211,7 @@ class KzzMpFragment : Fragment() {
 
     private fun stilirajPrigusen(b: MaterialButton) {
         b.isEnabled = false
-        b.backgroundTintList = null
+        b.backgroundTintList = ColorStateList.valueOf(boja(R.color.surface))
         b.setTextColor(boja(R.color.text_hint))
         b.strokeColor = ColorStateList.valueOf(boja(R.color.text_hint))
     }

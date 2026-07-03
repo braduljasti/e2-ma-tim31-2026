@@ -45,8 +45,129 @@ data class FirebaseUser(
     val avatarId: Int = 1,
     val tokens: Int = 5,
     val stars: Int = 0,
-    val league: Int = 0
+    val league: Int = 0,
+
+    val starsWeekly: Int = 0,
+    val starsMonthly: Int = 0,
+
+    val lifetimeStars: Int = 0,
+    val tokensFromStars: Int = 0,
+
+    val lastDailyGrant: Long = 0L,
+    val lastCycleWeekly: String = "",
+    val lastCycleMonthly: String = "",
+
+    val lastSeen: Long = 0L,
+
+    val rewardedCycles: List<String> = emptyList()
 )
+
+data class ChatMessage(
+    val id: String = "",
+    val senderUid: String = "",
+    val senderName: String = "",
+    val text: String = "",
+    val timestampMs: Long = 0L
+)
+
+enum class RangCiklus { NEDELJNI, MESECNI }
+
+data class NagradaCiklusa(
+    val ciklus: RangCiklus,
+    val mesto: Int,
+    val tokeni: Int,
+    val kaznjen: Boolean
+)
+
+data class RangListaStavka(
+    val uid: String,
+    val username: String,
+    val league: Int,
+    val stars: Int
+)
+
+data class RegionStatistika(
+    val naziv: String,
+    val emoji: String,
+    val registrovani: Int,
+    val aktivni: Int,
+    val prvaMjesta: Int,
+    val drugaMjesta: Int,
+    val trecaMjesta: Int
+)
+
+data class ReconcileOutcome(
+    val tokensAdded: Int,
+    val weeklyReset: Boolean,
+    val monthlyReset: Boolean
+)
+
+data class IgracTacka(
+    val username: String,
+    val regionNaziv: String,
+    val lat: Double,
+    val lng: Double,
+    val jaSam: Boolean
+)
+
+data class RegionRangRed(
+    val regionNaziv: String,
+    val emoji: String,
+    val ukupnoZvezda: Int,
+    val brojIgraca: Int,
+    val mojRegion: Boolean
+)
+
+data class LigaRed(
+    val liga: Liga,
+    val prag: Int,
+    val tokeniDan: Int,
+    val jeTrenutna: Boolean
+)
+
+data class LigaPregled(
+    val trenutnaLiga: Liga,
+    val stars: Int,
+    val sledeciPrag: Int?,
+    val progressPercent: Int,
+    val redovi: List<LigaRed>
+) {
+    val doSledece: Int get() = ((sledeciPrag ?: stars) - stars).coerceAtLeast(0)
+}
+
+data class PrijateljItem(
+    val user: FirebaseUser,
+    val jePrijatelj: Boolean
+)
+
+data class PozivNaPartiju(
+    val id: String = "",
+    val fromUid: String = "",
+    val fromName: String = "",
+    val toUid: String = "",
+    val status: String = "pending",
+    val matchId: String? = null,
+    val createdAt: Long = 0L
+) {
+    companion object {
+        const val PENDING = "pending"
+        const val ACCEPTED = "accepted"
+        const val DECLINED = "declined"
+        const val CANCELLED = "cancelled"
+    }
+}
+
+data class MatchRewardOutcome(
+    val deltaStars: Int,
+    val newStars: Int,
+    val tokensAwarded: Int,
+    val oldLeague: Int,
+    val newLeague: Int
+) {
+    val leagueChanged: Boolean get() = oldLeague != newLeague
+    val promoted: Boolean get() = newLeague > oldLeague
+    val relegated: Boolean get() = newLeague < oldLeague
+}
 
 enum class GameType(val displayName: String) {
     SKOCKO("Skočko"),
@@ -75,12 +196,12 @@ data class SkockoAttempt(
 )
 
 enum class SkockoSymbol(val emoji: String) {
+    SKOCKO("🐰"),
     SQUARE("■"),
     CIRCLE("●"),
     HEART("♥"),
     TRIANGLE("▲"),
-    STAR("★"),
-    DIAMOND("◆");
+    STAR("★");
 
     companion object {
         fun all() = values().toList()

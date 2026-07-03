@@ -165,13 +165,21 @@ object GameLogic {
         val o = evalMojBroj(oExpr, target, available)
         if (s.third) return MOJBROJ_EXACT to 0
         if (o.third) return 0 to MOJBROJ_EXACT
-        val sDiff = if (s.first) abs(s.second - target) else Int.MAX_VALUE
-        val oDiff = if (o.first) abs(o.second - target) else Int.MAX_VALUE
+
         return when {
-            sDiff == Int.MAX_VALUE && oDiff == Int.MAX_VALUE -> 0 to 0
-            sDiff < oDiff -> MOJBROJ_CLOSER to 0
-            oDiff < sDiff -> 0 to MOJBROJ_CLOSER
-            else -> MOJBROJ_CLOSER to 0
+            !s.first && !o.first -> 0 to 0
+            s.first && !o.first -> MOJBROJ_CLOSER to 0
+            !s.first && o.first -> 0 to MOJBROJ_CLOSER
+            else -> {
+                val sDiff = abs(s.second - target)
+                val oDiff = abs(o.second - target)
+                when {
+                    sDiff < oDiff -> MOJBROJ_CLOSER to 0
+                    oDiff < sDiff -> 0 to MOJBROJ_CLOSER
+                    s.second == o.second -> MOJBROJ_CLOSER to 0
+                    else -> 0 to 0
+                }
+            }
         }
     }
 }

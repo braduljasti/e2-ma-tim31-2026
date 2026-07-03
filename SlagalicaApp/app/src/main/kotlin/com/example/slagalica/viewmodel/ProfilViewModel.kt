@@ -6,7 +6,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.slagalica.R
 import com.example.slagalica.data.AuthRepository
+import com.example.slagalica.data.Cycles
 import com.example.slagalica.data.ProfilRepository
+import com.example.slagalica.data.RegionStandingsRepository
 import com.example.slagalica.model.GameResult
 import com.example.slagalica.model.GameStatistic
 import com.example.slagalica.model.GameType
@@ -18,7 +20,8 @@ import kotlin.math.roundToInt
 
 class ProfilViewModel(
     private val profilRepo: ProfilRepository = ProfilRepository(),
-    private val authRepo: AuthRepository = AuthRepository()
+    private val authRepo: AuthRepository = AuthRepository(),
+    private val standingsRepo: RegionStandingsRepository = RegionStandingsRepository()
 ) : ViewModel() {
 
     private val _userProfile = MutableLiveData<UserProfile>()
@@ -26,6 +29,9 @@ class ProfilViewModel(
 
     private val _playerStats = MutableLiveData<PlayerStats>()
     val playerStats: LiveData<PlayerStats> = _playerStats
+
+    private val _okvirBoja = MutableLiveData<Int?>(null)
+    val okvirBoja: LiveData<Int?> = _okvirBoja
 
     val availableAvatars = listOf(
         R.drawable.avatar_1,
@@ -53,6 +59,17 @@ class ProfilViewModel(
 
                 qrPayload = "slagalica://invite/${user.uid}"
             )
+            odrediOkvir(user.region)
+        }
+    }
+
+    private suspend fun odrediOkvir(region: String) {
+        val poredak = runCatching { standingsRepo.poredakZa(Cycles.prethodniMjesec()) }.getOrNull()
+        _okvirBoja.value = when (poredak?.indexOf(region)) {
+            0 -> R.color.medalja_zlato
+            1 -> R.color.medalja_srebro
+            2 -> R.color.medalja_bronza
+            else -> null
         }
     }
 
@@ -145,6 +162,28 @@ class ProfilViewModel(
     }
 
     fun logout() = authRepo.logout()
+
+    private val _lozinkaPromenjena = MutableLiveData<Boolean?>()
+    val lozinkaPromenjena: LiveData<Boolean?> = _lozinkaPromenjena
+
+    private val _lozinkaGreska = MutableLiveData<String?>()
+    val lozinkaGreska: LiveData<String?> = _lozinkaGreska
+
+    fun promeniLozinku(staraLozinka: String, novaLozinka: String) {
+        viewModelScope.launch {
+            runCatching { authRepo.changePassword(staraLozinka, novaLozinka) }
+                .onSuccess {
+                    _lozinkaGreska.value = null
+                    _lozinkaPromenjena.value = true
+                }
+                .onFailure { e ->
+                    _lozinkaGreska.value = e.message ?: "Promjena lozinke nije uspjela."
+                    _lozinkaPromenjena.value = false
+                }
+        }
+    }
+
+    fun consumeLozinkaPromenjena() { _lozinkaPromenjena.value = null }
 
     private fun avatarRes(avatarId: Int): Int =
         availableAvatars.getOrElse(avatarId - 1) { availableAvatars[0] }

@@ -4,6 +4,13 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.VIBRATE" />
+    <!-- Skeniranje QR koda za dodavanje prijatelja (spec 7.b) -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+
+    <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="false" />
+    <!-- OpenStreetMap mapa regiona (spec 5) -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"
@@ -33,6 +40,14 @@
 
         <activity
             android:name=".ui.main.MainActivity"
+            android:exported="false" />
+
+        <!-- QR skener u portret orijentaciji (spec 7.b) -->
+        <activity
+            android:name=".ui.prijatelji.PortraitCaptureActivity"
+            android:screenOrientation="portrait"
+            android:stateNotNeeded="true"
+            android:theme="@style/zxing_CaptureTheme"
             android:exported="false" />
 
         <service

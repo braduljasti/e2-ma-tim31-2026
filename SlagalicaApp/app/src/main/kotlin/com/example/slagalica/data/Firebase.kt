@@ -24,4 +24,12 @@ object FirestoreCollections {
     const val SPOJNICE_RUNDE = "spojniceRunde"
     const val ASOCIJACIJE_RUNDE = "asocijacijeRunde"
     const val KORAK_POJMOVI = "korakPojmovi"
+
+    const val FRIENDSHIPS = "friendships"
+    const val REGION_STANDINGS = "regionStandings"
+
+    const val CHATS = "chats"
+    const val CHAT_MESSAGES = "poruke"
+
+    const val MATCH_INVITES = "matchInvites"
 }

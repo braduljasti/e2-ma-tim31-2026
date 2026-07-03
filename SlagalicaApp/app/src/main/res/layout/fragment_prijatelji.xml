@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/background">
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/tilPretraga"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="12dp"
+        android:hint="@string/hint_pretraga_prijatelja"
+        app:startIconDrawable="@android:drawable/ic_menu_search"
+        app:endIconMode="custom"
+        app:endIconDrawable="@android:drawable/ic_menu_camera"
+        app:endIconContentDescription="@string/btn_skeniraj_qr">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:id="@+id/etPretraga"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:inputType="text"
+            android:maxLines="1"
+            android:imeOptions="actionSearch"/>
+
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvPrijatelji"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingBottom="16dp"
+            tools:listitem="@layout/item_prijatelj"/>
+
+        <ProgressBar
+            android:id="@+id/progressPrijatelji"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"/>
+
+        <LinearLayout
+            android:id="@+id/llPraznoPrijatelji"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="32dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="👥"
+                android:textSize="64sp"/>
+
+            <TextView
+                android:id="@+id/tvPraznoPrijatelji"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="@string/lbl_nema_prijatelja"
+                android:textColor="@color/text_secondary"
+                android:textSize="16sp"
+                android:gravity="center"/>
+
+        </LinearLayout>
+
+    </FrameLayout>
+
+</LinearLayout>

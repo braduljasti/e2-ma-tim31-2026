@@ -143,7 +143,7 @@ class KzzFragment : Fragment() {
 
     private fun stilirajPocetno(b: MaterialButton) {
         b.isEnabled = true
-        b.backgroundTintList = null
+        b.backgroundTintList = ColorStateList.valueOf(boja(R.color.surface))
         b.setTextColor(boja(R.color.text_primary))
         b.strokeColor = ColorStateList.valueOf(boja(R.color.primary_light))
     }
@@ -166,7 +166,7 @@ class KzzFragment : Fragment() {
 
     private fun stilirajPrigusen(b: MaterialButton) {
         b.isEnabled = false
-        b.backgroundTintList = null
+        b.backgroundTintList = ColorStateList.valueOf(boja(R.color.surface))
         b.setTextColor(boja(R.color.text_hint))
         b.strokeColor = ColorStateList.valueOf(boja(R.color.text_hint))
     }

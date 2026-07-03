@@ -13,6 +13,7 @@ import com.example.slagalica.databinding.FragmentIgrajBinding
 import com.example.slagalica.viewmodel.IgrajViewModel
 import com.example.slagalica.viewmodel.MultiplayerViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.snackbar.Snackbar
 
 class IgrajFragment : Fragment() {
 
@@ -36,7 +37,13 @@ class IgrajFragment : Fragment() {
     }
 
     private fun setupListeners() {
-        binding.btnIgraj.setOnClickListener { showGamePicker() }
+        binding.btnIgraj.setOnClickListener {
+            binding.cardIgraj.visibility = View.GONE
+            binding.cardCekanje.visibility = View.VISIBLE
+            mpViewModel.startPartijaMatchmaking()
+        }
+
+        binding.btnVezbaj.setOnClickListener { showGamePicker() }
 
         binding.btnOtkaziCekanje.setOnClickListener {
             binding.cardCekanje.visibility = View.GONE
@@ -68,7 +75,20 @@ class IgrajFragment : Fragment() {
     private fun observeChanges() {
         viewModel.tokens.observe(viewLifecycleOwner) { binding.tvTokeniMain.text = it.toString() }
         viewModel.stars.observe(viewLifecycleOwner) { binding.tvZvjezdiceMain.text = it.toString() }
-        viewModel.league.observe(viewLifecycleOwner) { binding.tvLigaMain.text = it }
+        viewModel.league.observe(viewLifecycleOwner) { liga ->
+            binding.tvLigaIkonaMain.text = liga.emoji
+            binding.tvLigaMain.text = liga.displayName
+        }
+        binding.llLigaMain.setOnClickListener { findNavController().navigate(R.id.nav_lige) }
+
+        mpViewModel.error.observe(viewLifecycleOwner) { msg ->
+            if (msg != null) {
+                mpViewModel.consumeError()
+                binding.cardCekanje.visibility = View.GONE
+                binding.cardIgraj.visibility = View.VISIBLE
+                Snackbar.make(binding.root, msg, Snackbar.LENGTH_LONG).show()
+            }
+        }
 
         mpViewModel.matchFound.observe(viewLifecycleOwner) { matchId ->
             if (matchId != null) {
@@ -76,6 +96,7 @@ class IgrajFragment : Fragment() {
                 binding.cardCekanje.visibility = View.GONE
                 binding.cardIgraj.visibility = View.VISIBLE
                 val odrediste = when (mpViewModel.requestedGameType) {
+                    MultiplayerRepository.GAME_PARTIJA -> R.id.nav_partija_mp
                     MultiplayerRepository.GAME_KZZ -> R.id.nav_kzz_mp
                     MultiplayerRepository.GAME_SPOJNICE -> R.id.nav_spojnice_mp
                     MultiplayerRepository.GAME_ASOCIJACIJE -> R.id.nav_asocijacije_mp

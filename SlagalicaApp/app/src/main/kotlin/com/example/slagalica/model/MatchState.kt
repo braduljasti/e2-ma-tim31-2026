@@ -12,7 +12,9 @@ data class MatchState(
     val rounds: List<RoundState>,
     val player1Score: Int,
     val player2Score: Int,
-    val winnerId: String?
+    val winnerId: String?,
+    val leftUids: List<String> = emptyList(),
+    val friendly: Boolean = false
 ) {
     val finished: Boolean get() = status == "finished"
     val currentRound: RoundState? get() = rounds.getOrNull(currentRoundIndex)
@@ -21,6 +23,29 @@ data class MatchState(
     fun opponentName(uid: String) = if (isPlayer1(uid)) player2Name else player1Name
     fun myScore(uid: String) = if (isPlayer1(uid)) player1Score else player2Score
     fun opponentScore(uid: String) = if (isPlayer1(uid)) player2Score else player1Score
+    fun opponentId(uid: String) = if (isPlayer1(uid)) player2Id else player1Id
+    fun iLeft(uid: String) = uid in leftUids
+    fun opponentLeft(uid: String) = opponentId(uid) in leftUids
+
+    fun liveScore(uid: String): Int =
+        rounds.sumOf { if (isPlayer1(uid)) it.p1Points else it.p2Points }
+
+    fun mojiPoeniZaIgru(uid: String, gameType: String): Int =
+        rounds.filter { it.gameType == gameType }
+            .sumOf { if (isPlayer1(uid)) it.p1Points else it.p2Points }
+
+    fun protivnikoviPoeniZaIgru(uid: String, gameType: String): Int =
+        rounds.filter { it.gameType == gameType }
+            .sumOf { if (isPlayer1(uid)) it.p2Points else it.p1Points }
+
+    fun rundaSpremnaZaResenje(): Boolean {
+        val round = currentRound ?: return false
+        if (round.resolved) return false
+        if (leftUids.isEmpty()) return round.bothSubmitted
+        val otisaoJeP1 = leftUids.contains(player1Id)
+        val mojaPredaja = if (otisaoJeP1) round.p2Sub else round.p1Sub
+        return mojaPredaja != null
+    }
 }
 
 data class RoundState(

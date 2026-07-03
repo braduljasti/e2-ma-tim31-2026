@@ -37,6 +37,10 @@
 
     <string name="btn_promeni_avatar">Promeni avatar</string>
     <string name="btn_logout">Odjavi se</string>
+    <string name="btn_promeni_lozinku">Promijeni lozinku</string>
+    <string name="dlg_promeni_lozinku_title">Promjena lozinke</string>
+    <string name="dlg_promeni_lozinku_potvrdi">Sačuvaj</string>
+    <string name="msg_lozinka_promenjena">Lozinka je uspješno promijenjena.</string>
     <string name="dlg_logout_title">Odjava</string>
     <string name="dlg_logout_msg">Da li ste sigurni da želite da se odjavite?</string>
     <string name="dlg_logout_confirm">Odjavi se</string>
@@ -52,6 +56,14 @@
     <string name="nav_igraj">Igraj</string>
     <string name="nav_notifikacije">Notifikacije</string>
     <string name="nav_odjava">Odjava</string>
+    <string name="nav_partija">Partija</string>
+    <string name="nav_cet">Čet</string>
+    <string name="nav_rang_lista">Rang lista</string>
+    <string name="tab_nedeljno">Nedeljno</string>
+    <string name="tab_mesecno">Mesečno</string>
+    <string name="hint_poruka_cet">Napišite poruku…</string>
+    <string name="lbl_prazan_cet">Još uvijek nema poruka u vašem regionu. Budite prvi!</string>
+    <string name="lbl_prazna_rang_lista">Niko iz ovog ciklusa još nije odigrao partiju.</string>
     <string name="navigation_drawer_open">Otvori navigacioni meni</string>
     <string name="navigation_drawer_close">Zatvori navigacioni meni</string>
 
@@ -132,6 +144,42 @@
     <string name="mp_nereseno">Neriješeno!</string>
     <string name="mp_zatvori">Zatvori</string>
     <string name="mp_izaberi_igru">Izaberi igru</string>
+
+    <string name="nav_prijatelji">Prijatelji</string>
+    <string name="hint_pretraga_prijatelja">Pretraži po korisničkom imenu</string>
+    <string name="btn_dodaj_prijatelja">Dodaj</string>
+    <string name="btn_ukloni_prijatelja">Ukloni</string>
+    <string name="btn_skeniraj_qr">Skeniraj QR kod</string>
+    <string name="lbl_avatar_prijatelj">Avatar prijatelja</string>
+    <string name="lbl_nema_prijatelja">Još nemaš prijatelja.\nPretraži igrače ili skeniraj QR kod.</string>
+    <string name="lbl_nema_rezultata">Nema rezultata za tu pretragu</string>
+    <string name="qr_skeniraj_prompt">Skenirajte QR kod prijatelja</string>
+    <string name="msg_prijatelj_dodat">Prijatelj dodat!</string>
+    <string name="err_qr_nevalidan">QR kod nije važeći poziv za prijatelja</string>
+
+    <string name="btn_pozovi_partiju">⚔️ Pozovi</string>
+    <string name="poziv_poslat_naslov">Poziv poslat</string>
+    <string name="poziv_poslat_poruka">Čeka se odgovor prijatelja…</string>
+    <string name="poziv_odbijen">Prijatelj nije prihvatio poziv.</string>
+    <string name="poziv_naslov">⚔️ %1$s te poziva na partiju!</string>
+    <string name="poziv_poruka">Prijateljska partija (bez tokena i zvezda).\nAutomatsko odbijanje za %1$d s…</string>
+    <string name="poziv_prihvati">Prihvati</string>
+    <string name="poziv_odbij">Odbij</string>
+
+    <string name="nav_lige">Lige</string>
+    <string name="lbl_trenutna_liga">Trenutna</string>
+    <string name="lbl_max_liga">Najviša liga — bravo! 🏆</string>
+    <string name="fmt_liga_prag">Od %1$d zvezda • +%2$d tokena/dan</string>
+    <string name="fmt_zvezde">⭐ %1$d zvezda</string>
+    <string name="fmt_do_sledece">Još %1$d zvezda do sljedeće lige</string>
+    <string name="msg_dnevni_tokeni">Dnevna nagrada: +%1$d tokena 🪙</string>
+
+    <string name="nav_regioni">Regioni</string>
+    <string name="lbl_rang_po_regionima">Mjesečna rang lista po regionima</string>
+    <string name="fmt_broj_igraca">%1$d igrača</string>
+    <string name="fmt_region_zvezde">⭐ %1$d</string>
+    <string name="lbl_ja_marker">%1$s (ti)</string>
+    <string name="fmt_region_statistika">Registrovanih igrača: %1$d\nAktivnih sada: %2$d\n\n🥇 Prvih mjesta: %3$d\n🥈 Drugih mjesta: %4$d\n🥉 Trećih mjesta: %5$d</string>
 
     <string name="igra_ko_zna_zna_naslov">Ko zna zna</string>
     <string name="kzz_pitanje_format">Pitanje %1$d / %2$d</string>

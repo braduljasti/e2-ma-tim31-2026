@@ -45,4 +45,8 @@
 
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+
+    <color name="medalja_zlato">#FFD700</color>
+    <color name="medalja_srebro">#C0C0C0</color>
+    <color name="medalja_bronza">#CD7F32</color>
 </resources>

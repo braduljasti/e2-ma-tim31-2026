@@ -300,7 +300,7 @@
                     android:layout_margin="4dp"
                     android:background="@drawable/bg_znak_selekcija"
                     android:gravity="center"
-                    android:text="◆"
+                    android:text="🐰"
                     android:textColor="@color/accent_dark"
                     android:textSize="28sp"
                     android:clickable="true"

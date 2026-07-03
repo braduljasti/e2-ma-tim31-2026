@@ -14,3 +14,9 @@ local.properties
 
 .DS_Store
 Thumbs.db
+
+# Seed skripta - tajni ključ i node moduli
+scripts/serviceAccountKey.json
+scripts/node_modules/
+scripts/package-lock.json
+scripts/package.json

@@ -90,7 +90,7 @@ class SpojniceMpFragment : Fragment() {
         binding.scoreboardSpojnice.tvProtivnikBodovi.text =
             resolvedRounds.sumOf { if (isP1) it.p2Points else it.p1Points }.toString()
 
-        if (state.finished) { showFinal(state); return }
+        if (state.finished) { if (parentFragment !is com.example.slagalica.ui.main.PartijaMpFragment) showFinal(state); return }
 
         val round = state.currentRound ?: return
         if (round.gameType != MultiplayerRepository.GAME_SPOJNICE) return
@@ -149,8 +149,12 @@ class SpojniceMpFragment : Fragment() {
             startMyPhase(playable = (0 until 5).toList())
         } else if (starterSub == null) {
 
-            showWaiting(getString(R.string.mp_protivnik_na_potezu))
-            renderProtivnikUzivo(state)
+            if (state.opponentLeft(mp.uid) && round.starterId == state.opponentId(mp.uid)) {
+                startMyPhase(playable = (0 until 5).toList())
+            } else {
+                showWaiting(getString(R.string.mp_protivnik_na_potezu))
+                renderProtivnikUzivo(state)
+            }
         } else {
 
             val starterTacne = round.spojniceParovi(starterSub)
