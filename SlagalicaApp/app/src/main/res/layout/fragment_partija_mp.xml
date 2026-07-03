@@ -6,6 +6,49 @@
     android:layout_height="match_parent"
     android:background="@color/background">
 
+    <LinearLayout
+        android:id="@+id/llPartijaStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:background="@color/primary_dark"
+        android:paddingHorizontal="16dp"
+        android:paddingVertical="6dp"
+        android:gravity="center_vertical"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/tvPartijaTokeni"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🪙 5"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:text="⭐ 0"
+            android:id="@+id/tvPartijaZvezde"
+            android:textColor="@color/white"
+            android:textSize="12sp"
+            android:textStyle="bold"/>
+
+        <TextView
+            android:id="@+id/tvPartijaLiga"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_weight="1"
+            android:gravity="end"
+            android:text="🌱 Nulta liga"
+            android:textColor="@color/white"
+            android:textSize="12sp"/>
+
+    </LinearLayout>
+
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardPartijaHeader"
         android:layout_width="match_parent"
@@ -13,7 +56,7 @@
         app:cardCornerRadius="0dp"
         app:cardElevation="4dp"
         app:cardBackgroundColor="@color/primary"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@id/llPartijaStatus">
 
         <LinearLayout
             android:layout_width="match_parent"

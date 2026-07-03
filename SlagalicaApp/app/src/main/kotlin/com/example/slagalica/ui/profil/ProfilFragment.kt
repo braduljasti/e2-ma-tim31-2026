@@ -125,7 +125,58 @@ class ProfilFragment : Fragment() {
 
     private fun setupClickListeners() {
         binding.btnPromeniAvatar.setOnClickListener { showAvatarPicker() }
+        binding.btnPromeniLozinku.setOnClickListener { showChangePasswordDialog() }
         binding.btnLogout.setOnClickListener { confirmLogout() }
+    }
+
+    /** Spec 1.e: promjena lozinke unosom stare lozinke i nove lozinke dva puta (potvrda). */
+    private fun showChangePasswordDialog() {
+        val dialogBinding = com.example.slagalica.databinding.DialogPromeniLozinkuBinding.inflate(layoutInflater)
+
+        val dialog = MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.dlg_promeni_lozinku_title)
+            .setView(dialogBinding.root)
+            .setPositiveButton(R.string.dlg_promeni_lozinku_potvrdi, null)
+            .setNegativeButton(R.string.dlg_logout_cancel, null)
+            .create()
+
+        dialog.setOnShowListener {
+            dialog.getButton(android.content.DialogInterface.BUTTON_POSITIVE).setOnClickListener {
+                val stara = dialogBinding.etStaraLozinka.text?.toString().orEmpty()
+                val nova = dialogBinding.etNovaLozinka.text?.toString().orEmpty()
+                val potvrda = dialogBinding.etPotvrdiNovuLozinku.text?.toString().orEmpty()
+
+                val greska = when {
+                    stara.isEmpty() -> getString(R.string.err_prazno_polje)
+                    nova.length < 6 -> "Nova lozinka mora imati bar 6 karaktera"
+                    nova != potvrda -> getString(R.string.err_lozinke_ne_poklapaju)
+                    else -> null
+                }
+                if (greska != null) {
+                    dialogBinding.tvGreskaLozinka.text = greska
+                    dialogBinding.tvGreskaLozinka.visibility = View.VISIBLE
+                    return@setOnClickListener
+                }
+                viewModel.promeniLozinku(stara, nova)
+            }
+        }
+
+        viewModel.lozinkaPromenjena.observe(viewLifecycleOwner) { uspjeh ->
+            if (uspjeh == null) return@observe
+            viewModel.consumeLozinkaPromenjena()
+            if (uspjeh) {
+                dialog.dismiss()
+                com.google.android.material.snackbar.Snackbar.make(
+                    binding.root, R.string.msg_lozinka_promenjena,
+                    com.google.android.material.snackbar.Snackbar.LENGTH_LONG
+                ).show()
+            } else {
+                dialogBinding.tvGreskaLozinka.text = viewModel.lozinkaGreska.value
+                dialogBinding.tvGreskaLozinka.visibility = View.VISIBLE
+            }
+        }
+
+        dialog.show()
     }
 
     private fun showAvatarPicker() {

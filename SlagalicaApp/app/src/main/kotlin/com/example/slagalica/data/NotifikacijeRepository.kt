@@ -10,9 +10,11 @@ class NotifikacijeRepository {
 
     private val db = FirebaseProvider.db
 
-    private fun collection() =
+    private fun collection() = collectionZa(FirebaseProvider.currentUid ?: "anon")
+
+    private fun collectionZa(uid: String) =
         db.collection(FirestoreCollections.USERS)
-            .document(FirebaseProvider.currentUid ?: "anon")
+            .document(uid)
             .collection(FirestoreCollections.NOTIFICATIONS)
 
     fun listen(onChange: (List<AppNotification>) -> Unit): ListenerRegistration {
@@ -52,7 +54,10 @@ class NotifikacijeRepository {
         batch.commit().await()
     }
 
-    suspend fun add(notification: AppNotification) {
+    suspend fun add(notification: AppNotification) = addFor(FirebaseProvider.currentUid ?: "anon", notification)
+
+    /** Piše notifikaciju DRUGOM korisniku (npr. poziv na prijateljsku partiju - spec 3.b.ii). */
+    suspend fun addFor(uid: String, notification: AppNotification) {
         val data = mapOf(
             "title" to notification.title,
             "content" to notification.content,
@@ -60,7 +65,7 @@ class NotifikacijeRepository {
             "timestampMs" to notification.timestampMs,
             "read" to notification.read
         )
-        collection().add(data).await()
+        collectionZa(uid).add(data).await()
     }
 
     suspend fun seedIfEmpty(): Boolean {

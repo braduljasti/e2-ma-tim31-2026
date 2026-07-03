@@ -32,6 +32,33 @@ data class MatchState(
     /** Živi (trenutni) zbir bodova - sumira sve runde bez obzira da li je meč kompletno završen. */
     fun liveScore(uid: String): Int =
         rounds.sumOf { if (isPlayer1(uid)) it.p1Points else it.p2Points }
+
+    /**
+     * Živi zbir bodova SAMO za datu igru (npr. samo Skočko rundе), ne za cijelu partiju.
+     * Bitno unutar Partije (6 igara u jednom meču) - bez ovoga bi svaki pojedinačni ekran
+     * prikazivao 0 sve do kraja CIJELE partije, umjesto da odmah pokazuje osvojene poene.
+     */
+    fun mojiPoeniZaIgru(uid: String, gameType: String): Int =
+        rounds.filter { it.gameType == gameType }
+            .sumOf { if (isPlayer1(uid)) it.p1Points else it.p2Points }
+
+    fun protivnikoviPoeniZaIgru(uid: String, gameType: String): Int =
+        rounds.filter { it.gameType == gameType }
+            .sumOf { if (isPlayer1(uid)) it.p2Points else it.p1Points }
+
+    /**
+     * Da li je trenutna runda spremna da je host razreši (spec 3.f). Normalno čeka OBA igrača,
+     * ali ako je neko napustio partiju, ne čekamo njegovu predaju - dovoljno je da PREOSTALI
+     * igrač preda odgovor (host tada tretira napustioca kao "prazan" odgovor za tu rundu).
+     */
+    fun rundaSpremnaZaResenje(): Boolean {
+        val round = currentRound ?: return false
+        if (round.resolved) return false
+        if (leftUids.isEmpty()) return round.bothSubmitted
+        val otisaoJeP1 = leftUids.contains(player1Id)
+        val mojaPredaja = if (otisaoJeP1) round.p2Sub else round.p1Sub
+        return mojaPredaja != null
+    }
 }
 
 data class RoundState(

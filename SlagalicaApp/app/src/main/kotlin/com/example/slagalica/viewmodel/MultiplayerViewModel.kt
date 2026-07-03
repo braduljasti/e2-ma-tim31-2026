@@ -242,10 +242,18 @@ class MultiplayerViewModel(
         matchListener = repo.listenMatch(matchId) { state ->
             _match.postValue(state)
 
-            val isHost = state.isPlayer1(uid)
-            val round = state.currentRound
-            if (isHost && !state.finished && round != null && round.bothSubmitted && !round.resolved) {
+            // Domaćin (player1) obično razrešava runde; ali ako je BAŠ player1 napustio partiju,
+            // preostali igrač (player2) preuzima tu ulogu - inače bi meč ostao zaglavljen
+            // zauvijek jer niko ne bi pozivao hostResolveIfReady (spec 3.f).
+            val isHost = state.isPlayer1(uid) || state.leftUids.contains(state.player1Id)
+            if (isHost && !state.finished && state.rundaSpremnaZaResenje()) {
                 viewModelScope.launch { runCatching { repo.hostResolveIfReady(matchId) } }
+            }
+            val round = state.currentRound
+            if (isHost && !state.finished && state.leftUids.isNotEmpty() &&
+                round != null && !round.resolved && round.gameType == MultiplayerRepository.GAME_ASOCIJACIJE
+            ) {
+                viewModelScope.launch { runCatching { repo.asocijacijeAutoSkipAkoNapusten(matchId, state.currentRoundIndex) } }
             }
 
             if (state.finished && !resultSaved) {
@@ -309,6 +317,26 @@ class MultiplayerViewModel(
         viewModelScope.launch {
             runCatching {
                 repo.spojniceLivePotez(state.id, state.isPlayer1(uid), state.currentRoundIndex, par)
+            }
+        }
+    }
+
+    /** Uživo prenosi koliko sam koraka otkrio u "Korak po korak" (protivnik koji čeka to vidi). */
+    fun korakLiveKorak(korak: Int) {
+        val state = _match.value ?: return
+        viewModelScope.launch {
+            runCatching {
+                repo.korakLiveKorak(state.id, state.isPlayer1(uid), state.currentRoundIndex, korak)
+            }
+        }
+    }
+
+    /** Uživo prenosi moj Skočko pokušaj (protivnik koji čeka svoj red to vidi). */
+    fun skockoLiveGuess(guess: List<Int>) {
+        val state = _match.value ?: return
+        viewModelScope.launch {
+            runCatching {
+                repo.skockoLiveGuess(state.id, state.isPlayer1(uid), state.currentRoundIndex, guess)
             }
         }
     }

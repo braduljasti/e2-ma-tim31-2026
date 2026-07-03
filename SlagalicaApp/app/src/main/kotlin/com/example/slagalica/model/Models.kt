@@ -82,6 +82,14 @@ data class ChatMessage(
 
 enum class RangCiklus { NEDELJNI, MESECNI }
 
+/** Nagrada za plasman na rang listi (spec 4.g) - koristi se za animirani/zvučni prikaz. */
+data class NagradaCiklusa(
+    val ciklus: RangCiklus,
+    val mesto: Int,
+    val tokeni: Int,
+    val kaznjen: Boolean
+)
+
 /** Red na globalnoj rang listi (spec 4) - izveden direktno iz users.starsWeekly/starsMonthly. */
 data class RangListaStavka(
     val uid: String,
@@ -217,13 +225,14 @@ data class SkockoAttempt(
     val wrongPosition: Int
 )
 
+/** Tačno 6 simbola iz specifikacije: skočko, kvadrat, krug, srce, trougao, zvezda. */
 enum class SkockoSymbol(val emoji: String) {
+    SKOCKO("🐰"),
     SQUARE("■"),
     CIRCLE("●"),
     HEART("♥"),
     TRIANGLE("▲"),
-    STAR("★"),
-    DIAMOND("◆");
+    STAR("★");
 
     companion object {
         fun all() = values().toList()

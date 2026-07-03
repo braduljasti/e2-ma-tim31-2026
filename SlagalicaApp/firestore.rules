@@ -10,6 +10,15 @@ service cloud.firestore {
     match /users/{uid} {
       allow read: if signedIn();
       allow write: if signedIn() && request.auth.uid == uid;
+
+      // Notifikacije: vlasnik čita/menja svoje, ALI bilo koji prijavljeni korisnik smije da
+      // KREIRA notifikaciju drugom (npr. poziv na prijateljsku partiju - spec 3.b.ii, 11.b).
+      // Ovo pravilo je specifičnije od {document=**} ispod pa ima prednost.
+      match /notifications/{notifId} {
+        allow read, update, delete: if signedIn() && request.auth.uid == uid;
+        allow create: if signedIn();
+      }
+
       match /{document=**} {
         allow read, write: if signedIn() && request.auth.uid == uid;
       }

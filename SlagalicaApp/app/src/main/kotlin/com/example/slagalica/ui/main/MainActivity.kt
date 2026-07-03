@@ -43,7 +43,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             // detektuje promjenu ciklusa - inače bismo izgubili priliku da vidimo plasman.
             runCatching {
                 com.example.slagalica.data.FirebaseProvider.currentUid?.let { uid ->
-                    com.example.slagalica.data.RangListaRepository().pripremiZavrsetakCiklusaAkoTreba(uid)
+                    val nagrade = com.example.slagalica.data.RangListaRepository().pripremiZavrsetakCiklusaAkoTreba(uid)
+                    // Spec 4.g: otvaranjem aplikacije nakon prolaska ciklusa - animirani/zvučni prikaz nagrade.
+                    nagrade.forEach { NagradaAnimacija.prikazi(this@MainActivity, it) }
                 }
             }
             val outcome = runCatching {

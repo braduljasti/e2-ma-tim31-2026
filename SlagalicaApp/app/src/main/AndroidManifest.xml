@@ -7,6 +7,8 @@
     <!-- Skeniranje QR koda za dodavanje prijatelja (spec 7.b) -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
+
+    <uses-feature android:name="android.hardware.sensor.accelerometer" android:required="false" />
     <!-- OpenStreetMap mapa regiona (spec 5) -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 

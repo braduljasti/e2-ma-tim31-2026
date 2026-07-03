@@ -165,6 +165,29 @@ class ProfilViewModel(
 
     fun logout() = authRepo.logout()
 
+    private val _lozinkaPromenjena = MutableLiveData<Boolean?>()
+    val lozinkaPromenjena: LiveData<Boolean?> = _lozinkaPromenjena
+
+    private val _lozinkaGreska = MutableLiveData<String?>()
+    val lozinkaGreska: LiveData<String?> = _lozinkaGreska
+
+    /** Spec 1.e: reset lozinke unosom stare lozinke i nove lozinke (potvrđene) unutar forme. */
+    fun promeniLozinku(staraLozinka: String, novaLozinka: String) {
+        viewModelScope.launch {
+            runCatching { authRepo.changePassword(staraLozinka, novaLozinka) }
+                .onSuccess {
+                    _lozinkaGreska.value = null
+                    _lozinkaPromenjena.value = true
+                }
+                .onFailure { e ->
+                    _lozinkaGreska.value = e.message ?: "Promjena lozinke nije uspjela."
+                    _lozinkaPromenjena.value = false
+                }
+        }
+    }
+
+    fun consumeLozinkaPromenjena() { _lozinkaPromenjena.value = null }
+
     private fun avatarRes(avatarId: Int): Int =
         availableAvatars.getOrElse(avatarId - 1) { availableAvatars[0] }
 }

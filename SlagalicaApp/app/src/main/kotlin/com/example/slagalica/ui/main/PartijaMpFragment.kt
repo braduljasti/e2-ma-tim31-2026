@@ -33,6 +33,8 @@ class PartijaMpFragment : Fragment() {
     private var aktivnaIgra: String? = null
     private var finalShown = false
     private var dialogPrikazan = false
+    private var profilListener: com.google.firebase.firestore.ListenerRegistration? = null
+    private var protivnikOtisaoObavesten = false
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         _binding = FragmentPartijaMpBinding.inflate(inflater, container, false)
@@ -47,6 +49,15 @@ class PartijaMpFragment : Fragment() {
 
         mp.bindCurrentMatch()
         mp.match.observe(viewLifecycleOwner) { state -> if (state != null) onMatchUpdate(state) }
+
+        // Spec: tokeni/zvezde/liga vidljivi u svakom trenutku, uključujući tok partije.
+        profilListener = com.example.slagalica.data.ProfilRepository().slusajKorisnika { user ->
+            if (user == null) return@slusajKorisnika
+            binding.tvPartijaTokeni.text = "🪙 ${user.tokens}"
+            binding.tvPartijaZvezde.text = "⭐ ${user.stars}"
+            val liga = com.example.slagalica.model.Liga.fromIndex(user.league)
+            binding.tvPartijaLiga.text = "${liga.emoji} ${liga.displayName}"
+        }
     }
 
     private fun onMatchUpdate(state: MatchState) {
@@ -55,6 +66,17 @@ class PartijaMpFragment : Fragment() {
             if (state.isPlayer1(mp.uid)) it.p2Points else it.p1Points
         }
         binding.tvPartijaUkupno.text = "Ukupno — Vi: $ukupnoMoje  Protivnik: $ukupnoProtivnik"
+
+        // Spec 3.f: protivnik nastavlja da vidi tok partije, ali treba da zna da je protivnik
+        // napustio (sada igra "solo" do kraja umjesto da čeka nekoga ko se neće vratiti).
+        if (!protivnikOtisaoObavesten && state.opponentLeft(mp.uid) && !state.finished) {
+            protivnikOtisaoObavesten = true
+            com.google.android.material.snackbar.Snackbar.make(
+                binding.root,
+                "Protivnik je napustio partiju - nastavljate sami do kraja.",
+                com.google.android.material.snackbar.Snackbar.LENGTH_LONG
+            ).show()
+        }
 
         if (state.finished) {
             showFinal(state)
@@ -86,9 +108,13 @@ class PartijaMpFragment : Fragment() {
     private fun potvrdiNapustanje() {
         MaterialAlertDialogBuilder(requireContext())
             .setTitle("Napustiti partiju?")
-            .setMessage("Ako sada napustite partiju, automatski gubite i ne dobijate zvezdice. Protivnik odmah pobjeđuje.")
+            .setMessage("Ako sada napustite partiju, automatski gubite i ne dobijate zvezdice. Protivnik nastavlja partiju bez vas.")
             .setPositiveButton("Napusti") { _, _ ->
                 mp.forfeitMatch()
+                // Ja sam napustio - moj ekran se odmah zatvara (spec 3.f: PROTIVNIK nastavlja,
+                // ne ja - ne čekam da se cela partija prirodno završi da bih izašao).
+                mp.leaveMatch()
+                findNavController().popBackStack(com.example.slagalica.R.id.nav_igraj, false)
             }
             .setNegativeButton("Odustani", null)
             .show()
@@ -153,6 +179,7 @@ class PartijaMpFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        profilListener?.remove()
         _binding = null
     }
 }

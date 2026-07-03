@@ -96,13 +96,15 @@ class RangListaRepository {
      * napomenu u dokumentaciji klase). Idempotentno - bezbjedno je pozivati ga pri svakom
      * pokretanju (čuva se u users.rewardedCycles).
      */
-    suspend fun pripremiZavrsetakCiklusaAkoTreba(uid: String) {
+    suspend fun pripremiZavrsetakCiklusaAkoTreba(uid: String): List<com.example.slagalica.model.NagradaCiklusa> {
         val ref = users().document(uid)
-        val snap = runCatching { ref.get().await() }.getOrNull() ?: return
+        val snap = runCatching { ref.get().await() }.getOrNull() ?: return emptyList()
         val vecObradjeno = (snap.get("rewardedCycles") as? List<*>)?.mapNotNull { it as? String } ?: emptyList()
 
-        obradiCiklus(ref, snap, RangCiklus.NEDELJNI, vecObradjeno)
-        obradiCiklus(ref, snap, RangCiklus.MESECNI, vecObradjeno)
+        return listOfNotNull(
+            obradiCiklus(ref, snap, RangCiklus.NEDELJNI, vecObradjeno),
+            obradiCiklus(ref, snap, RangCiklus.MESECNI, vecObradjeno)
+        )
     }
 
     private suspend fun obradiCiklus(
@@ -110,7 +112,7 @@ class RangListaRepository {
         snap: DocumentSnapshot,
         ciklus: RangCiklus,
         vecObradjeno: List<String>
-    ) {
+    ): com.example.slagalica.model.NagradaCiklusa? {
         val poljeStars = if (ciklus == RangCiklus.NEDELJNI) "starsWeekly" else "starsMonthly"
         val poljeCiklus = if (ciklus == RangCiklus.NEDELJNI) "lastCycleWeekly" else "lastCycleMonthly"
         val prefiks = if (ciklus == RangCiklus.NEDELJNI) "W-" else "M-"
@@ -119,10 +121,10 @@ class RangListaRepository {
         val trenutniCiklus = if (ciklus == RangCiklus.NEDELJNI) Cycles.weekly() else Cycles.monthly()
         // Prazno = korisnik nikad nije prošao kroz reconcile (novoregistrovan) - ništa za obraditi.
         // Isti ključ = ciklus se još nije promijenio otkad je zadnji put viđen - takođe ništa.
-        if (zadnjiVidjeni.isBlank() || zadnjiVidjeni == trenutniCiklus) return
+        if (zadnjiVidjeni.isBlank() || zadnjiVidjeni == trenutniCiklus) return null
 
         val rewardId = prefiks + zadnjiVidjeni
-        if (rewardId in vecObradjeno) return
+        if (rewardId in vecObradjeno) return null
 
         val mojeZvezdeCiklusa = (snap.getLong(poljeStars) ?: 0L).toInt()
         val poredak = runCatching { ucitajRangListu(ciklus, limit = 10) }.getOrDefault(emptyList())
@@ -130,6 +132,7 @@ class RangListaRepository {
 
         val updates = hashMapOf<String, Any>("rewardedCycles" to FieldValue.arrayUnion(rewardId))
         val notifRepo = NotifikacijeRepository()
+        var rezultat: com.example.slagalica.model.NagradaCiklusa? = null
 
         if (mesto >= 0) {
             // Spec 4.c: nagrada za plasman u top 10
@@ -137,6 +140,9 @@ class RangListaRepository {
             if (tokeni > 0) {
                 updates["tokens"] = FieldValue.increment(tokeni.toLong())
                 val naziv = if (ciklus == RangCiklus.NEDELJNI) "nedeljnoj" else "mesečnoj"
+                rezultat = com.example.slagalica.model.NagradaCiklusa(
+                    ciklus = ciklus, mesto = mesto + 1, tokeni = tokeni, kaznjen = false
+                )
                 runCatching {
                     notifRepo.add(
                         AppNotification(
@@ -172,5 +178,6 @@ class RangListaRepository {
         }
 
         runCatching { ref.update(updates).await() }
+        return rezultat
     }
 }

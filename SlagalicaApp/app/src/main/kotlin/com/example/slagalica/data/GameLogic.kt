@@ -165,13 +165,26 @@ object GameLogic {
         val o = evalMojBroj(oExpr, target, available)
         if (s.third) return MOJBROJ_EXACT to 0
         if (o.third) return 0 to MOJBROJ_EXACT
-        val sDiff = if (s.first) abs(s.second - target) else Int.MAX_VALUE
-        val oDiff = if (o.first) abs(o.second - target) else Int.MAX_VALUE
+
         return when {
-            sDiff == Int.MAX_VALUE && oDiff == Int.MAX_VALUE -> 0 to 0
-            sDiff < oDiff -> MOJBROJ_CLOSER to 0
-            oDiff < sDiff -> 0 to MOJBROJ_CLOSER
-            else -> MOJBROJ_CLOSER to 0
+            // 6.i: ako neko nema (validan) rezultat, a drugi ima - drugi dobija 5 poena.
+            !s.first && !o.first -> 0 to 0
+            s.first && !o.first -> MOJBROJ_CLOSER to 0
+            !s.first && o.first -> 0 to MOJBROJ_CLOSER
+            else -> {
+                val sDiff = abs(s.second - target)
+                val oDiff = abs(o.second - target)
+                when {
+                    sDiff < oDiff -> MOJBROJ_CLOSER to 0
+                    oDiff < sDiff -> 0 to MOJBROJ_CLOSER
+                    // 6.j: samo ako je BAŠ ISTI rezultat (ne samo ista udaljenost od cilja),
+                    // 5 poena dobija onaj čija je runda bila (starter).
+                    s.second == o.second -> MOJBROJ_CLOSER to 0
+                    // Ista udaljenost, ali RAZLIČIT rezultat - spec ne definiše ovaj slučaj
+                    // eksplicitno; ne izmišljamo pravilo, tretiramo kao nerešeno za tu rundu.
+                    else -> 0 to 0
+                }
+            }
         }
     }
 }

@@ -13,14 +13,17 @@ import kotlinx.coroutines.tasks.await
  * prihvati, ON kreira prijateljsku partiju i upiše matchId u poziv - pošiljalac
  * to vidi kroz svoj listener i obojica ulaze u meč.
  *
- * Ograničenje bez servera: sistemska push notifikacija kad primaocu app NIJE
- * pokrenut zahtijeva FCM slanje sa servera (kolegin dio) - do tada poziv radi
- * u realnom vremenu dok je app otvoren, a pošiljaocu istekne poslije 10s.
+ * Spec 3.b.ii: pored realtime dijaloga (dok je app otvoren), pošiljalac ODMAH upisuje
+ * i trajnu notifikaciju primaocu (users/{toUid}/notifications) - tako primalac vidi poziv
+ * u istoriji notifikacija čak i ako u tom trenutku uopšte nije bio u aplikaciji. Prava push
+ * notifikacija (probudi zaključan telefon) bi ipak zahtijevala FCM slanje sa servera - to
+ * ostaje ograničenje "samo Firebase" pristupa ovog projekta.
  */
 class PozivnicaRepository {
 
     private val db = FirebaseProvider.db
     private val invites get() = db.collection(FirestoreCollections.MATCH_INVITES)
+    private val notifikacije = NotifikacijeRepository()
 
     /** Šalje poziv prijatelju; vraća id poziva (za praćenje i otkazivanje). */
     suspend fun posalji(myUid: String, myName: String, toUid: String): String {
@@ -33,6 +36,20 @@ class PozivnicaRepository {
             "matchId" to null,
             "createdAt" to System.currentTimeMillis()
         )).await()
+
+        // Spec 3.b.ii: trajna notifikacija primaocu, bez obzira da li je trenutno u aplikaciji.
+        runCatching {
+            notifikacije.addFor(
+                toUid,
+                com.example.slagalica.model.AppNotification(
+                    id = "",
+                    title = "🎮 Poziv na partiju",
+                    content = "$myName vas poziva na prijateljsku partiju!",
+                    category = com.example.slagalica.model.NotificationCategory.OTHER,
+                    timestampMs = System.currentTimeMillis()
+                )
+            )
+        }
         return ref.id
     }
 

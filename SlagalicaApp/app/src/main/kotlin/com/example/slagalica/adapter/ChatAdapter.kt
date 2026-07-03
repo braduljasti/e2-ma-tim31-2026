@@ -20,6 +20,18 @@ class ChatAdapter(
         private const val TIP_MOJA = 1
         private const val TIP_TUDJA = 2
         private val TIME_FMT = SimpleDateFormat("HH:mm", Locale.getDefault())
+        private val DATE_FMT = SimpleDateFormat("dd.MM.yyyy.", Locale.getDefault())
+
+        /** Spec 8.c: svaka poruka mora imati i datum i vrijeme slanja. Datum se ne ponavlja
+         * ako je poruka poslata danas (čitljivije), inače se prikazuje "dd.MM.yyyy. HH:mm". */
+        fun formatVrijeme(timestampMs: Long): String {
+            val poruka = java.util.Calendar.getInstance().apply { timeInMillis = timestampMs }
+            val danas = java.util.Calendar.getInstance()
+            val istiDan = poruka.get(java.util.Calendar.YEAR) == danas.get(java.util.Calendar.YEAR) &&
+                    poruka.get(java.util.Calendar.DAY_OF_YEAR) == danas.get(java.util.Calendar.DAY_OF_YEAR)
+            val vrijeme = TIME_FMT.format(Date(timestampMs))
+            return if (istiDan) vrijeme else "${DATE_FMT.format(Date(timestampMs))} $vrijeme"
+        }
     }
 
     override fun getItemViewType(position: Int): Int =
@@ -45,7 +57,7 @@ class ChatAdapter(
     class MojaViewHolder(private val binding: ItemChatMineBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(poruka: ChatMessage) {
             binding.tvChatTekst.text = poruka.text
-            binding.tvChatVrijeme.text = TIME_FMT.format(Date(poruka.timestampMs))
+            binding.tvChatVrijeme.text = ChatAdapter.formatVrijeme(poruka.timestampMs)
         }
     }
 
@@ -53,7 +65,7 @@ class ChatAdapter(
         fun bind(poruka: ChatMessage) {
             binding.tvChatPosiljalac.text = poruka.senderName
             binding.tvChatTekst.text = poruka.text
-            binding.tvChatVrijeme.text = TIME_FMT.format(Date(poruka.timestampMs))
+            binding.tvChatVrijeme.text = ChatAdapter.formatVrijeme(poruka.timestampMs)
         }
     }
 

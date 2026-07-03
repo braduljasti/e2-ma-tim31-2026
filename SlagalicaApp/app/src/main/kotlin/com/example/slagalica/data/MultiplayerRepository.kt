@@ -306,6 +306,51 @@ class MultiplayerRepository {
         }.await()
     }
 
+    /**
+     * Igrač koji igra svoju rundu u "Skočko" uživo prenosi svaki pokušaj - protivnik koji čeka
+     * svoj red tako vidi pokušaje u realnom vremenu (ali ne može da igra dok mu ne dođe red).
+     */
+    suspend fun skockoLiveGuess(matchId: String, isP1: Boolean, roundIndex: Int, guess: List<Int>) {
+        val ref = matches.document(matchId)
+        db.runTransaction<Void?> { tx ->
+            val snap = tx.get(ref)
+            @Suppress("UNCHECKED_CAST")
+            val rounds = (snap.get("rounds") as? MutableList<MutableMap<String, Any?>>)
+                ?: return@runTransaction null
+            val idx = (snap.getLong("currentRoundIndex") ?: 0L).toInt()
+            if (idx != roundIndex) return@runTransaction null
+            val round = rounds.getOrNull(idx) ?: return@runTransaction null
+            val key = if (isP1) "p1Live" else "p2Live"
+            val live = ((round[key] as? List<*>)?.mapNotNull { it as? String } ?: emptyList())
+                .toMutableList()
+            live.add(guess.joinToString(","))
+            round[key] = live
+            tx.update(ref, "rounds", rounds)
+            null
+        }.await()
+    }
+    /**
+     * Igrač koji igra svoju rundu u "Korak po korak" prenosi uživo koliko je koraka otkriveno -
+     * protivnik koji čeka svoj red tako vidi otkrivene korake u realnom vremenu (ali ne može
+     * da odgovara dok mu ne dođe red - vidi KorakPoKorakMpFragment).
+     */
+    suspend fun korakLiveKorak(matchId: String, isP1: Boolean, roundIndex: Int, korak: Int) {
+        val ref = matches.document(matchId)
+        db.runTransaction<Void?> { tx ->
+            val snap = tx.get(ref)
+            @Suppress("UNCHECKED_CAST")
+            val rounds = (snap.get("rounds") as? MutableList<MutableMap<String, Any?>>)
+                ?: return@runTransaction null
+            val idx = (snap.getLong("currentRoundIndex") ?: 0L).toInt()
+            if (idx != roundIndex) return@runTransaction null
+            val round = rounds.getOrNull(idx) ?: return@runTransaction null
+            val key = if (isP1) "p1Live" else "p2Live"
+            round[key] = listOf(korak.toString())
+            tx.update(ref, "rounds", rounds)
+            null
+        }.await()
+    }
+
     private suspend fun submitSub(matchId: String, isP1: Boolean, sub: Map<String, Any?>) {
         val ref = matches.document(matchId)
         db.runTransaction<Void?> { tx ->
@@ -364,7 +409,11 @@ class MultiplayerRepository {
             val newIndex = idx + 1
             val updates = hashMapOf<String, Any?>("rounds" to rounds, "currentRoundIndex" to newIndex)
 
-            if (newIndex >= rounds.size || leftUids.isNotEmpty()) {
+            // Spec 3.f: čak i kad je neko napustio partiju, meč se NE prekida odmah - preostali
+            // igrač nastavlja kroz sve runde (odsutni igrač se tretira kao "prazan" odgovor u
+            // svakoj narednoj rundi - vidi logiku iznad). Meč se završava tek kad se odigraju
+            // SVE runde; pobjednik je tada uvijek onaj ko nije napustio partiju.
+            if (newIndex >= rounds.size) {
                 val p1Total = rounds.sumOf { (it["p1Points"] as? Number)?.toInt() ?: 0 }
                 val p2Total = rounds.sumOf { (it["p2Points"] as? Number)?.toInt() ?: 0 }
                 val winner = when {
@@ -389,30 +438,19 @@ class MultiplayerRepository {
      * pobednikom (bez čekanja da istekne preostalo vreme), čime je vreme čekanja svedeno na
      * minimum. Rezultat se zamrzava na trenutnom zbiru poena po odigranim rundama.
      */
+    /**
+     * Igrač napušta partiju (spec 3.f) - NE prekida meč odmah, samo obeležava da je otišao.
+     * Protivnik nastavlja da igra preostale runde solo (napustiočevi budući odgovori se
+     * automatski tretiraju kao prazni - vidi [hostResolveIfReady] i
+     * [asocijacijeAutoSkipAkoNapusten]); pobjednik će biti tačno određen tek na prirodnom
+     * kraju partije, ali će uvijek biti onaj ko NIJE napustio, bez obzira na tadašnji skor.
+     */
     suspend fun leaveMatch(matchId: String, myUid: String) {
         val ref = matches.document(matchId)
         db.runTransaction<Void?> { tx ->
             val snap = tx.get(ref)
             if (snap.getString("status") == "finished") return@runTransaction null
-            val player1Id = snap.getString("player1Id")
-            val player2Id = snap.getString("player2Id")
-            val otherId = if (myUid == player1Id) player2Id else player1Id
-
-            @Suppress("UNCHECKED_CAST")
-            val rounds = (snap.get("rounds") as? List<Map<String, Any?>>) ?: emptyList()
-            val p1Total = rounds.sumOf { (it["p1Points"] as? Number)?.toInt() ?: 0 }
-            val p2Total = rounds.sumOf { (it["p2Points"] as? Number)?.toInt() ?: 0 }
-
-            tx.update(
-                ref,
-                mapOf(
-                    "status" to "finished",
-                    "winnerId" to otherId,
-                    "leftUids" to FieldValue.arrayUnion(myUid),
-                    "player1Score" to p1Total,
-                    "player2Score" to p2Total
-                )
-            )
+            tx.update(ref, "leftUids", FieldValue.arrayUnion(myUid))
             null
         }.await()
     }
@@ -624,6 +662,20 @@ class MultiplayerRepository {
             emptyMap()
         }
 
+    /**
+     * Spec 3.f: ako je na potezu igrač koji je napustio partiju, ne čekamo ga - potez mu se
+     * odmah oduzima (isto kao [asocijacijePropusti], ali bez provere da je pozivalac baš on,
+     * pošto napustilac više ne šalje zahtjeve).
+     */
+    suspend fun asocijacijeAutoSkipAkoNapusten(matchId: String, roundIndex: Int) =
+        asocijacijePotez(matchId, roundIndex) { snap, _, round ->
+            val turnUid = round["turnUid"] as? String ?: return@asocijacijePotez null
+            val leftUids = strList(snap.get("leftUids"))
+            if (turnUid !in leftUids) return@asocijacijePotez null
+            predajPotez(snap, round, turnUid)
+            emptyMap()
+        }
+
     suspend fun asocijacijeIstekloVreme(matchId: String, roundIndex: Int) =
         asocijacijePotez(matchId, roundIndex) { _, _, round ->
             zavrsiAsocRundu(round)
@@ -648,11 +700,16 @@ class MultiplayerRepository {
             if (newIndex >= rounds.size) {
                 val p1Total = rounds.sumOf { (it["p1Points"] as? Number)?.toInt() ?: 0 }
                 val p2Total = rounds.sumOf { (it["p2Points"] as? Number)?.toInt() ?: 0 }
+                val leftUids = strList(snap.get("leftUids"))
+                val player1Id = snap.getString("player1Id")
+                val player2Id = snap.getString("player2Id")
                 updates["player1Score"] = p1Total
                 updates["player2Score"] = p2Total
                 updates["winnerId"] = when {
-                    p1Total > p2Total -> snap.getString("player1Id")
-                    p2Total > p1Total -> snap.getString("player2Id")
+                    leftUids.contains(player1Id) -> player2Id
+                    leftUids.contains(player2Id) -> player1Id
+                    p1Total > p2Total -> player1Id
+                    p2Total > p1Total -> player2Id
                     else -> null
                 }
                 updates["status"] = "finished"

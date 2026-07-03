@@ -109,7 +109,7 @@ class SkockoFragment : Fragment() {
         binding.tvZnakSrce.setOnClickListener { viewModel.addSymbol(SkockoSymbol.HEART) }
         binding.tvZnakTrougao.setOnClickListener { viewModel.addSymbol(SkockoSymbol.TRIANGLE) }
         binding.tvZnakZvjezdica.setOnClickListener { viewModel.addSymbol(SkockoSymbol.STAR) }
-        binding.tvZnakDijamant.setOnClickListener { viewModel.addSymbol(SkockoSymbol.DIAMOND) }
+        binding.tvZnakDijamant.setOnClickListener { viewModel.addSymbol(SkockoSymbol.SKOCKO) }
 
         binding.btnProyeriSkocko.setOnClickListener {
             if ((viewModel.currentSelection.value?.size ?: 0) != 4) {
@@ -131,7 +131,7 @@ class SkockoFragment : Fragment() {
             SkockoSymbol.HEART -> R.color.skocko_srce
             SkockoSymbol.TRIANGLE -> R.color.skocko_trougao
             SkockoSymbol.STAR -> R.color.skocko_zvezda
-            SkockoSymbol.DIAMOND -> R.color.accent_dark
+            SkockoSymbol.SKOCKO -> R.color.accent_dark
         }
         return ContextCompat.getColor(requireContext(), colorRes)
     }
