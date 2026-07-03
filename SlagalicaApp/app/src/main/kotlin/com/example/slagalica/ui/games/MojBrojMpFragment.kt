@@ -23,11 +23,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import kotlin.math.sqrt
 
-/**
- * Igra "Moj broj" (spec 6). Uključuje dvostepeni "stop" mehanizam (6.b/c/d) i mogućnost
- * stopiranja pomoću shake senzora (6.l) - obje faze (traženi broj, pa dostupni brojevi)
- * mogu se otkriti i klikom na dugme i tresenjem telefona.
- */
 class MojBrojMpFragment : Fragment(), SensorEventListener {
 
     private var _binding: FragmentMojBrojBinding? = null
@@ -38,7 +33,6 @@ class MojBrojMpFragment : Fragment(), SensorEventListener {
 
     private data class Token(val text: String, val btnIndex: Int?)
 
-    /** Faze runde - prati koji "stop" korak je trenutno na redu (spec 6.b/c). */
     private enum class Faza { CEKA_STOP_BROJ, CEKA_STOP_DOSTUPNI, RESAVANJE, ZAVRSENO }
 
     private var faza = Faza.ZAVRSENO
@@ -51,7 +45,6 @@ class MojBrojMpFragment : Fragment(), SensorEventListener {
     private var timer: CountDownTimer? = null
     private var autoRevealTimer: CountDownTimer? = null
 
-    // ===== Shake senzor (spec 6.l) =====
     private var sensorManager: SensorManager? = null
     private var accelerometer: Sensor? = null
     private var lastShakeMs = 0L
@@ -88,8 +81,6 @@ class MojBrojMpFragment : Fragment(), SensorEventListener {
         }
     }
 
-    /** Spec 6.b: runda počinje sakrivenim traženim brojem i dostupnim brojevima - oba se
-     * otkrivaju kroz dvostepeni "stop" mehanizam, klikom ili tresenjem telefona. */
     private fun startLocalRound(state: MatchState) {
         val round = state.currentRound ?: return
         target = round.mojBrojTarget()
@@ -100,7 +91,6 @@ class MojBrojMpFragment : Fragment(), SensorEventListener {
 
         binding.tvRundaMojBroj.text = getString(R.string.lbl_runda, round.roundNumber, MojBrojKonstante.BROJ_RUNDI)
 
-        // Faza 1: traženi broj je sakriven, čeka se STOP (klik ili shake).
         faza = Faza.CEKA_STOP_BROJ
         binding.tvTrazeniBreoj.visibility = View.GONE
         binding.btnStopBroj.visibility = View.VISIBLE
@@ -116,7 +106,6 @@ class MojBrojMpFragment : Fragment(), SensorEventListener {
         pokreniAutoOtkrivanje { otkriTrazeniBroj() }
     }
 
-    /** Faza 1 -> 2: prikaže traženi broj (klik na Stop ili shake), pa čeka drugi STOP. */
     private fun otkriTrazeniBroj() {
         if (faza != Faza.CEKA_STOP_BROJ) return
         autoRevealTimer?.cancel()
@@ -132,7 +121,6 @@ class MojBrojMpFragment : Fragment(), SensorEventListener {
         pokreniAutoOtkrivanje { otkriDostupneBrojeve() }
     }
 
-    /** Faza 2 -> Rešavanje: prikaže 6 brojeva i pokreće glavni tajmer runde (spec 6.c). */
     private fun otkriDostupneBrojeve() {
         if (faza != Faza.CEKA_STOP_DOSTUPNI) return
         autoRevealTimer?.cancel()
@@ -149,7 +137,6 @@ class MojBrojMpFragment : Fragment(), SensorEventListener {
         startTimer()
     }
 
-    /** Spec 6.d: ako se u roku od 5s ne klikne na Stop, sledeća faza se otkriva automatski. */
     private fun pokreniAutoOtkrivanje(naOtkrivanje: () -> Unit) {
         autoRevealTimer?.cancel()
         autoRevealTimer = object : CountDownTimer(5_000L, 1_000L) {
@@ -184,12 +171,9 @@ class MojBrojMpFragment : Fragment(), SensorEventListener {
         binding.btnResetIzraz.setOnClickListener { resetExpression() }
         binding.btnProyeriMojBroj.setOnClickListener { confirmSubmit() }
 
-        // Klik na Stop dugmad (spec 6.b/c) - isti efekat kao tresenje telefona.
         binding.btnStopBroj.setOnClickListener { otkriTrazeniBroj() }
         binding.btnStopDostupni.setOnClickListener { otkriDostupneBrojeve() }
     }
-
-    // ===== Shake senzor (spec 6.l) =====
 
     override fun onResume() {
         super.onResume()
@@ -206,7 +190,6 @@ class MojBrojMpFragment : Fragment(), SensorEventListener {
         if (faza != Faza.CEKA_STOP_BROJ && faza != Faza.CEKA_STOP_DOSTUPNI) return
 
         val x = event.values[0]; val y = event.values[1]; val z = event.values[2]
-        // Ubrzanje bez gravitacije (9.81 m/s²) - prag oko 2.7g je pouzdan znak potresa telefona.
         val ubrzanje = sqrt((x * x + y * y + z * z).toDouble()) - SensorManager.GRAVITY_EARTH
         val sada = System.currentTimeMillis()
 
@@ -320,7 +303,6 @@ class MojBrojMpFragment : Fragment(), SensorEventListener {
     }
 
     companion object {
-        /** Prag ubrzanja (m/s², bez gravitacije) koji se smatra tresenjem telefona. */
         private const val SHAKE_PRAG = 12f
         private const val SHAKE_DEBOUNCE_MS = 1000L
     }

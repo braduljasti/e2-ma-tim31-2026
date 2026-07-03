@@ -13,10 +13,6 @@ import com.example.slagalica.databinding.FragmentLigeBinding
 import com.example.slagalica.model.LigaPregled
 import com.example.slagalica.viewmodel.LigeViewModel
 
-/**
- * Ekran "Lige" (spec 6): trenutna liga + napredak ka sljedećoj, i lista svih
- * liga sa pragovima i dnevnim benefitom tokena.
- */
 class LigeFragment : Fragment() {
 
     private var _binding: FragmentLigeBinding? = null

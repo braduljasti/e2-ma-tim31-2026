@@ -56,7 +56,6 @@ class NotifikacijeRepository {
 
     suspend fun add(notification: AppNotification) = addFor(FirebaseProvider.currentUid ?: "anon", notification)
 
-    /** Piše notifikaciju DRUGOM korisniku (npr. poziv na prijateljsku partiju - spec 3.b.ii). */
     suspend fun addFor(uid: String, notification: AppNotification) {
         val data = mapOf(
             "title" to notification.title,

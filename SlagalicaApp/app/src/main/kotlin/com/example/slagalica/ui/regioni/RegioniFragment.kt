@@ -22,10 +22,6 @@ import org.osmdroid.util.GeoPoint
 import org.osmdroid.views.MapView
 import org.osmdroid.views.overlay.Marker
 
-/**
- * Ekran regiona (spec 5.a, 5.b): mapa Srbije (OpenStreetMap / osmdroid) sa
- * tačkom svakog igrača u njegovom regionu, i mjesečna rang lista po regionima.
- */
 class RegioniFragment : Fragment() {
 
     private var _binding: FragmentRegioniBinding? = null
@@ -36,7 +32,6 @@ class RegioniFragment : Fragment() {
     private val map get() = binding.mapRegioni
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
-        // osmdroid zahtijeva konfiguraciju (user-agent) prije inflate-a MapView-a
         Configuration.getInstance().load(
             requireContext(),
             PreferenceManager.getDefaultSharedPreferences(requireContext())
@@ -59,7 +54,6 @@ class RegioniFragment : Fragment() {
         }
     }
 
-    /** Dijalog statistike regiona (spec 5.d): registrovani, aktivni, broj 1./2./3. mjesta. */
     private fun prikaziStatistiku(s: RegionStatistika) {
         val poruka = getString(
             R.string.fmt_region_statistika,
@@ -101,7 +95,6 @@ class RegioniFragment : Fragment() {
         map.invalidate()
     }
 
-    // osmdroid traži ručno prosljeđivanje lifecycle poziva
     override fun onResume() {
         super.onResume()
         if (_binding != null) map.onResume()

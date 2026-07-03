@@ -1,9 +1,5 @@
 package com.example.slagalica.data
 
-/**
- * Statistički regioni Srbije (poklapaju se sa R.array.regioni iz registracije).
- * Svaki ima okvirne granice (bounding box) za smještanje tačke na mapu i ikonu.
- */
 data class RegionInfo(
     val naziv: String,
     val emoji: String,
@@ -23,18 +19,12 @@ object Regioni {
         RegionInfo("Južna i Istočna Srbija", "🍇", 42.35, 44.20, 21.05, 23.00)
     )
 
-    // Centar mape (cijela Srbija)
     const val SRBIJA_LAT = 44.0
     const val SRBIJA_LNG = 20.9
     const val POCETNI_ZOOM = 7.0
 
     fun zaNaziv(naziv: String): RegionInfo? = SVI.firstOrNull { it.naziv == naziv }
 
-    /**
-     * Stabilna ("nasumična ali uvijek ista") tačka igrača unutar njegovog regiona,
-     * izvedena iz uid-a. Deterministička - ne treba je čuvati ni pisati u tuđi
-     * dokument; svaki igrač uvijek pada na isto mjesto na mapi.
-     */
     fun tackaZa(uid: String, region: RegionInfo): Pair<Double, Double> {
         val h = uid.hashCode()
         val fx = (h and 0xFFFF) / 65535.0

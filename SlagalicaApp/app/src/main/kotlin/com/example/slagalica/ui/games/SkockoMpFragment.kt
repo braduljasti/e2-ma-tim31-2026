@@ -18,10 +18,6 @@ import com.example.slagalica.viewmodel.MultiplayerViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 
-/**
- * Igra "Skočko" (spec 4). Sekvencijalna ("naizmjenična") - prvo igra igrač koji je počeo rundu
- * (do 6 pokušaja); tek ako on NE pogodi, protivnik dobija JEDNU priliku od 10 sekundi (4.d).
- */
 class SkockoMpFragment : Fragment() {
 
     private var _binding: FragmentSkockoBinding? = null
@@ -30,7 +26,6 @@ class SkockoMpFragment : Fragment() {
     private lateinit var mp: MultiplayerViewModel
     private val rowBindings = mutableListOf<ItemSkockoRedBinding>()
 
-    /** Faza runde - da li čekam protivnika, igram svoj (potpuni) pokušaj, ili sam u "krađi". */
     private enum class Faza { CEKANJE, MOJA_IGRA, KRADJA, ZAVRSENO }
 
     private var playedRoundIndex = -1
@@ -98,13 +93,11 @@ class SkockoMpFragment : Fragment() {
         }
     }
 
-    /** Prati da li je "starter" fazu (kada nisam ja na potezu) - i da li mi je vrijeme za krađu. */
     private fun refreshPhase(state: MatchState) {
         if (submittedThisRound || faza == Faza.MOJA_IGRA) return
         val round = state.currentRound ?: return
 
         if (faza == Faza.CEKANJE) {
-            // Uživo prikazujem pokušaje STARTERA (u svojoj, inače praznoj tabli) dok čekam svoj red.
             val starterIsP1 = round.starterId == state.player1Id
             val liveList = if (starterIsP1) round.p1Live else round.p2Live
             if (liveList.size > protivnikPrikazanihPokusaja) {
@@ -121,7 +114,6 @@ class SkockoMpFragment : Fragment() {
 
         val starterSub = if (round.starterId == state.player1Id) round.p1Sub else round.p2Sub
         if (starterSub == null) {
-            // Spec 3.f: ako je starter napustio partiju, ne čekamo njegovih 30s - odmah krađa.
             if (faza == Faza.CEKANJE && state.opponentLeft(mp.uid) && round.starterId == state.opponentId(mp.uid)) {
                 pokreniKradju()
             }
@@ -132,7 +124,6 @@ class SkockoMpFragment : Fragment() {
             val starterGuesses = round.skockoGuesses(starterSub)
             val resio = starterGuesses.any { GameLogic.evaluateSkocko(secret, it).first == 4 }
             if (resio) {
-                // Protivnik je već pogodio - nemam šta da kradem, samo predajem prazno.
                 predajPrazno()
             } else {
                 pokreniKradju()
@@ -140,7 +131,6 @@ class SkockoMpFragment : Fragment() {
         }
     }
 
-    /** Spec 4.d: protivnik dobija TAČNO JEDNU priliku od 10 sekundi. */
     private fun pokreniKradju() {
         if (faza == Faza.KRADJA || submittedThisRound) return
         faza = Faza.KRADJA
@@ -148,8 +138,6 @@ class SkockoMpFragment : Fragment() {
         myGuesses.clear()
         selection.clear(); renderSelection()
 
-        // NE brišemo tablu (initRows) - dodajemo JOŠ JEDAN red za "krađu" ispod postojećih,
-        // da bi protivnikovi (starterovi) promašaji ostali vidljivi dok igram svoj pokušaj.
         val inflater = LayoutInflater.from(requireContext())
         val noviRed = ItemSkockoRedBinding.inflate(inflater, binding.llTablaPokusaja, false)
         binding.llTablaPokusaja.addView(noviRed.root)

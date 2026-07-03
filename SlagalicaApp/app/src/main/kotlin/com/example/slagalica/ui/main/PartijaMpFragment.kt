@@ -19,11 +19,6 @@ import com.example.slagalica.ui.games.SpojniceMpFragment
 import com.example.slagalica.viewmodel.MultiplayerViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
-/**
- * Domaćin (host) fragment za pravu "partiju" iz specifikacije - 6 igara odigranih jedna za drugom
- * u istom meču. Prati koja je igra trenutno na redu (currentRound.gameType) i prebacuje odgovarajući
- * pod-fragment; sve dok se ne odigraju sve runde svih igara, MatchState.finished ostaje false.
- */
 class PartijaMpFragment : Fragment() {
 
     private var _binding: FragmentPartijaMpBinding? = null
@@ -50,7 +45,6 @@ class PartijaMpFragment : Fragment() {
         mp.bindCurrentMatch()
         mp.match.observe(viewLifecycleOwner) { state -> if (state != null) onMatchUpdate(state) }
 
-        // Spec: tokeni/zvezde/liga vidljivi u svakom trenutku, uključujući tok partije.
         profilListener = com.example.slagalica.data.ProfilRepository().slusajKorisnika { user ->
             if (user == null) return@slusajKorisnika
             binding.tvPartijaTokeni.text = "🪙 ${user.tokens}"
@@ -67,8 +61,6 @@ class PartijaMpFragment : Fragment() {
         }
         binding.tvPartijaUkupno.text = "Ukupno — Vi: $ukupnoMoje  Protivnik: $ukupnoProtivnik"
 
-        // Spec 3.f: protivnik nastavlja da vidi tok partije, ali treba da zna da je protivnik
-        // napustio (sada igra "solo" do kraja umjesto da čeka nekoga ko se neće vratiti).
         if (!protivnikOtisaoObavesten && state.opponentLeft(mp.uid) && !state.finished) {
             protivnikOtisaoObavesten = true
             com.google.android.material.snackbar.Snackbar.make(
@@ -111,8 +103,6 @@ class PartijaMpFragment : Fragment() {
             .setMessage("Ako sada napustite partiju, automatski gubite i ne dobijate zvezdice. Protivnik nastavlja partiju bez vas.")
             .setPositiveButton("Napusti") { _, _ ->
                 mp.forfeitMatch()
-                // Ja sam napustio - moj ekran se odmah zatvara (spec 3.f: PROTIVNIK nastavlja,
-                // ne ja - ne čekam da se cela partija prirodno završi da bih izašao).
                 mp.leaveMatch()
                 findNavController().popBackStack(com.example.slagalica.R.id.nav_igraj, false)
             }
@@ -157,8 +147,6 @@ class PartijaMpFragment : Fragment() {
                 .show()
         }
 
-        // Ako se nagrada ne izračuna u razumnom roku (npr. trening bez nagrada, ili je igrač
-        // napustio pa se nagrada svjesno ne primjenjuje), ipak zatvori dijalog sam.
         binding.root.postDelayed({
             if (isAdded && !dialogPrikazan) {
                 dialogPrikazan = true

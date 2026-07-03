@@ -150,8 +150,6 @@ class SpojniceMpFragment : Fragment() {
         } else if (starterSub == null) {
 
             if (state.opponentLeft(mp.uid) && round.starterId == state.opponentId(mp.uid)) {
-                // Spec 3.f (baš ovaj primjer): starter je napustio partiju - ne čekamo njegovih
-                // 30s, odmah prelazimo na moju fazu sa svih 5 pojmova dostupnih za povezivanje.
                 startMyPhase(playable = (0 until 5).toList())
             } else {
                 showWaiting(getString(R.string.mp_protivnik_na_potezu))

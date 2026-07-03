@@ -11,11 +11,6 @@ import com.example.slagalica.model.LigaPregled
 import com.example.slagalica.model.LigaRed
 import kotlinx.coroutines.launch
 
-/**
- * ViewModel ekrana "Lige" (spec 6): trenutna liga, napredak ka sljedećoj
- * i pregled svih liga sa pragovima i dnevnim benefitom tokena.
- * Logika pragova/benefita je u [LeagueManager] - ovdje se samo sastavlja prikaz.
- */
 class LigeViewModel(
     private val profilRepo: ProfilRepository = ProfilRepository()
 ) : ViewModel() {
@@ -43,7 +38,6 @@ class LigeViewModel(
             )
         }
 
-        // Napredak ka sljedećoj ligi (ako nije već najviša)
         val jeMaxLiga = ligaIndex >= sveLige.size - 1
         val sledeciPrag = if (jeMaxLiga) null else LeagueManager.pragLige(ligaIndex + 1)
         val pragTrenutne = LeagueManager.pragLige(ligaIndex)

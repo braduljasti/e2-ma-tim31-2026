@@ -22,8 +22,6 @@ class ChatAdapter(
         private val TIME_FMT = SimpleDateFormat("HH:mm", Locale.getDefault())
         private val DATE_FMT = SimpleDateFormat("dd.MM.yyyy.", Locale.getDefault())
 
-        /** Spec 8.c: svaka poruka mora imati i datum i vrijeme slanja. Datum se ne ponavlja
-         * ako je poruka poslata danas (čitljivije), inače se prikazuje "dd.MM.yyyy. HH:mm". */
         fun formatVrijeme(timestampMs: Long): String {
             val poruka = java.util.Calendar.getInstance().apply { timeInMillis = timestampMs }
             val danas = java.util.Calendar.getInstance()

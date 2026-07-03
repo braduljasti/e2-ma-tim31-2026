@@ -10,10 +10,6 @@ import com.example.slagalica.databinding.ItemPrijateljBinding
 import com.example.slagalica.model.Liga
 import com.example.slagalica.model.PrijateljItem
 
-/**
- * Lista prijatelja / rezultata pretrage. Dugme na kartici je "Dodaj" ili
- * "Ukloni" zavisno od [PrijateljItem.jePrijatelj]; klik zove odgovarajući callback.
- */
 class PrijateljiAdapter(
     private val onDodaj: (String) -> Unit,
     private val onUkloni: (String) -> Unit,
@@ -36,7 +32,6 @@ class PrijateljiAdapter(
             if (item.jePrijatelj) {
                 binding.btnAkcijaPrijatelj.setText(R.string.btn_ukloni_prijatelja)
                 binding.btnAkcijaPrijatelj.setOnClickListener { onUkloni(user.uid) }
-                // Poziv na prijateljsku partiju (spec 7.c) - samo za prijatelje
                 binding.btnPozoviPrijatelja.visibility = android.view.View.VISIBLE
                 binding.btnPozoviPrijatelja.setOnClickListener { onPozovi(user.uid) }
             } else {

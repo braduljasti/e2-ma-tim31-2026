@@ -16,7 +16,7 @@ class RangListaViewModel(
 ) : ViewModel() {
 
     companion object {
-        private const val OSVJEZAVANJE_MS = 2 * 60 * 1000L // 2 minuta, po specifikaciji (4.d)
+        private const val OSVJEZAVANJE_MS = 2 * 60 * 1000L
     }
 
     val uid: String get() = FirebaseProvider.currentUid ?: ""
@@ -73,6 +73,6 @@ class RangListaViewModel(
 
     override fun onCleared() {
         super.onCleared()
-        osvjezavajId++ // zaustavlja petlju za osvežavanje
+        osvjezavajId++
     }
 }

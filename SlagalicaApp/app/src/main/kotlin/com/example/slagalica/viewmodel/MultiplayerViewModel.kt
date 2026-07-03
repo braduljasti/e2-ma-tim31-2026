@@ -43,7 +43,6 @@ class MultiplayerViewModel(
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
 
-    /** Popunjava se kada je ishod partije (zvezde/tokeni/liga) obračunat - vidi ProgressionRepository. */
     private val _rewardOutcome = MutableLiveData<MatchRewardOutcome?>()
     val rewardOutcome: LiveData<MatchRewardOutcome?> = _rewardOutcome
 
@@ -56,11 +55,8 @@ class MultiplayerViewModel(
     var requestedGameType: String = MultiplayerRepository.GAME_SKOCKO
         private set
 
-    /** True dok se čeka protivnik za partiju ZA KOJU JE VEĆ POTROŠEN token - ako se traženje
-     * otkaže prije nego što se pronađe protivnik, token treba vratiti (vidi cancelMatchmaking). */
     private var partijaTokenCekaRefundIfCancelled = false
 
-    /** Pravi meč (partija od 6 igara) - troši 1 token. Koristi se za glavno dugme "Igraj!". */
     fun startPartijaMatchmaking() {
         viewModelScope.launch {
             when (val rezultat = runCatching { profilRepo.potrosiToken(uid) }
@@ -82,17 +78,12 @@ class MultiplayerViewModel(
     fun consumeError() { _error.value = null }
     fun consumeRewardOutcome() { _rewardOutcome.value = null }
 
-    // ===== POZIVI PRIJATELJA NA PARTIJU (spec 7.c-e) =====
-
-    /** Status MOG poslatog poziva - za dijalog "čeka se odgovor" kod pošiljaoca. */
     private val _poslatiPoziv = MutableLiveData<PozivNaPartiju?>()
     val poslatiPoziv: LiveData<PozivNaPartiju?> = _poslatiPoziv
 
-    /** Dolazni poziv - MainActivity prikazuje dijalog sa 10s odbrojavanjem. */
     private val _dolazniPoziv = MutableLiveData<PozivNaPartiju?>()
     val dolazniPoziv: LiveData<PozivNaPartiju?> = _dolazniPoziv
 
-    /** Prijateljska partija spremna (matchId) - MainActivity navigira na partiju. */
     private val _prijateljskaSpremna = MutableLiveData<String?>()
     val prijateljskaSpremna: LiveData<String?> = _prijateljskaSpremna
 
@@ -101,7 +92,6 @@ class MultiplayerViewModel(
     private var pozivTimeoutJob: Job? = null
     private var obradjeniPozivi = mutableSetOf<String>()
 
-    /** Šalje poziv prijatelju i čeka odgovor (10s + rezerva, pa se sam otkazuje - spec 7.d/7.e). */
     fun posaljiPozivPrijatelju(friendUid: String) {
         viewModelScope.launch {
             val myName = currentUsername()
@@ -118,7 +108,6 @@ class MultiplayerViewModel(
                     udjiUPrijateljsku(poziv.matchId)
                 }
             }
-            // Ako prijatelj uopšte ne odgovori (app mu nije otvoren), otkaži sam
             pozivTimeoutJob?.cancel()
             pozivTimeoutJob = viewModelScope.launch {
                 delay(POZIV_TIMEOUT_MS)
@@ -132,7 +121,6 @@ class MultiplayerViewModel(
         }
     }
 
-    /** Pošiljalac ručno prekida poziv (spec 7.e). */
     fun otkaziPoslatiPoziv() {
         val poziv = _poslatiPoziv.value ?: return
         viewModelScope.launch { runCatching { pozivnice.otkazi(poziv.id) } }
@@ -147,7 +135,6 @@ class MultiplayerViewModel(
         pozivTimeoutJob?.cancel(); pozivTimeoutJob = null
     }
 
-    /** Pokreće globalno slušanje dolaznih poziva - zove MainActivity jednom. */
     fun slusajDolaznePozive() {
         if (dolazniListener != null || uid.isBlank()) return
         dolazniListener = pozivnice.slusajDolazne(uid) { poziv ->
@@ -158,7 +145,6 @@ class MultiplayerViewModel(
         }
     }
 
-    /** Primalac prihvata poziv: kreira prijateljsku partiju i ulazi u nju. */
     fun prihvatiPoziv(poziv: PozivNaPartiju) {
         _dolazniPoziv.value = null
         viewModelScope.launch {
@@ -172,7 +158,6 @@ class MultiplayerViewModel(
         }
     }
 
-    /** Primalac odbija poziv (ručno ili automatski poslije 10s - spec 7.d). */
     fun odbijPoziv(poziv: PozivNaPartiju) {
         _dolazniPoziv.value = null
         viewModelScope.launch { runCatching { pozivnice.odbij(poziv.id) } }
@@ -186,7 +171,6 @@ class MultiplayerViewModel(
         _prijateljskaSpremna.postValue(matchId)
     }
 
-    /** Napušta se trenutna partija - protivnik se odmah proglašava pobednikom, bez čekanja. */
     fun forfeitMatch() {
         val state = _match.value ?: return
         viewModelScope.launch {
@@ -242,9 +226,6 @@ class MultiplayerViewModel(
         matchListener = repo.listenMatch(matchId) { state ->
             _match.postValue(state)
 
-            // Domaćin (player1) obično razrešava runde; ali ako je BAŠ player1 napustio partiju,
-            // preostali igrač (player2) preuzima tu ulogu - inače bi meč ostao zaglavljen
-            // zauvijek jer niko ne bi pozivao hostResolveIfReady (spec 3.f).
             val isHost = state.isPlayer1(uid) || state.leftUids.contains(state.player1Id)
             if (isHost && !state.finished && state.rundaSpremnaZaResenje()) {
                 viewModelScope.launch { runCatching { repo.hostResolveIfReady(matchId) } }
@@ -268,8 +249,6 @@ class MultiplayerViewModel(
     }
 
     private fun applyReward(state: MatchState) {
-        // Trening (pojedinačna igra) se ne boduje zvezdama/tokenima/ligom - samo prava partija.
-        // Prijateljska partija se takođe ne boduje (spec 3.e).
         if (state.gameType != MultiplayerRepository.GAME_PARTIJA || state.friendly) return
         viewModelScope.launch {
             val outcome = runCatching { repo.primeniNagraduAkoTreba(state.id, uid) }.getOrNull()
@@ -321,7 +300,6 @@ class MultiplayerViewModel(
         }
     }
 
-    /** Uživo prenosi koliko sam koraka otkrio u "Korak po korak" (protivnik koji čeka to vidi). */
     fun korakLiveKorak(korak: Int) {
         val state = _match.value ?: return
         viewModelScope.launch {
@@ -331,7 +309,6 @@ class MultiplayerViewModel(
         }
     }
 
-    /** Uživo prenosi moj Skočko pokušaj (protivnik koji čeka svoj red to vidi). */
     fun skockoLiveGuess(guess: List<Int>) {
         val state = _match.value ?: return
         viewModelScope.launch {
@@ -373,7 +350,6 @@ class MultiplayerViewModel(
     }
 
     private fun saveMyResult(state: MatchState) {
-        // Prijateljske partije ne ulaze u statistiku (spec 3.e)
         if (state.friendly) return
         if (state.gameType == MultiplayerRepository.GAME_PARTIJA) {
             saveMyResultsPartija(state)
@@ -388,8 +364,6 @@ class MultiplayerViewModel(
         }
     }
 
-    /** Partija = svih 6 igara odjednom; sačuvaj po jedan GameResult za svaku odigranu pod-igru
-     * (tako i dalje rade postojeći ekrani statistike u Profilu, po igri). */
     private fun saveMyResultsPartija(state: MatchState) {
         val isP1 = state.isPlayer1(uid)
         val poGrupama = state.rounds.groupBy { it.gameType }
@@ -488,7 +462,6 @@ class MultiplayerViewModel(
     }
 
     companion object {
-        /** Koliko pošiljalac čeka odgovor prije nego što se poziv sam otkaže. */
         private const val POZIV_TIMEOUT_MS = 13_000L
     }
 }

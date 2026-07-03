@@ -5,7 +5,6 @@ import com.google.firebase.firestore.ListenerRegistration
 import com.google.firebase.firestore.Query
 import kotlinx.coroutines.tasks.await
 
-/** Čet po regionima (spec 8) - igrači istog regiona vide istu kolekciju poruka u realnom vremenu. */
 class ChatRepository {
 
     private val db = FirebaseProvider.db

@@ -19,11 +19,6 @@ import com.example.slagalica.viewmodel.MultiplayerViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 
-/**
- * Igra "Korak po korak" (spec 5). Sekvencijalna - prvo igra igrač koji je počeo rundu (do 7
- * koraka, po 10s); tek ako on NE pogodi, protivnik dobija JEDNU priliku od 10 sekundi (5.e),
- * uz uvid u sve korake koje je starter već otvorio.
- */
 class KorakPoKorakMpFragment : Fragment() {
 
     private var _binding: FragmentKorakPoKorakBinding? = null
@@ -103,14 +98,11 @@ class KorakPoKorakMpFragment : Fragment() {
         }
     }
 
-    /** Prati kad starter završi svoju rundu (spec 5.e) da bi meni krenula "krađa". */
     private fun refreshPhase(state: MatchState) {
         if (submittedThisRound || faza == Faza.MOJA_IGRA) return
         val round = state.currentRound ?: return
 
         if (faza == Faza.CEKANJE) {
-            // Uživo pratim koliko je koraka starter otkrio - vidim ih, ali ne mogu da odgovaram
-            // dok mi ne dođe red (spec: "da može, ali da čeka svoj red").
             val starterIsP1 = round.starterId == state.player1Id
             val liveKorak = (if (starterIsP1) round.p1Live else round.p2Live)
                 .lastOrNull()?.toIntOrNull() ?: 0
@@ -124,8 +116,6 @@ class KorakPoKorakMpFragment : Fragment() {
 
         val starterSub = if (round.starterId == state.player1Id) round.p1Sub else round.p2Sub
         if (starterSub == null) {
-            // Spec 3.f: starter je napustio partiju - ne čekamo njegovih koraka, odmah krađa
-            // sa svim koracima otkrivenim (nije bilo napretka od njega).
             if (faza == Faza.CEKANJE && state.opponentLeft(mp.uid) && round.starterId == state.opponentId(mp.uid)) {
                 pokreniKradju(hints.size)
             }
@@ -143,7 +133,6 @@ class KorakPoKorakMpFragment : Fragment() {
         }
     }
 
-    /** Spec 5.e: protivnik dobija JEDNU priliku od 10 sekundi, uz sve korake koje je starter već otvorio. */
     private fun pokreniKradju(otkrivenoKoraka: Int) {
         if (faza == Faza.KRADJA || submittedThisRound) return
         faza = Faza.KRADJA
@@ -177,9 +166,6 @@ class KorakPoKorakMpFragment : Fragment() {
         binding.progressKoraci.progress = step * 100 / KorakKonstante.MAX_KORAKA
         val possible = maxOf(0, KorakKonstante.BODOVA_PRVI_KORAK - (step - 1) * KorakKonstante.ODBITAK_PO_KORAKU)
         binding.tvBodoviKorak.text = getString(R.string.lbl_bodovi_korak, possible)
-        // Emitujemo BROJ ZAVRŠENIH koraka (step-1), ne trenutni - dok je korak "step" još u toku
-        // (tajmer mu teče), on se za starterov sopstveni previousHints ne računa kao "prošao"
-        // dok se ne pređe na sljedeći. Bez ovoga bi protivnik koji čeka vidio jedan korak više.
         if (amStarter) mp.korakLiveKorak(step - 1)
         startTimer(KorakKonstante.VRIJEME_PO_KORAKU_S * 1000L)
     }
@@ -211,7 +197,6 @@ class KorakPoKorakMpFragment : Fragment() {
             if (GameLogic.korakCorrect(target, input)) {
                 submitRound(input, currentStep)
             } else if (faza == Faza.KRADJA) {
-                // U krađi imamo samo JEDAN pokušaj (spec 5.e) - netačan odgovor odmah završava.
                 submitRound(input, currentStep)
             } else {
                 Snackbar.make(binding.root, "Netačno! Pokušajte ponovo ili pređite na sljedeći korak.", Snackbar.LENGTH_SHORT).show()

@@ -15,23 +15,6 @@ import java.util.Date
 import java.util.Locale
 import kotlin.math.floor
 
-/**
- * Rang lista (spec 4) - nedeljna i mesečna, izvedena DIREKTNO iz users.starsWeekly / starsMonthly,
- * koje već održava [ProgressionRepository] (applyMatchResult + reconcileOnStart - kolegin dio,
- * spec 3.d/6.b). Nema posebne kolekcije za rang listu - to znači i manje posla oko sinhronizacije
- * i da je lista uvijek "uživo" tačna.
- *
- * Ova klasa dodaje ono što je u HANDOFF_STUDENT1.md ostavljeno meni:
- *  - dodjelu tokena za plasman na kraju ciklusa (spec 4.c),
- *  - kaznu od 30% zvezda za igrače koji se nisu plasirali na mjesečnoj rang listi (spec 6.e).
- *
- * VAŽNO: pošto projekat nema server, [pripremiZavrsetakCiklusaAkoTreba] MORA da se pozove PRIJE
- * [ProgressionRepository.reconcileOnStart] pri pokretanju aplikacije - inače bi reconcile već
- * resetovao brojače na 0 prije nego što stignemo da vidimo plasman prošlog ciklusa. Čak i tako,
- * pošto svaki korisnik nezavisno (lijeno) detektuje kraj ciklusa kad prvi put otvori aplikaciju,
- * plasman je "najbolja moguća procjena u tom trenutku", a ne savršeno tačan snapshot - isti
- * kompromis koji kolega već pravi u RegionRepository.arhivirajProsliCiklusAkoTreba().
- */
 class RangListaRepository {
 
     private val db = FirebaseProvider.db
@@ -40,7 +23,6 @@ class RangListaRepository {
     companion object {
         private val DAY_FMT = SimpleDateFormat("dd.MM.yyyy.", Locale.getDefault())
 
-        /** Opseg datuma tekućeg ciklusa, za prikaz u UI-ju (spec 4.e). */
         fun cycleDateRange(ciklus: RangCiklus, date: Date = Date()): String {
             val cal = Calendar.getInstance(Locale.getDefault())
             cal.firstDayOfWeek = Calendar.MONDAY
@@ -61,7 +43,6 @@ class RangListaRepository {
             return "${DAY_FMT.format(start)} - ${DAY_FMT.format(end)}"
         }
 
-        /** Tokeni koje nosi dato mjesto na rang listi, po specifikaciji (4.c). */
         fun tokenNagrada(ciklus: RangCiklus, mesto: Int): Int = when {
             mesto == 1 -> if (ciklus == RangCiklus.NEDELJNI) 5 else 10
             mesto == 2 -> if (ciklus == RangCiklus.NEDELJNI) 3 else 6
@@ -71,7 +52,6 @@ class RangListaRepository {
         }
     }
 
-    /** Top N igrača tekućeg ciklusa (za ekran Rang liste). Samo igrači sa >0 zvezda u ciklusu. */
     suspend fun ucitajRangListu(ciklus: RangCiklus, limit: Long = 50): List<RangListaStavka> {
         val polje = if (ciklus == RangCiklus.NEDELJNI) "starsWeekly" else "starsMonthly"
         return runCatching {
@@ -91,11 +71,6 @@ class RangListaRepository {
         }.getOrDefault(emptyList())
     }
 
-    /**
-     * Poziva se PRIJE [ProgressionRepository.reconcileOnStart] pri pokretanju aplikacije (vidi
-     * napomenu u dokumentaciji klase). Idempotentno - bezbjedno je pozivati ga pri svakom
-     * pokretanju (čuva se u users.rewardedCycles).
-     */
     suspend fun pripremiZavrsetakCiklusaAkoTreba(uid: String): List<com.example.slagalica.model.NagradaCiklusa> {
         val ref = users().document(uid)
         val snap = runCatching { ref.get().await() }.getOrNull() ?: return emptyList()
@@ -119,8 +94,6 @@ class RangListaRepository {
 
         val zadnjiVidjeni = snap.getString(poljeCiklus) ?: ""
         val trenutniCiklus = if (ciklus == RangCiklus.NEDELJNI) Cycles.weekly() else Cycles.monthly()
-        // Prazno = korisnik nikad nije prošao kroz reconcile (novoregistrovan) - ništa za obraditi.
-        // Isti ključ = ciklus se još nije promijenio otkad je zadnji put viđen - takođe ništa.
         if (zadnjiVidjeni.isBlank() || zadnjiVidjeni == trenutniCiklus) return null
 
         val rewardId = prefiks + zadnjiVidjeni
@@ -135,7 +108,6 @@ class RangListaRepository {
         var rezultat: com.example.slagalica.model.NagradaCiklusa? = null
 
         if (mesto >= 0) {
-            // Spec 4.c: nagrada za plasman u top 10
             val tokeni = tokenNagrada(ciklus, mesto + 1)
             if (tokeni > 0) {
                 updates["tokens"] = FieldValue.increment(tokeni.toLong())
@@ -156,8 +128,6 @@ class RangListaRepository {
                 }
             }
         } else if (ciklus == RangCiklus.MESECNI && mojeZvezdeCiklusa <= 0) {
-            // Spec 6.e: nije se plasirao na mjesečnoj rang listi (nije odigrao nijednu partiju
-            // ili je završio sa 0 osvojenih zvezda tog mjeseca) -> gubi 30% ukupnih zvezda.
             val trenutneZvezde = (snap.getLong("stars") ?: 0L).toInt()
             if (trenutneZvezde > 0) {
                 val noveZvezde = floor(trenutneZvezde * 0.7).toInt()

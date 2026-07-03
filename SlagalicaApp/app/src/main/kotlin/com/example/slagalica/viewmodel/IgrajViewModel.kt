@@ -17,15 +17,12 @@ class IgrajViewModel(
     private val _stars = MutableLiveData(0)
     val stars: LiveData<Int> = _stars
 
-    // Cijeli Liga enum (naziv + ikonica) - Fragment prikazuje i emoji i ime
     private val _league = MutableLiveData(Liga.NULTA)
     val league: LiveData<Liga> = _league
 
     private var listener: ListenerRegistration? = null
 
     init {
-        // Dnevna dodjela tokena (5 + bonus lige) radi se u MainActivity preko
-        // ProgressionRepository.reconcileOnStart() - ovdje samo pratimo profil uživo.
         listener = profilRepo.slusajKorisnika { user ->
             if (user == null) return@slusajKorisnika
             _tokens.postValue(user.tokens)

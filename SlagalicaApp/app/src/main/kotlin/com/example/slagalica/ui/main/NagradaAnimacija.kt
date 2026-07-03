@@ -10,10 +10,6 @@ import com.example.slagalica.model.NagradaCiklusa
 import com.example.slagalica.model.RangCiklus
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
-/**
- * Spec 4.g: kad igrač otvori aplikaciju nakon što je osvojio nagradu na kraju ciklusa,
- * prikazuje mu se stranica/dijalog sa zvučnom i vizuelnom animacijom nagrade.
- */
 object NagradaAnimacija {
 
     fun prikazi(context: Context, nagrada: NagradaCiklusa) {
@@ -31,7 +27,6 @@ object NagradaAnimacija {
         binding.btnNagradaZatvori.setOnClickListener { dialog.dismiss() }
         dialog.show()
 
-        // Vizuelna animacija: trofej "iskoči" uz rotaciju (spec 4.g).
         val scaleX = ObjectAnimator.ofFloat(binding.tvNagradaEmoji, "scaleX", 0f, 1.2f, 1f)
         val scaleY = ObjectAnimator.ofFloat(binding.tvNagradaEmoji, "scaleY", 0f, 1.2f, 1f)
         val rotate = ObjectAnimator.ofFloat(binding.tvNagradaEmoji, "rotation", -20f, 20f, -10f, 10f, 0f)
@@ -42,7 +37,6 @@ object NagradaAnimacija {
             start()
         }
 
-        // Zvučna animacija: podrazumevani sistemski zvuk notifikacije (bez potrebe za audio fajlom).
         runCatching {
             val uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
             RingtoneManager.getRingtone(context, uri)?.play()

@@ -79,7 +79,6 @@ class IgrajFragment : Fragment() {
             binding.tvLigaIkonaMain.text = liga.emoji
             binding.tvLigaMain.text = liga.displayName
         }
-        // Klik na ligu vodi na ekran napredovanja kroz lige (isti kao iz menija)
         binding.llLigaMain.setOnClickListener { findNavController().navigate(R.id.nav_lige) }
 
         mpViewModel.error.observe(viewLifecycleOwner) { msg ->

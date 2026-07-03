@@ -20,10 +20,6 @@ import com.google.android.material.snackbar.Snackbar
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 
-/**
- * Ekran prijatelja (spec 7.a, 7.b): lista prijatelja kad je pretraga prazna,
- * rezultati pretrage dok se kuca, dodavanje preko korisničkog imena ili QR koda.
- */
 class PrijateljiFragment : Fragment() {
 
     private var _binding: FragmentPrijateljiBinding? = null
@@ -34,7 +30,6 @@ class PrijateljiFragment : Fragment() {
     private lateinit var adapter: PrijateljiAdapter
     private var cekanjeDialog: AlertDialog? = null
 
-    // QR skener (ZXing). Po skeniranju pokušava da izvuče uid iz slagalica://invite/{uid}.
     private val qrSkener = registerForActivityResult(ScanContract()) { rezultat ->
         val sadrzaj = rezultat.contents
         if (sadrzaj != null) obradiQr(sadrzaj)
@@ -73,7 +68,6 @@ class PrijateljiFragment : Fragment() {
         binding.tilPretraga.setEndIconOnClickListener { pokreniQrSkener() }
     }
 
-    /** Šalje poziv na prijateljsku partiju (spec 7.c) i prikazuje čekanje sa Otkaži (7.e). */
     private fun pozoviNaPartiju(friendUid: String) {
         mpViewModel.posaljiPozivPrijatelju(friendUid)
         cekanjeDialog?.dismiss()
@@ -90,8 +84,6 @@ class PrijateljiFragment : Fragment() {
     private fun observeChanges() {
         viewModel.stavke.observe(viewLifecycleOwner) { adapter.submitList(it) }
 
-        // Ishod mog poslatog poziva: odbijen/otkazan -> poruka; prihvaćen ->
-        // MainActivity preuzima navigaciju u partiju (prijateljskaSpremna).
         mpViewModel.poslatiPoziv.observe(viewLifecycleOwner) { poziv ->
             when (poziv?.status) {
                 PozivNaPartiju.DECLINED, PozivNaPartiju.CANCELLED -> {
@@ -108,7 +100,6 @@ class PrijateljiFragment : Fragment() {
         }
         viewModel.prazno.observe(viewLifecycleOwner) { prazno ->
             binding.llPraznoPrijatelji.visibility = if (prazno) View.VISIBLE else View.GONE
-            // Tekst praznog stanja zavisi od moda (lista vs pretraga)
             binding.tvPraznoPrijatelji.setText(
                 if (binding.etPretraga.text.isNullOrBlank()) R.string.lbl_nema_prijatelja
                 else R.string.lbl_nema_rezultata
@@ -119,20 +110,17 @@ class PrijateljiFragment : Fragment() {
         }
     }
 
-    // ===== QR =====
-
     private fun pokreniQrSkener() {
         val opcije = ScanOptions().apply {
             setDesiredBarcodeFormats(ScanOptions.QR_CODE)
             setPrompt(getString(R.string.qr_skeniraj_prompt))
             setBeepEnabled(false)
             setOrientationLocked(true)
-            setCaptureActivity(PortraitCaptureActivity::class.java)   // uspravna kamera
+            setCaptureActivity(PortraitCaptureActivity::class.java)
         }
         qrSkener.launch(opcije)
     }
 
-    /** Iz QR sadržaja "slagalica://invite/{uid}" izvuče uid i doda prijatelja. */
     private fun obradiQr(sadrzaj: String) {
         val prefiks = "slagalica://invite/"
         val uid = sadrzaj.removePrefix(prefiks).trim()

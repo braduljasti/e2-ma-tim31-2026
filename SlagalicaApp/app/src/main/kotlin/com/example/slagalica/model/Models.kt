@@ -44,34 +44,24 @@ data class FirebaseUser(
 
     val avatarId: Int = 1,
     val tokens: Int = 5,
-    val stars: Int = 0,          // trenutni balans zvezda (osnova za ligu, može da pada)
-    val league: Int = 0,         // indeks lige (0 = nulta)
+    val stars: Int = 0,
+    val league: Int = 0,
 
-    // Zvezde osvojene u tekućem ciklusu (rang lista / regioni). Resetuje ih reconcile
-    // na promjeni ciklusa - ta logika dolazi uz funkcionalnosti 4/5/6.
     val starsWeekly: Int = 0,
     val starsMonthly: Int = 0,
 
-    // Kumulativno OSVOJENE zvezde (samo rastu) i koliko je tokena već dodijeljeno iz njih.
-    // Po spec 3.d.iii: svakih 50 osvojenih zvezda donosi 1 token.
     val lifetimeStars: Int = 0,
     val tokensFromStars: Int = 0,
 
-    // Lazy reconcile (obrada pri pokretanju app-a, bez servera):
-    // datum zadnje dnevne dodjele tokena i zadnji viđeni ciklus (za reset zvezda).
     val lastDailyGrant: Long = 0L,
     val lastCycleWeekly: String = "",
     val lastCycleMonthly: String = "",
 
-    // Prisustvo (za "aktivni igrači" u statistici regiona i online status prijatelja).
     val lastSeen: Long = 0L,
 
-    // Rang lista (spec 4) - ciklusi ("W-2026-W27", "M-2026-07") za koje je već isplaćena
-    // nagrada za plasman, da ista nagrada ne bi bila isplaćena više puta.
     val rewardedCycles: List<String> = emptyList()
 )
 
-/** Poruka u regionalnom četu (spec 8). */
 data class ChatMessage(
     val id: String = "",
     val senderUid: String = "",
@@ -82,7 +72,6 @@ data class ChatMessage(
 
 enum class RangCiklus { NEDELJNI, MESECNI }
 
-/** Nagrada za plasman na rang listi (spec 4.g) - koristi se za animirani/zvučni prikaz. */
 data class NagradaCiklusa(
     val ciklus: RangCiklus,
     val mesto: Int,
@@ -90,7 +79,6 @@ data class NagradaCiklusa(
     val kaznjen: Boolean
 )
 
-/** Red na globalnoj rang listi (spec 4) - izveden direktno iz users.starsWeekly/starsMonthly. */
 data class RangListaStavka(
     val uid: String,
     val username: String,
@@ -98,7 +86,6 @@ data class RangListaStavka(
     val stars: Int
 )
 
-/** Statistika jednog regiona na klik (spec 5.d). */
 data class RegionStatistika(
     val naziv: String,
     val emoji: String,
@@ -109,14 +96,12 @@ data class RegionStatistika(
     val trecaMjesta: Int
 )
 
-/** Ishod lazy reconcile-a (dnevni tokeni + reset ciklusa) za eventualni prikaz korisniku. */
 data class ReconcileOutcome(
     val tokensAdded: Int,
     val weeklyReset: Boolean,
     val monthlyReset: Boolean
 )
 
-/** Tačka jednog igrača na mapi regiona (spec 5.a). */
 data class IgracTacka(
     val username: String,
     val regionNaziv: String,
@@ -125,7 +110,6 @@ data class IgracTacka(
     val jaSam: Boolean
 )
 
-/** Red mjesečne rang liste po regionima (spec 5.b) - zbir zvezda igrača regiona u ciklusu. */
 data class RegionRangRed(
     val regionNaziv: String,
     val emoji: String,
@@ -134,7 +118,6 @@ data class RegionRangRed(
     val mojRegion: Boolean
 )
 
-/** Jedan red u pregledu liga (spec 6) - liga, prag zvezda, dnevni tokeni, da li je trenutna. */
 data class LigaRed(
     val liga: Liga,
     val prag: Int,
@@ -142,30 +125,21 @@ data class LigaRed(
     val jeTrenutna: Boolean
 )
 
-/** Pregled napredovanja kroz lige za ekran "Lige". */
 data class LigaPregled(
     val trenutnaLiga: Liga,
     val stars: Int,
-    val sledeciPrag: Int?,        // null ako je igrač u najvišoj ligi
-    val progressPercent: Int,     // napredak ka sljedećoj ligi (0..100)
+    val sledeciPrag: Int?,
+    val progressPercent: Int,
     val redovi: List<LigaRed>
 ) {
     val doSledece: Int get() = ((sledeciPrag ?: stars) - stars).coerceAtLeast(0)
 }
 
-/**
- * Stavka u listi prijatelja / rezultatu pretrage. `jePrijatelj` određuje da li
- * dugme na kartici prikazuje "Dodaj" (false) ili "Ukloni" (true).
- */
 data class PrijateljItem(
     val user: FirebaseUser,
     val jePrijatelj: Boolean
 )
 
-/**
- * Poziv prijatelju na prijateljsku partiju (spec 7.c-e).
- * Statusi: pending -> accepted (uz matchId) | declined | cancelled.
- */
 data class PozivNaPartiju(
     val id: String = "",
     val fromUid: String = "",
@@ -183,20 +157,16 @@ data class PozivNaPartiju(
     }
 }
 
-/**
- * Ishod obrade rezultata partije (applyMatchResult) - vraća se pozivaocu
- * da prikaže dijalog/notifikaciju (npr. "+13 zvezda, prešao si u Srebrnu ligu").
- */
 data class MatchRewardOutcome(
-    val deltaStars: Int,        // promjena balansa (može biti negativna)
-    val newStars: Int,          // novi ukupan balans
-    val tokensAwarded: Int,     // koliko tokena dodijeljeno (pragovi od 50 zvezda)
+    val deltaStars: Int,
+    val newStars: Int,
+    val tokensAwarded: Int,
     val oldLeague: Int,
     val newLeague: Int
 ) {
     val leagueChanged: Boolean get() = oldLeague != newLeague
-    val promoted: Boolean get() = newLeague > oldLeague        // napredovao
-    val relegated: Boolean get() = newLeague < oldLeague       // ispao
+    val promoted: Boolean get() = newLeague > oldLeague
+    val relegated: Boolean get() = newLeague < oldLeague
 }
 
 enum class GameType(val displayName: String) {
@@ -225,7 +195,6 @@ data class SkockoAttempt(
     val wrongPosition: Int
 )
 
-/** Tačno 6 simbola iz specifikacije: skočko, kvadrat, krug, srce, trougao, zvezda. */
 enum class SkockoSymbol(val emoji: String) {
     SKOCKO("🐰"),
     SQUARE("■"),

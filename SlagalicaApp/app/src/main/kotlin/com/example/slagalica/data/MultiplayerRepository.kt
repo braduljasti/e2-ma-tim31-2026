@@ -29,10 +29,8 @@ class MultiplayerRepository {
         const val GAME_KORAK = "Korak"
         const val GAME_MOJ_BROJ = "MojBroj"
 
-        /** Prava "partija" iz specifikacije - svih 6 igara odigranih jedna za drugom. */
         const val GAME_PARTIJA = "Partija"
 
-        /** Redosled igara unutar jedne partije, tačno kao u specifikaciji (odeljak "Igre"). */
         val REDOSLED_PARTIJE = listOf(GAME_KZZ, GAME_SPOJNICE, GAME_ASOCIJACIJE, GAME_SKOCKO, GAME_KORAK, GAME_MOJ_BROJ)
 
         fun nazivIgre(gameType: String): String = when (gameType) {
@@ -258,11 +256,6 @@ class MultiplayerRepository {
         )
     }
 
-    /**
-     * Direktno kreira PRIJATELJSKU partiju između dva poznata igrača (bez matchmaking-a).
-     * Poziva je onaj koji PRIHVATI poziv (spec 7.d). Prijateljska partija ne troši tokene,
-     * ne donosi zvezde i ne ulazi u statistiku (spec 3.e) - vidi flag `friendly`.
-     */
     suspend fun createFriendlyPartija(p1: String, p1Name: String, p2: String, p2Name: String): String {
         val matchId = matches.document().id
         val rounds = buildRounds(GAME_PARTIJA, p1, p2)
@@ -306,10 +299,6 @@ class MultiplayerRepository {
         }.await()
     }
 
-    /**
-     * Igrač koji igra svoju rundu u "Skočko" uživo prenosi svaki pokušaj - protivnik koji čeka
-     * svoj red tako vidi pokušaje u realnom vremenu (ali ne može da igra dok mu ne dođe red).
-     */
     suspend fun skockoLiveGuess(matchId: String, isP1: Boolean, roundIndex: Int, guess: List<Int>) {
         val ref = matches.document(matchId)
         db.runTransaction<Void?> { tx ->
@@ -329,11 +318,6 @@ class MultiplayerRepository {
             null
         }.await()
     }
-    /**
-     * Igrač koji igra svoju rundu u "Korak po korak" prenosi uživo koliko je koraka otkriveno -
-     * protivnik koji čeka svoj red tako vidi otkrivene korake u realnom vremenu (ali ne može
-     * da odgovara dok mu ne dođe red - vidi KorakPoKorakMpFragment).
-     */
     suspend fun korakLiveKorak(matchId: String, isP1: Boolean, roundIndex: Int, korak: Int) {
         val ref = matches.document(matchId)
         db.runTransaction<Void?> { tx ->
@@ -387,8 +371,6 @@ class MultiplayerRepository {
             var p1Sub = round["p1Sub"] as? Map<*, *>
             var p2Sub = round["p2Sub"] as? Map<*, *>
             if (resolved) return@runTransaction null
-            // Ako je jedan igrač napustio partiju, ne čekamo njegov potez - tretiramo ga kao prazan
-            // (0 bodova), da bi preostali igrač mogao odmah da nastavi.
             if (p1Sub == null && player1Id in leftUids) p1Sub = emptyMap<String, Any?>()
             if (p2Sub == null && player2Id in leftUids) p2Sub = emptyMap<String, Any?>()
             if (p1Sub == null || p2Sub == null) return@runTransaction null
@@ -409,10 +391,6 @@ class MultiplayerRepository {
             val newIndex = idx + 1
             val updates = hashMapOf<String, Any?>("rounds" to rounds, "currentRoundIndex" to newIndex)
 
-            // Spec 3.f: čak i kad je neko napustio partiju, meč se NE prekida odmah - preostali
-            // igrač nastavlja kroz sve runde (odsutni igrač se tretira kao "prazan" odgovor u
-            // svakoj narednoj rundi - vidi logiku iznad). Meč se završava tek kad se odigraju
-            // SVE runde; pobjednik je tada uvijek onaj ko nije napustio partiju.
             if (newIndex >= rounds.size) {
                 val p1Total = rounds.sumOf { (it["p1Points"] as? Number)?.toInt() ?: 0 }
                 val p2Total = rounds.sumOf { (it["p2Points"] as? Number)?.toInt() ?: 0 }
@@ -433,18 +411,6 @@ class MultiplayerRepository {
         }.await()
     }
 
-    /**
-     * Igrač napušta partiju - odmah gubi partiju bez zvezdi, a protivnik se odmah proglašava
-     * pobednikom (bez čekanja da istekne preostalo vreme), čime je vreme čekanja svedeno na
-     * minimum. Rezultat se zamrzava na trenutnom zbiru poena po odigranim rundama.
-     */
-    /**
-     * Igrač napušta partiju (spec 3.f) - NE prekida meč odmah, samo obeležava da je otišao.
-     * Protivnik nastavlja da igra preostale runde solo (napustiočevi budući odgovori se
-     * automatski tretiraju kao prazni - vidi [hostResolveIfReady] i
-     * [asocijacijeAutoSkipAkoNapusten]); pobjednik će biti tačno određen tek na prirodnom
-     * kraju partije, ali će uvijek biti onaj ko NIJE napustio, bez obzira na tadašnji skor.
-     */
     suspend fun leaveMatch(matchId: String, myUid: String) {
         val ref = matches.document(matchId)
         db.runTransaction<Void?> { tx ->
@@ -455,23 +421,10 @@ class MultiplayerRepository {
         }.await()
     }
 
-    /**
-     * Dodeljuje zvezdice/tokene/ligu za završenu partiju delegiranjem na
-     * [ProgressionRepository.applyMatchResult] (kolegin dio - spec 3.d + 6). Poziva ga SVAKI
-     * klijent za svoj sopstveni nalog. Idempotentnost (da se nagrada ne primeni dvaput) je
-     * obezbeđena poljima p1RewardApplied/p2RewardApplied na samom meču, koje ova funkcija
-     * postavlja NAKON uspešne primene nagrade (da se nagrada ne izgubi ako aplikacija padne
-     * usred obrade - u najgorem slučaju bi se retko mogla primeniti dvaput, što je prihvatljivo
-     * za ovaj projekat).
-     *
-     * Vraća [MatchRewardOutcome] (za prikaz dijaloga o zvezdama/tokenima/promeni lige), ili null
-     * ako se partija ne boduje (trening, nije još završena, ili je nagrada već primenjena).
-     */
     suspend fun primeniNagraduAkoTreba(matchId: String, myUid: String): com.example.slagalica.model.MatchRewardOutcome? {
         val ref = matches.document(matchId)
         val snap = runCatching { ref.get().await() }.getOrNull() ?: return null
         if (snap.getString("status") != "finished") return null
-        // Prijateljska partija se ne boduje zvezdama/tokenima (spec 3.e)
         if (snap.getBoolean("friendly") == true) return null
 
         val player1Id = snap.getString("player1Id")
@@ -481,7 +434,6 @@ class MultiplayerRepository {
 
         val leftUids = strList(snap.get("leftUids"))
         if (myUid in leftUids) {
-            // Napustio je partiju - ne dobija zvezde (spec 3.f), samo obeleži da je "obrađeno".
             runCatching { ref.update(flagKey, true).await() }
             return null
         }
@@ -489,8 +441,6 @@ class MultiplayerRepository {
         val winnerId = snap.getString("winnerId")
         val myScore = (if (isP1) snap.getLong("player1Score") else snap.getLong("player2Score"))?.toInt() ?: 0
         val oppScore = (if (isP1) snap.getLong("player2Score") else snap.getLong("player1Score"))?.toInt() ?: 0
-        // Nerešeno (winnerId == null) tretiramo kao "pobjeda" za oba igrača - dosledno konvenciji
-        // koja se već koristi u GameResultRepository (won = myPoints >= opponentPoints).
         val won = if (winnerId != null) winnerId == myUid else myScore >= oppScore
 
         val outcome = runCatching {
@@ -662,11 +612,6 @@ class MultiplayerRepository {
             emptyMap()
         }
 
-    /**
-     * Spec 3.f: ako je na potezu igrač koji je napustio partiju, ne čekamo ga - potez mu se
-     * odmah oduzima (isto kao [asocijacijePropusti], ali bez provere da je pozivalac baš on,
-     * pošto napustilac više ne šalje zahtjeve).
-     */
     suspend fun asocijacijeAutoSkipAkoNapusten(matchId: String, roundIndex: Int) =
         asocijacijePotez(matchId, roundIndex) { snap, _, round ->
             val turnUid = round["turnUid"] as? String ?: return@asocijacijePotez null

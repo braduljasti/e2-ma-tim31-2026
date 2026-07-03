@@ -143,8 +143,6 @@ class KzzFragment : Fragment() {
 
     private fun stilirajPocetno(b: MaterialButton) {
         b.isEnabled = true
-        // Eksplicitno bijela pozadina: backgroundTintList = null na MaterialButton-u
-        // iscrtava CRNU pozadinu (poznata Material začkoljica), pa je tekst nečitljiv
         b.backgroundTintList = ColorStateList.valueOf(boja(R.color.surface))
         b.setTextColor(boja(R.color.text_primary))
         b.strokeColor = ColorStateList.valueOf(boja(R.color.primary_light))

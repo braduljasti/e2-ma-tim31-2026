@@ -58,7 +58,6 @@ class ProfilFragment : Fragment() {
         viewModel.playerStats.observe(viewLifecycleOwner) { stats ->
             renderStats(stats)
         }
-        // Spec 5.e - boja okvira avatara po plasmanu regiona u prošlom ciklusu
         viewModel.okvirBoja.observe(viewLifecycleOwner) { colorRes ->
             binding.ivAvatar.backgroundTintList = colorRes?.let {
                 android.content.res.ColorStateList.valueOf(
@@ -129,7 +128,6 @@ class ProfilFragment : Fragment() {
         binding.btnLogout.setOnClickListener { confirmLogout() }
     }
 
-    /** Spec 1.e: promjena lozinke unosom stare lozinke i nove lozinke dva puta (potvrda). */
     private fun showChangePasswordDialog() {
         val dialogBinding = com.example.slagalica.databinding.DialogPromeniLozinkuBinding.inflate(layoutInflater)
 

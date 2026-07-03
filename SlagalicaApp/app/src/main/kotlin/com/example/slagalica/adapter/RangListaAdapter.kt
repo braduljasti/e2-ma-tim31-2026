@@ -28,7 +28,6 @@ class RangListaAdapter(
             }
             binding.root.setCardBackgroundColor(binding.root.context.getColor(bgColor))
 
-            // Medalje za prva tri mjesta (koristi iste boje kao okviri regiona, spec 5.e)
             val strokeColor = when (mesto) {
                 1 -> R.color.medalja_zlato
                 2 -> R.color.medalja_srebro

@@ -6,13 +6,6 @@ import java.time.ZoneId
 import java.time.temporal.ChronoUnit
 import java.time.temporal.WeekFields
 
-/**
- * Identifikatori nedeljnog i mjesečnog ciklusa, izvedeni IZ datuma (čista
- * funkcija, bez čuvanja "kad ističe"). Osnova lazy reconcile-a: kad se ID
- * razlikuje od zadnje viđenog, ciklus se promijenio → reset zvezda.
- *
- * Primjeri: mjesečni "2026-07", nedeljni "2026-W27" (ISO sedmica).
- */
 object Cycles {
 
     private val zona: ZoneId = ZoneId.systemDefault()
@@ -29,10 +22,8 @@ object Cycles {
         return "%04d-W%02d".format(godina, sedmica)
     }
 
-    /** Mjesečni ciklus prethodnog mjeseca (npr. za arhiviranje plasmana). */
     fun prethodniMjesec(date: LocalDate = danas()): String = monthly(date.minusMonths(1))
 
-    /** Broj punih dana između timestamp-a (ms) i danas; 0 ako je isti dan ili u budućnosti. */
     fun danaOd(timestampMs: Long): Long {
         if (timestampMs <= 0L) return 0L
         val od = Instant.ofEpochMilli(timestampMs).atZone(zona).toLocalDate()

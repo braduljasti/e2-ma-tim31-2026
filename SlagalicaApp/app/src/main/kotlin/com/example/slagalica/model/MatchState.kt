@@ -14,8 +14,6 @@ data class MatchState(
     val player2Score: Int,
     val winnerId: String?,
     val leftUids: List<String> = emptyList(),
-    // Prijateljska partija (spec 3.e): ne troši tokene, ne donosi/oduzima zvezde
-    // i ne ulazi u statistiku.
     val friendly: Boolean = false
 ) {
     val finished: Boolean get() = status == "finished"
@@ -29,15 +27,9 @@ data class MatchState(
     fun iLeft(uid: String) = uid in leftUids
     fun opponentLeft(uid: String) = opponentId(uid) in leftUids
 
-    /** Živi (trenutni) zbir bodova - sumira sve runde bez obzira da li je meč kompletno završen. */
     fun liveScore(uid: String): Int =
         rounds.sumOf { if (isPlayer1(uid)) it.p1Points else it.p2Points }
 
-    /**
-     * Živi zbir bodova SAMO za datu igru (npr. samo Skočko rundе), ne za cijelu partiju.
-     * Bitno unutar Partije (6 igara u jednom meču) - bez ovoga bi svaki pojedinačni ekran
-     * prikazivao 0 sve do kraja CIJELE partije, umjesto da odmah pokazuje osvojene poene.
-     */
     fun mojiPoeniZaIgru(uid: String, gameType: String): Int =
         rounds.filter { it.gameType == gameType }
             .sumOf { if (isPlayer1(uid)) it.p1Points else it.p2Points }
@@ -46,11 +38,6 @@ data class MatchState(
         rounds.filter { it.gameType == gameType }
             .sumOf { if (isPlayer1(uid)) it.p2Points else it.p1Points }
 
-    /**
-     * Da li je trenutna runda spremna da je host razreši (spec 3.f). Normalno čeka OBA igrača,
-     * ali ako je neko napustio partiju, ne čekamo njegovu predaju - dovoljno je da PREOSTALI
-     * igrač preda odgovor (host tada tretira napustioca kao "prazan" odgovor za tu rundu).
-     */
     fun rundaSpremnaZaResenje(): Boolean {
         val round = currentRound ?: return false
         if (round.resolved) return false

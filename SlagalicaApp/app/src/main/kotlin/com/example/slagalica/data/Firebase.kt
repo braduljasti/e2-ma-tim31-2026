@@ -25,11 +25,11 @@ object FirestoreCollections {
     const val ASOCIJACIJE_RUNDE = "asocijacijeRunde"
     const val KORAK_POJMOVI = "korakPojmovi"
 
-    const val FRIENDSHIPS = "friendships"     // top-level: jedan dokument = obostrano prijateljstvo
-    const val REGION_STANDINGS = "regionStandings"  // istorija plasmana regiona po ciklusu
+    const val FRIENDSHIPS = "friendships"
+    const val REGION_STANDINGS = "regionStandings"
 
-    const val CHATS = "chats"                 // top-level: chats/{region}/poruke/{id} (spec 8)
+    const val CHATS = "chats"
     const val CHAT_MESSAGES = "poruke"
 
-    const val MATCH_INVITES = "matchInvites"  // pozivi prijatelja na partiju (spec 7.c-e)
+    const val MATCH_INVITES = "matchInvites"
 }

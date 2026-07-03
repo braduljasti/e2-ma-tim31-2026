@@ -36,15 +36,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         lifecycleScope.launch {
             runCatching { com.example.slagalica.data.GameDataRepository().seedIfEmpty() }
         }
-        // Lazy reconcile: dnevni tokeni + reset ciklusa zvezda (spec 3.a/6.b)
         lifecycleScope.launch {
-            // VAŽNO: moja provjera plasmana/kazne (spec 4.c/6.e) mora ići PRIJE
-            // reconcileOnStart-a, jer on resetuje starsWeekly/starsMonthly na 0 čim
-            // detektuje promjenu ciklusa - inače bismo izgubili priliku da vidimo plasman.
             runCatching {
                 com.example.slagalica.data.FirebaseProvider.currentUid?.let { uid ->
                     val nagrade = com.example.slagalica.data.RangListaRepository().pripremiZavrsetakCiklusaAkoTreba(uid)
-                    // Spec 4.g: otvaranjem aplikacije nakon prolaska ciklusa - animirani/zvučni prikaz nagrade.
                     nagrade.forEach { NagradaAnimacija.prikazi(this@MainActivity, it) }
                 }
             }
@@ -56,7 +51,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     getString(R.string.msg_dnevni_tokeni, outcome.tokensAdded),
                     Snackbar.LENGTH_LONG).show()
             }
-            // Arhiviraj plasman regiona prošlog ciklusa (spec 5.d/5.e), lijeno i idempotentno
             runCatching { com.example.slagalica.data.RegionRepository().arhivirajProsliCiklusAkoTreba() }
         }
         setupToolbar()
@@ -65,11 +59,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         setupPoziviNaPartiju()
     }
 
-    /**
-     * Globalni prijem poziva na prijateljsku partiju (spec 7.d): ma gdje korisnik
-     * bio u aplikaciji, iskače dijalog sa 10s odbrojavanjem; bez reakcije se
-     * automatski odbija. Prihvatanje vodi oba igrača u prijateljsku partiju.
-     */
     private fun setupPoziviNaPartiju() {
         val mp = androidx.lifecycle.ViewModelProvider(this)[com.example.slagalica.viewmodel.MultiplayerViewModel::class.java]
         mp.slusajDolaznePozive()
@@ -77,7 +66,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         mp.dolazniPoziv.observe(this) { poziv ->
             if (poziv != null) prikaziDolazniPoziv(mp, poziv)
         }
-        // Prijateljska partija spremna (i za pošiljaoca i za primaoca) -> ulazak u meč
         mp.prijateljskaSpremna.observe(this) { matchId ->
             if (matchId != null) {
                 mp.consumePrijateljskaSpremna()
@@ -106,7 +94,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             .create()
         dialog.show()
 
-        // 10 sekundi za odgovor, pa automatsko odbijanje (spec 7.d)
         object : android.os.CountDownTimer(10_000L, 1_000L) {
             override fun onTick(ms: Long) {
                 if (dialog.isShowing) {
@@ -125,7 +112,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         }.start()
     }
 
-    /** Puni zaglavlje drawer-a pravim podacima (ime, mejl, avatar, tokeni, zvezde) - uživo iz users/{uid}. */
     private fun setupNavHeader() {
         val header = binding.navView.getHeaderView(0)
         val tvIme = header.findViewById<android.widget.TextView>(R.id.tvKorisnickoImeNav)
@@ -158,7 +144,6 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun onResume() {
         super.onResume()
-        // Ažuriraj prisustvo (za "aktivni igrači" u statistici regiona, spec 5.d)
         lifecycleScope.launch {
             runCatching { com.example.slagalica.data.PresenceRepository().azuriraj() }
         }

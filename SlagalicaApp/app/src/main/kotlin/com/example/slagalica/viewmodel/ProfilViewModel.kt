@@ -30,7 +30,6 @@ class ProfilViewModel(
     private val _playerStats = MutableLiveData<PlayerStats>()
     val playerStats: LiveData<PlayerStats> = _playerStats
 
-    // Boja okvira avatara po plasmanu regiona u prošlom ciklusu (spec 5.e); null = default.
     private val _okvirBoja = MutableLiveData<Int?>(null)
     val okvirBoja: LiveData<Int?> = _okvirBoja
 
@@ -64,7 +63,6 @@ class ProfilViewModel(
         }
     }
 
-    /** Spec 5.e: ako je region igrača u prošlom ciklusu bio 1./2./3., okvir je zlatni/srebrni/bronzani. */
     private suspend fun odrediOkvir(region: String) {
         val poredak = runCatching { standingsRepo.poredakZa(Cycles.prethodniMjesec()) }.getOrNull()
         _okvirBoja.value = when (poredak?.indexOf(region)) {
@@ -171,7 +169,6 @@ class ProfilViewModel(
     private val _lozinkaGreska = MutableLiveData<String?>()
     val lozinkaGreska: LiveData<String?> = _lozinkaGreska
 
-    /** Spec 1.e: reset lozinke unosom stare lozinke i nove lozinke (potvrđene) unutar forme. */
     fun promeniLozinku(staraLozinka: String, novaLozinka: String) {
         viewModelScope.launch {
             runCatching { authRepo.changePassword(staraLozinka, novaLozinka) }

@@ -9,7 +9,6 @@ import com.example.slagalica.R
 import com.example.slagalica.databinding.ItemRegionRangBinding
 import com.example.slagalica.model.RegionRangRed
 
-/** Mjesečna rang lista po regionima; region ulogovanog igrača je istaknut. Klik → statistika. */
 class RegionRangAdapter(
     private val onKlik: (String) -> Unit
 ) : ListAdapter<RegionRangRed, RegionRangAdapter.RegionViewHolder>(DiffCallback()) {

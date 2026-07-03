@@ -10,13 +10,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-/**
- * ViewModel za ekran prijatelja (spec 7.a, 7.b).
- *
- * Ima dva moda u istom ekranu:
- *  - prazna pretraga -> prikazuje listu mojih prijatelja
- *  - unesen tekst    -> prikazuje rezultate pretrage (sa "Dodaj"/"Ukloni")
- */
 class PrijateljiViewModel(
     private val repo: FriendsRepository = FriendsRepository()
 ) : ViewModel() {
@@ -37,7 +30,6 @@ class PrijateljiViewModel(
         prikaziPrijatelje()
     }
 
-    /** Lista mojih prijatelja (mod kad je pretraga prazna). */
     fun prikaziPrijatelje() {
         trenutniUpit = ""
         viewModelScope.launch {
@@ -49,7 +41,6 @@ class PrijateljiViewModel(
         }
     }
 
-    /** Pretraga sa debounce-om (300 ms) da ne gađamo bazu na svaki pritisak tipke. */
     fun pretrazi(upit: String) {
         trenutniUpit = upit
         searchJob?.cancel()
@@ -81,7 +72,6 @@ class PrijateljiViewModel(
         }
     }
 
-    /** Po akciji ponovo izvrši tekući mod (lista ili ista pretraga). */
     private fun osvjezi() {
         if (trenutniUpit.isBlank()) prikaziPrijatelje() else pretrazi(trenutniUpit)
     }

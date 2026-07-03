@@ -10,10 +10,6 @@ import com.example.slagalica.model.RegionRangRed
 import com.example.slagalica.model.RegionStatistika
 import kotlinx.coroutines.launch
 
-/**
- * ViewModel ekrana regiona (spec 5.a, 5.b): tačke igrača za mapu i
- * mjesečna rang lista po regionima.
- */
 class RegioniViewModel(
     private val repo: RegionRepository = RegionRepository()
 ) : ViewModel() {
@@ -24,7 +20,6 @@ class RegioniViewModel(
     private val _rang = MutableLiveData<List<RegionRangRed>>(emptyList())
     val rang: LiveData<List<RegionRangRed>> = _rang
 
-    // Statistika regiona na klik (spec 5.d); null dok se ne odabere / poslije prikaza.
     private val _statistika = MutableLiveData<RegionStatistika?>()
     val statistika: LiveData<RegionStatistika?> = _statistika
 

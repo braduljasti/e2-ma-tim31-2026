@@ -17,7 +17,6 @@ class ProfilRepository {
         return userDoc().get().await().toObject(FirebaseUser::class.java)
     }
 
-    /** Živi profil (za ekran "Igraj" - tokeni/zvezde/liga se ažuriraju u realnom vremenu). */
     fun slusajKorisnika(onChange: (FirebaseUser?) -> Unit): ListenerRegistration {
         return userDoc().addSnapshotListener { snap, _ ->
             onChange(snap?.toObject(FirebaseUser::class.java))
@@ -36,14 +35,6 @@ class ProfilRepository {
             .documents.mapNotNull { it.toObject(GameResult::class.java)?.copy(id = it.id) }
     }
 
-    /**
-     * Troši jedan token za započinjanje partije (spec 3.a/3.b: "1 token - 1 partija").
-     * Dnevna dodjela tokena (5 + bonus lige) i njihovo praćenje su u
-     * [ProgressionRepository.reconcileOnStart] (kolegin dio, spec 6.b).
-     *
-     * Ishod razlikuje "nema tokena" (Nedovoljno) od tehničke greške (Greska) - da bi UI mogao
-     * da prikaže tačan uzrok umjesto uvijek iste (potencijalno pogrešne) poruke "nemate tokena".
-     */
     sealed class TokenRezultat {
         object Uspjeh : TokenRezultat()
         object Nedovoljno : TokenRezultat()
@@ -67,7 +58,6 @@ class ProfilRepository {
         }
     }
 
-    /** Vraća 1 token - koristi se kad korisnik otkaže traženje protivnika nakon što je token već potrošen. */
     suspend fun vratiToken(uid: String? = FirebaseProvider.currentUid) {
         if (uid == null) return
         runCatching {

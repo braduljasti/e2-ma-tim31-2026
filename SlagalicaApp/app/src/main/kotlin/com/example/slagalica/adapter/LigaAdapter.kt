@@ -10,7 +10,6 @@ import com.example.slagalica.R
 import com.example.slagalica.databinding.ItemLigaBinding
 import com.example.slagalica.model.LigaRed
 
-/** Prikaz svih liga sa pragom i dnevnim tokenima; trenutna liga je istaknuta. */
 class LigaAdapter : ListAdapter<LigaRed, LigaAdapter.LigaViewHolder>(DiffCallback()) {
 
     inner class LigaViewHolder(
